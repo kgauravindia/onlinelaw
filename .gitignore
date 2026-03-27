@@ -1,11 +1,9 @@
 
 # Vendor/Dependencies
-vendor/
-node_modules/
-advocate
-backups
-news
-skyline
+/admin
+
+
+
 # Environment
 .env
 .env.local
@@ -22,7 +20,7 @@ skyline
 # OS
 .DS_Store
 Thumbs.db
-
+onlinelaw.code-workspace
 # Logs
 *.log
 error_log
