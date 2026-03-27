@@ -65,6 +65,7 @@
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>pincode">PIN Code by Number</a></li>
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc">Bank IFSC</a></li>
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc-by-branch-name">Bank IFSC by Branch</a></li>
+									<li><a class="dropdown-item" href="<?php echo $base_url; ?>gst-hsn-sac">GST HSN & SAC Finder</a></li>
 								  </ul>
 								</li>
 								<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>contact">Contact</a> </li>
