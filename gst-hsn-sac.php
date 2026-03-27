@@ -71,20 +71,25 @@
 					
 					<!-- Table Results -->
 					<?php 
-                        if(!empty($q))
-                        {
+                        if(empty($q)) {
+                            // Show last 25 updated records if search is empty
+                            $sql = "select * from hsnsac order by updated_at DESC LIMIT 25";
+                            $res = direct_sql($sql);
+                            $results_title = "Recently Updated Codes";
+                        } else {
                             $safe_q = addslashes($q);
-                            // Search by code or description
                             $sql = "select * from hsnsac where code like '%$safe_q%' OR description like '%$safe_q%' order by code ASC LIMIT 500";
                             $res = direct_sql($sql);
-                            $ct =$res['count'];
-                            
-                            if($ct >0)
-                            {
-                                $i=1;
+                            $results_title = 'Showing results for "' . htmlentities($q) . '"';
+                        }
+                        
+                        $ct =$res['count'];
+                        if($ct > 0)
+                        {
+                            $i=1;
                     ?>
                                 <div class="table-responsive mt-4">
-                                    <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;">Showing <?php echo $ct; ?> results for "<?php echo htmlentities($q); ?>" </h4>
+                                    <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;"><?php echo $results_title; ?></h4>
                                     <table class="display responsive nowrap w-100" id="hsn_table">
                                         <thead> 
                                         <tr>
