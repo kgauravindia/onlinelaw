@@ -83,15 +83,14 @@
                             $results_title = 'Showing results for "' . htmlentities($q) . '"';
                         }
                         
-                        $ct =$res['count'];
-                        if($ct > 0)
-                        {
-                            $i=1;
+                        $ct = $res['count'];
+                        if($ct > 0) {
+                            $i = 1;
                     ?>
-                                <div class="table-responsive mt-4">
-                                    <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;"><?php echo $results_title; ?></h4>
-                                    <table class="display responsive nowrap w-100" id="hsn_table">
-                                        <thead> 
+                            <div class="table-responsive mt-4">
+                                <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;"><?php echo $results_title; ?></h4>
+                                <table class="display responsive nowrap w-100" id="hsn_table">
+                                    <thead> 
                                         <tr>
                                             <th> No </th>
                                             <th> Type </th>
@@ -99,39 +98,35 @@
                                             <th> Description </th>
                                             <th> Last Update </th>
                                         </tr>
-                                        </thead>
-                                        <tbody>
-                                        
-                                        <?php
-                                            foreach( $res['data'] as $row)
-                                            { 
-                                        ?>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach($res['data'] as $row) { ?>
                                             <tr>
-                                                <td> <?php echo $i; ?> </td>
+                                                <td> <?php echo $i++; ?> </td>
                                                 <td> <span class="badge" style="background: <?php echo ($row['type'] == 'HSN') ? '#eff6ff' : '#ecfdf5'; ?>; color: <?php echo ($row['type'] == 'HSN') ? '#1e40af' : '#065f46'; ?>; font-size: 13px; padding: 4px 10px; border-radius: 4px;"><?php echo htmlentities($row['type']); ?></span> </td>
                                                 <td> <strong style="color: var(--text-main);"><?php echo htmlentities($row['code']); ?></strong> </td>
                                                 <td style="white-space: normal; min-width: 300px; line-height: 1.6;"><?php echo htmlentities($row['description']); ?> </td>
                                                 <td class="small text-muted"> <?php echo date('d M Y', strtotime($row['updated_at'])); ?> </td>
                                             </tr>
-                                        <?php 
-                                                $i =$i+1; 
-                                            }
-                                        ?>
-                                        </tbody>
-                                    </table>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                                
+                                <div class="mt-4 pt-3 border-top text-center">
+                                    <?php 
+                                        $max_res = direct_sql("SELECT MAX(updated_at) as last_up FROM hsnsac");
+                                        $last_up_date = date('d M Y', strtotime($max_res['data'][0]['last_up']));
+                                    ?>
+                                    <p class="text-muted small mb-0">Information as per data last updated on <strong><?php echo $last_up_date; ?></strong>. Source: gst.gov.in</p>
                                 </div>
-                    <?php
-                            }
-                            else
-                            {
-                    ?>
+                            </div>
+                    <?php } else { ?>
+                            <?php if(!empty($q)) { ?>
                                 <div class="alert mt-4" style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: var(--radius-md); padding: 15px 20px;"> 
                                     <i class="fas fa-exclamation-circle mr-2"></i> Sorry! No results found for "<b><?php echo htmlentities($q); ?></b>". Please try another keyword.
                                 </div>
-                    <?php
-                            }
-                        }
-                    ?>
+                            <?php } ?>
+                    <?php } ?>
 				</div>
 			</div>
 		</div>
