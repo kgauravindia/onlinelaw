@@ -1,7 +1,7 @@
 <?php
 	require_once ('includes/function.php'); 
-    $page_title = "Contact Us - Online Law";
-    $meta_desc = "Get in touch with Online Law for any information or legal resource support. We are here to help every citizen.";
+    $page_title = "Contact Us | " . $inst_name;
+    $meta_desc = "Get in touch with $inst_name for any information or legal resource support. We are here to help every citizen.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,123 +17,59 @@
 
 <?php require_once ('includes/header.php'); ?> 
 
-<!-- Banner Section Start -->
-<section class="bg-img-3 overlay p-0 full-row" style="padding: 20px 0 !important;">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="banner-text text-center">
-					<h2 class="text-white banner-tittle position-relative mb-1" style="font-family: var(--font-heading) !important; font-size: 32px; margin: 0;">Contact Us</h2>
-					<ul class="list-inline mt-2 mb-0" style="color: #cbd5e1; font-family: var(--font-body); font-size: 15px;">
-						<li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: rgba(255,255,255,0.8); text-decoration: none;">Home</a></li>
-						<li class="list-inline-item mx-2">/</li>
-						<li class="list-inline-item" style="color: #fff; font-weight: 500;">Contact</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
-<!-- Banner Section End --> 
+<!-- Full Screen Map Hero -->
+<section id="contact-hero" style="position: relative; height: calc(100vh - 100px); min-height: 800px; width: 100%; overflow: hidden; background-color: var(--bg-body);">
+    <!-- The Map (Full Screen) -->
+    <div id="full-map-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+        <?php echo $google_map; ?>
+    </div>
 
-<section class="full-row bg-body py-80">
-	<div class="container">
-		<div class="row justify-content-center">
-			<div class="col-lg-10">
-				<div class="detail-area p-5" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: #fff;">
-					<div class="row">
-						<div class="col-lg-7">
-							<h3 class="mb-4" style="font-family: var(--font-heading); font-weight: 700;">Get in Touch</h3>
-							<p class="mb-5 text-muted">Have a question or need legal information? Fill out the form below and our team will get back to you shortly.</p>
-							
-							<form class="form-style-1 contact-message" id="contact-form" action="<?php echo $base_url; ?>mail.php" method="post">
-								<div class="form-group mb-4">
-									<input class="form-control" type="text" name="name" placeholder="Your Name" required style="height: 55px; border-radius: var(--radius-md);">
-								</div>
-								<div class="form-group mb-4">
-									<input class="form-control" type="email" name="email" placeholder="Email Address" required style="height: 55px; border-radius: var(--radius-md);">
-								</div>
-								<div class="form-group mb-4">
-									<input class="form-control" type="text" name="subject" placeholder="Subject" required style="height: 55px; border-radius: var(--radius-md);">
-								</div>
-								<div class="form-group mb-4">
-									<textarea class="form-control" name="message" placeholder="Message" required style="border-radius: var(--radius-md); min-height: 150px; padding: 15px;"></textarea>
-								</div>
-								<div class="form-group mb-0">
-									<input class="btn btn-primary w-100" id="send" value="Send Message" type="submit" style="height: 55px; font-weight: 600; border-radius: var(--radius-md);">
-								</div>
-								<div class="mt-3">
-									<div class="error-handel">
-										<div id="success" class="alert alert-success" style="display:none;">Your message has been sent successfully. Thank you!</div>
-										<div id="error" class="alert alert-danger" style="display:none;">An error occurred while sending your message. Please try again.</div>
-									</div>
-								</div>
-							</form>
-						</div>
-						
-						<div class="col-lg-5 mt-5 mt-lg-0 pl-lg-5">
-							<div class="contact-info-block" style="border-left: 1px solid var(--border-soft); padding-left: 30px;">
-								<h4 class="mb-4" style="font-family: var(--font-heading); font-weight: 700;">Office Info</h4>
-								
-								<div class="mb-4 d-flex align-items-start">
-									<div class="icon-box mr-3" style="width: 45px; height: 45px; background: var(--primary-light); color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-										<i class="fas fa-envelope"></i>
-									</div>
-									<div>
-										<h6 class="mb-1" style="font-weight: 700;">Email Us</h6>
-										<span><a href="mailto:<?php echo $inst_email;?>" class="text-muted"> <?php echo $inst_email; ?> </a></span>
-									</div>
-								</div>
-								
-								<div class="mb-4 d-flex align-items-start">
-									<div class="icon-box mr-3" style="width: 45px; height: 45px; background: #e0f2fe; color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-										<i class="fas fa-map-marker-alt"></i>
-									</div>
-									<div>
-										<h6 class="mb-1" style="font-weight: 700;">Our Location</h6>
-										<span class="text-muted"><?php echo $inst_address1; ?>, <?php echo $inst_address2; ?></span>
-									</div>
-								</div>
-								
-								<div class="mb-4 d-flex align-items-start">
-									<div class="icon-box mr-3" style="width: 45px; height: 45px; background: #f0fdf4; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-										<i class="fas fa-phone-alt"></i>
-									</div>
-									<div>
-										<h6 class="mb-1" style="font-weight: 700;">Call Support</h6>
-										<span class="text-muted"><?php echo $inst_contact; ?></span>
-									</div>
-								</div>
-								
-								<div class="d-flex align-items-start">
-									<div class="icon-box mr-3" style="width: 45px; height: 45px; background: #fef2f2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-										<i class="fab fa-whatsapp"></i>
-									</div>
-									<div>
-										<h6 class="mb-1" style="font-weight: 700;">WhatsApp</h6>
-										<span><a href="<?php echo $inst_whatsapp; ?>" target="_blank" class="text-muted">Join Our Channel</a></span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
-<!--Message Location Section Start-->
-<div class="full-row" id="message-location">
-    <div class="container-fluid">
-        <div class="row">
-			<div class="col-lg-12">
-			
-				<div id="map" style="margin: 0 -15px"> 
-				<?php echo $google_map; ?> 
-				</div>
-			</div>
+    <!-- Floating Contact Card -->
+    <div class="container" style="position: relative; z-index: 2; height: 100%; display: flex; align-items: center; pointer-events: none;">
+        <div class="row w-100 m-0">
+            <div class="col-lg-5 col-md-8" style="pointer-events: auto;">
+                <div class="detail-area p-5 shadow-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: var(--radius-lg);">
+                    <h3 class="mb-4" style="font-family: var(--font-heading); font-weight: 700;">Get in Touch</h3>
+                    <p class="mb-4 text-muted small">Need legal information or resource support? Our team is here to help.</p>
+
+                    <div class="contact-info-list mb-4">
+                        <div class="d-flex mb-3">
+                            <i class="fas fa-map-marker-alt text-primary mt-1 mr-3"></i>
+                            <span class="small text-muted"><?php echo $inst_address1; ?>, <?php echo $inst_address2; ?></span>
+                        </div>
+                        <div class="d-flex mb-3">
+                            <i class="fas fa-envelope text-primary mt-1 mr-3"></i>
+                            <span class="small text-muted"><?php echo $inst_email; ?></span>
+                        </div>
+                        <div class="d-flex mb-3">
+                            <i class="fas fa-phone-alt text-primary mt-1 mr-3"></i>
+                            <span class="small text-muted"><?php echo $inst_contact; ?></span>
+                        </div>
+                    </div>
+
+                    <form class="contact-message" id="contact-form" action="<?php echo $base_url; ?>mail.php" method="post">
+                        <div class="form-group mb-3">
+                            <input class="form-control" type="text" name="name" placeholder="Name" required style="height: 45px; font-size: 14px; border-radius: var(--radius-md);">
+                        </div>
+                        <div class="form-group mb-3">
+                            <input class="form-control" type="email" name="email" placeholder="Email" required style="height: 45px; font-size: 14px; border-radius: var(--radius-md);">
+                        </div>
+                        <div class="form-group mb-4">
+                            <textarea class="form-control" name="message" placeholder="Message" required style="border-radius: var(--radius-md); min-height: 100px; padding: 12px; font-size: 14px;"></textarea>
+                        </div>
+                        <div class="form-group mb-0">
+                            <input class="btn btn-primary w-100" id="send" value="Send Message" type="submit" style="height: 45px; font-weight: 600; font-size: 14px; border-radius: var(--radius-md);">
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 pt-3 border-top">
+                        <a href="<?php echo $google_map_url; ?>" target="_blank" class="btn btn-outline-primary w-100" style="border-radius: var(--radius-md); font-weight: 500; font-size: 13px;">
+                            <i class="fas fa-directions mr-2"></i> GET DIRECTIONS ON GOOGLE
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<!--Message Location Section End--> 
+</section>
 <?php require_once ('includes/footer.php'); ?> 

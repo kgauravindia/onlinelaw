@@ -46,8 +46,8 @@ $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 $base_url = $protocol . "://" . $host . $base_path;
 
 $docs_fee =200;
-$google_map = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3592.295819755112!2d84.74503027446316!3d25.79381300727921!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3992bb0071acc88d%3A0x667cb9b46cda2f4f!2sOnline%20Law!5e0!3m2!1sen!2sin!4v1727002236181!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
-$google_map_url = 'https://maps.app.goo.gl/StDkTBA8MjsNiE6x6';
+$google_map = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3592.2970631671963!2d84.74506377610148!3d25.7937490072049!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3992bb0071acc88d%3A0x667cb9b46cda2f4f!2sOnline%20Law!5e0!3m2!1sen!2sin!4v1743079268383!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+$google_map_url = 'https://maps.app.goo.gl/8TbKDXy7N8iQRWpr7';
 /*---------Social Link ----------*/
 
 $facebook ='http://facebook.com/offerplant';

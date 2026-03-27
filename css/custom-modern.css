@@ -354,3 +354,43 @@ footer a:hover {
     color: #0f172a !important;
     box-shadow: var(--shadow-sm);
 }
+
+/* =========================================
+   CONTACT PAGE ENHANCEMENTS
+   ========================================= */
+.contact-info-block .icon-box {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.contact-info-block .d-flex:hover .icon-box {
+    transform: scale(1.1);
+}
+
+.contact-info-block h6 {
+    transition: color 0.2s ease;
+}
+
+.contact-info-block .d-flex:hover h6 {
+    color: var(--primary-color) !important;
+}
+
+#message-location iframe {
+    filter: grayscale(0.2);
+    transition: filter 0.5s ease;
+}
+
+#message-location:hover iframe {
+    filter: grayscale(0);
+}
+
+@media (max-width: 991px) {
+    .detail-area {
+        padding: 30px !important;
+    }
+    .contact-info-block {
+        border-left: none !important;
+        padding-left: 0 !important;
+        border-top: 1px solid var(--border-soft);
+        padding-top: 30px;
+    }
+}
