@@ -1,0 +1,36 @@
+
+# Vendor/Dependencies
+vendor/
+node_modules/
+advocate
+backups
+news
+skyline
+# Environment
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+.php_cs.cache
+
+# Temp
+tmp/
+
+
+
+# User Uploads

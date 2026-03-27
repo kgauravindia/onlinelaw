@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 1. Search tool detail URLs
+    RewriteRule ^pincode/([0-9]+)/?$ pincode.php?pincode=$1 [L,QSA]
+    RewriteRule ^bank-ifsc/([a-zA-Z0-9]+)/?$ bank-ifsc.php?ifsc=$1 [L,QSA]
+    RewriteRule ^bank-ifsc-by-branch-name/([a-zA-Z0-9\s_-]+)/?$ bank-ifsc-by-branch-name.php?branch=$1 [L,QSA]
+    RewriteRule ^pincode-by-locality/([a-zA-Z0-9\s_-]+)/?$ pincode-by-locality.php?locality=$1 [L,QSA]
+    
+    # 2. Map extensionless urls to .php
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}\.php -f
+    RewriteRule ^([a-zA-Z0-9_\-]+)/?$ $1.php [L,QSA]
+</IfModule>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Meta Tag -->
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Online Law (olaw.in) provides free digital legal resources, PIN code lookup, and bank IFSC finder in one place.">
+<meta name="keywords" content="online law, free legal resources, pin code, ifsc, bank ifsc finder">
+<meta name="author" content="OfferPlant">
+<title>Online Law - For Every Citizen</title>
+
+<?php require_once ('includes/header.php'); ?> 
+
+<!-- Hero Banner Section Start -->
+<section class="bg-img-3 overlay full-row" style="padding: 120px 0; background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(2,132,199,0.9)), url('images/planning.jpg') no-repeat center center / cover;">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-10 mx-auto text-center">
+				<div class="banner-text">
+					<span class="badge mb-3" style="background: rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; font-weight: 500; font-family: var(--font-body); border-radius: 20px; letter-spacing: 1px;">FOR EVERY CITIZEN</span>
+					<h1 class="text-white mb-4" style="font-family: var(--font-heading); font-size: 56px; font-weight: 800; line-height: 1.2;">Empowering India with <br><span style="color: #38bdf8; font-style: italic;">Free Digital Law Tools</span></h1>
+					<p class="text-white mb-5" style="font-size: 18px; font-family: var(--font-body); opacity: 0.9; max-width: 700px; margin: 0 auto; line-height: 1.6;">Access critical legal data with zero friction. From locating exact Bank IFSC codes for secure transactions to finding precise PIN codes instantly.</p>
+					
+					<div class="d-flex justify-content-center flex-wrap">
+                        <a href="<?php echo $base_url; ?>pincode" class="btn btn-primary m-2" style="font-size: 18px; padding: 15px 30px !important;">Search PIN Code <i class="fas fa-arrow-right ml-2"></i></a>
+                        <a href="<?php echo $base_url; ?>bank-ifsc" class="btn btn-secondary m-2" style="font-size: 18px; padding: 15px 30px !important;">Find Bank IFSC <i class="fas fa-university ml-2"></i></a>
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<!-- Hero Banner Section End --> 
+
+<!-- Features Grid -->
+<section class="full-row bg-body pt-80 pb-50" style="padding: 80px 0;">
+	<div class="container">
+		<div class="row text-center mb-5">
+			<div class="col-lg-12">
+				<h2 class="section-title mb-3" style="font-family: var(--font-heading); font-size: 36px; color: var(--text-main);">Rapid Essential Lookups</h2>
+				<p style="color: var(--text-muted); font-size: 16px;">Universally free platform for citizens to access highly optimized digital tools.</p>
+			</div>
+		</div>
+		<div class="row align-items-center justify-content-center">
+			
+			<div class="col-lg-4 col-md-6 mb-4">
+				<div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+					<div class="icon-box mb-4">
+						<i class="fas fa-map-marked-alt" style="font-size: 40px; color: var(--primary-color);"></i>
+					</div>
+					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">PIN Code Directory</h4>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Search and verify over 2.5 million accurate Postal Index Numbers spanning every state and UT in India.</p>
+					<a href="<?php echo $base_url; ?>pincode" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Explore PINs <i class="fas fa-search ml-1"></i></a>
+				</div>
+			</div>
+			
+			<div class="col-lg-4 col-md-6 mb-4">
+				<div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+					<div class="icon-box mb-4">
+						<i class="fas fa-university" style="font-size: 40px; color: var(--primary-color);"></i>
+					</div>
+					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Bank IFSC Data</h4>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Safeguard your transactions by instantly looking up exact IFSC details for over 125,000 branch records.</p>
+					<a href="<?php echo $base_url; ?>bank-ifsc" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Find IFSC <i class="fas fa-search ml-1"></i></a>
+				</div>
+			</div>
+			
+			<div class="col-lg-4 col-md-6 mb-4">
+                <div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+					<div class="icon-box mb-4">
+						<i class="fas fa-balance-scale" style="font-size: 40px; color: var(--primary-color);"></i>
+					</div>
+					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Our Core Mission</h4>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Online Law encompasses the legal aspects of digital empowerment, providing privacy-focused tools.</p>
+					<a href="<?php echo $base_url; ?>about" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</section>
+<!-- Features Grid End --> 
+
+<?php require_once ('includes/footer.php'); ?> 

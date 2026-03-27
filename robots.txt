@@ -1,0 +1,21 @@
+User-agent: *
+Disallow: /app/
+Allow: /search/about
+Disallow: /ed/*
+Allow: /js/
+
+# AdsBot
+User-agent: AdsBot-Google
+Disallow: /app
+Allow: /index
+
+User-agent: Twitterbot
+Allow: /imgres
+Allow: /search
+
+User-agent: facebookexternalhit
+Allow: /index
+
+Sitemap: https://olaw.in/sitemap.xml
+Sitemap: https://olaw.in/sitemap-pincode.xml
+Sitemap: https://olaw.in/sitemap-ifsc.xml
