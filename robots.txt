@@ -16,6 +16,6 @@ Allow: /search
 User-agent: facebookexternalhit
 Allow: /index
 
-Sitemap: https://olaw.in/sitemap.xml
+Sitemap: https://olaw.in/sitemap.php
 Sitemap: https://olaw.in/sitemap-pincode.xml
 Sitemap: https://olaw.in/sitemap-ifsc.xml
