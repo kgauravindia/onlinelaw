@@ -61,7 +61,7 @@
 						<i class="fas fa-university" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
 					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Bank IFSC Data</h4>
-					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Safeguard your transactions by instantly looking up exact IFSC details for over 125,000 branch records.</p>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Safeguard your transactions by instantly looking up exact IFSC details for over 178,453 branch records (Updated 2026).</p>
 					<a href="<?php echo $base_url; ?>bank-ifsc" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Find IFSC <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
@@ -69,11 +69,11 @@
 			<div class="col-lg-4 col-md-6 mb-4">
                 <div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
 					<div class="icon-box mb-4">
-						<i class="fas fa-balance-scale" style="font-size: 40px; color: var(--primary-color);"></i>
+						<i class="fas fa-file-invoice-dollar" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
-					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Our Core Mission</h4>
-					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Online Law encompasses the legal aspects of digital empowerment, providing privacy-focused tools.</p>
-					<a href="<?php echo $base_url; ?>about" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">GST HSN & SAC Finder</h4>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Search and verify thousands of GST HSN (Goods) and SAC (Services) codes with current tax rates and descriptions.</p>
+					<a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search HSN/SAC <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
 			

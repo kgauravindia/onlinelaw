@@ -68,6 +68,7 @@
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>gst-hsn-sac">GST HSN & SAC Finder</a></li>
 								  </ul>
 								</li>
+								<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>api">Developer API</a> </li>
 								<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>contact">Contact</a> </li>
 							  </ul>
 							</div>
