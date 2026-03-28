@@ -93,9 +93,11 @@
 						<h3 class="pb-2" style="font-family: var(--font-heading); font-weight: 700; font-size: calc(1.3rem + 0.6vw);">Indian Financial System Code (IFSC)</h3>
 						<span class="text-muted" style="font-size: 14px;">Enter an 11-digit alphanumeric IFSC code below to retrieve detailed branch information.</span>
 						<div class="mt-3">
-							<span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); font-weight: 500; padding: 8px 16px; border-radius: 50px; font-size: 13px; border: 1px solid rgba(var(--primary-rgb), 0.2);">
-								<i class="fas fa-check-circle mr-1"></i> 178,453 Bank IFSC Added (Last Update: 15 March 2026 - RBI Official)
-							</span>
+							<div class="d-inline-flex align-items-center justify-content-center p-2 px-3 text-center" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); font-weight: 600; border-radius: 12px; font-size: 13px; border: 1px solid rgba(var(--primary-rgb), 0.2); line-height: 1.5; max-width: 100%;">
+                                <div class="px-1">
+								    <i class="fas fa-check-circle mr-1"></i> 178,453 Bank IFSC Added <span class="d-block d-md-inline-block text-muted" style="font-weight: 500; font-size: 12px;">(Last Update: 15 March 2026 - RBI Official)</span>
+                                </div>
+							</div>
 						</div>
 					</div>
 					
