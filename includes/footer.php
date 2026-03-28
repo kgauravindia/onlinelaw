@@ -21,6 +21,7 @@
 					<li class="mb-2"><a href="<?php echo $base_url; ?>pincode" style="transition: color 0.2s;">PIN Code Locator</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>bank-ifsc" style="transition: color 0.2s;">Bank IFSC Finder</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>gst-hsn-sac" style="transition: color 0.2s;">GST HSN & SAC Finder</a></li>
+					<li class="mb-2"><a href="<?php echo $base_url; ?>passport" style="transition: color 0.2s;">Passport Office Locator</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>contact" style="transition: color 0.2s;">Contact Support</a></li>
 				  </ul>
 				</div>
@@ -55,7 +56,7 @@
 				  </ul>
 				</div>
                 <div class="col-md-6 text-center text-md-right">
-                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Last website update: 15 March 2026</div>
+                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Last website update: 28 March 2026</div>
 				    <span style="font-size: 14px; color: #94a3b8;">Copyright &copy; 2026 Online Law. An initiative of <a href="https://offerplant.com" target="_blank" style="color: var(--primary-color); font-weight: 500; text-decoration: none; transition: color 0.3s;">OfferPlant</a></span> 
                 </div>
 			  </div>

@@ -15,6 +15,11 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
     </sitemap>
 
     <sitemap>
+        <loc><?php echo $base; ?>sitemap-passport.xml</loc>
+        <lastmod><?php echo date('Y-m-d'); ?></lastmod>
+    </sitemap>
+
+    <sitemap>
         <loc><?php echo $base; ?>sitemap-ifsc.xml</loc>
         <lastmod><?php echo date('Y-m-d'); ?></lastmod>
     </sitemap>
