@@ -16,6 +16,7 @@ $inst_address1 ="2B Umanagar, Chapra ";
 $inst_address2 ="Saran, Bihar, India 841301";
 $inst_contact ="+91 9430 55 2117";
 $inst_support ="8102930609";
+$inst_contact2 ="+91 9431 42 6600";
 $inst_email ="care@olaw.in";
 $inst_logo ="/images/logo/logo.png";
 $white_logo ="/images/logo/logo-white.png";
@@ -23,13 +24,13 @@ $inst_url ="https://olaw.in";
 $inst_domain ="olaw.in";
 $inst_type ="Organization";
 
-$inst_facebook ='https://www.facebook.com/AdvocateIndexAI';
-$inst_twitter ='https://twitter.com/AdvocateIndexAI';
-$inst_instagram ='https://www.instagram.com/advocateindex/';
-$inst_youtube ='https://www.youtube.com/@AdvocateIndex';
-$inst_blog ='https://advocateindex.blogspot.com/';
+$inst_facebook ='http://facebook.com/offerplant';
+$inst_twitter ='http://twitter.com/myofferplant';
+$inst_instagram ='http://instagram.com/offerplant';
+$inst_youtube ='http://youtube.com/offerplanttechnonogiesprivatelimited';
+$inst_linkedin ='http://linkedin.com/company/offerplant';
+$inst_pinterest ='http://pinterest.com/offerplant';
 $inst_app='https://play.google.com/store/apps/details?id=com.offerplant.myadvindia'; 
-$inst_whatsapp='https://whatsapp.com/channel/0029Vak7ETbAO7RCCDTwAj37';
 $sender_id ="OLAWIN"; // OFFAPP
 $noreply_email ="noreply@olaw.in";
 $auth_key_msg ="b0e99bea1fa7d15e27e1c5fd8e3c868"; // MSG CLUB myadvindia updated on 12 jan 2023 
@@ -75,7 +76,7 @@ $dev_company ="OfferPlant Technologies Private Limited";
 $dev_by ="OfferPlant";
 $dev_url ="http://offerplant.com";
 $dev_email ="ask@offerplant.com";
-$dev_contact ="9431426600";
+$dev_contact ="+91 9431 42 6600";
 $api_key ='a9dcc62d6078b881d318aca0ead65ab5'; //MyAdvIndia@2020
 
 $host_name ='localhost';

@@ -34,12 +34,12 @@
 				  <p class="mb-4" style="line-height: 1.8;">Subscribe and follow our social media channels to get the latest legal updates, news, and features.</p>
 
 				  <ul class="social-media-2 text-left d-flex flex-wrap" style="list-style: none; padding: 0; gap: 10px;">
-					<li><a href="<?php echo $inst_facebook; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-facebook-f"></i></a></li>
-					<li><a href="<?php echo $inst_twitter; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-twitter"></i></a></li>
-					<li><a href="<?php echo $inst_blog; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-blogger-b"></i></a></li>
-					<li><a href="<?php echo $inst_instagram; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-instagram"></i></a></li>
-					<li><a href="<?php echo $inst_youtube; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-youtube"></i></a></li>
-					<li><a href="<?php echo $inst_whatsapp; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-whatsapp"></i></a></li>
+					<li><a href="<?php echo $facebook; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-facebook-f"></i></a></li>
+					<li><a href="<?php echo $twitter; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-twitter"></i></a></li>
+					<li><a href="<?php echo $linkedin; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-linkedin-in"></i></a></li>
+					<li><a href="<?php echo $instagram; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-instagram"></i></a></li>
+					<li><a href="<?php echo $youtube; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-youtube"></i></a></li>
+					<li><a href="<?php echo $pinterest; ?>" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;"><i class="fab fa-pinterest-p"></i></a></li>
 				  </ul>
 				</div>
 			  </div>

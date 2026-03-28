@@ -21,6 +21,42 @@
 <meta name="keywords" content="Search PIN, <?php echo $pincode; ?>, PIN Code, PINCODE, Post Office, Where is my Post Office, Local Post Office, PIN Code Download">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
+<style>
+    @media (max-width: 767px) {
+        .banner-tittle { font-size: 26px !important; }
+        .detail-area { padding: 25px 15px !important; }
+        .desktop-only { display: none !important; }
+        .mobile-only { display: block !important; }
+    }
+    @media (min-width: 768px) {
+        .mobile-only { display: none !important; }
+        .desktop-only { display: block !important; }
+    }
+    .result-card {
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .result-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .card-num {
+        width: 32px;
+        height: 32px;
+        background: #f1f5f9;
+        color: #475569;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+    }
+</style>
+
 
 <?php require_once ('includes/header.php'); ?> 
 
@@ -47,10 +83,10 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-lg-12">
-				<div class="detail-area p-5" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: #fff;">
-					<div class="d-flex flex-column align-items-center text-center mb-5">
-						<h3 class="pb-2" style="font-family: var(--font-heading); font-weight: 700;">PIN / Postal Index Number</h3>
-						<span style="color: var(--text-muted); font-size: 15px;">Enter a 6-digit PIN code below to instantly retrieve Post Office details.</span>
+				<div class="detail-area p-3 p-md-5" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: #fff;">
+					<div class="d-flex flex-column align-items-center text-center mb-4">
+						<h3 class="pb-2" style="font-family: var(--font-heading); font-weight: 700; font-size: calc(1.3rem + 0.6vw);">PIN / Postal Index Number</h3>
+						<span class="text-muted" style="font-size: 14px;">Enter a 6-digit PIN code below to instantly retrieve Post Office details.</span>
 					</div>
 					
 					<form method="post" action="<?php echo $base_url; ?>pincode" class="form-style-1 mb-5">
@@ -85,41 +121,72 @@
                                 {
                                     $i=1;
                     ?>
-                                    <div class="table-responsive mt-4">
+                                    <div class="results-container mt-4">
                                         <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;">Showing results for PIN Code "<?php echo htmlentities($pincode); ?>" </h4>
-                                        <table class="display responsive nowrap w-100" id="pincode_table">
-                                            <thead> 
-                                            <tr>
-                                                <th> No </th>
-                                                <th> Locality  </th>
-                                                <th> Post Office </th>
-                                                <th> Sub District</th>
-                                                <th> District</th>
-                                                <th>State / UT</th>
-                                                <th> PIN Code </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            
-                                            <?php
-                                                foreach( $res['data'] as $row)
-                                                { 
-                                            ?>
+                                        
+                                        <!-- Desktop Table View -->
+                                        <div class="table-responsive desktop-only">
+                                            <table class="display responsive nowrap w-100" id="pincode_table">
+                                                <thead> 
                                                 <tr>
-                                                    <td> <?php echo $i; ?> </td>
-                                                    <td> <?php echo htmlentities($row['locality_name']); ?> </td>
-                                                    <td> <?php echo htmlentities($row['office_name']); ?> </td>
-                                                    <td> <?php echo htmlentities($row['sub_district_name']); ?> </td>
-                                                    <td> <?php echo htmlentities($row['district_name']); ?> </td>
-                                                    <td> <?php echo htmlentities($row['state_name']); ?> </td>
-                                                    <td> <span class="badge" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px;"><?php echo htmlentities($row['pincode']); ?></span> </td>
+                                                    <th> No </th>
+                                                    <th> Locality  </th>
+                                                    <th> Post Office </th>
+                                                    <th> Sub District</th>
+                                                    <th> District</th>
+                                                    <th>State / UT</th>
+                                                    <th> PIN Code </th>
                                                 </tr>
+                                                </thead>
+                                                <tbody>
+                                                <?php foreach( $res['data'] as $row) { ?>
+                                                    <tr>
+                                                        <td> <?php echo $i++; ?> </td>
+                                                        <td> <?php echo htmlentities($row['locality_name']); ?> </td>
+                                                        <td> <?php echo htmlentities($row['office_name']); ?> </td>
+                                                        <td> <?php echo htmlentities($row['sub_district_name']); ?> </td>
+                                                        <td> <?php echo htmlentities($row['district_name']); ?> </td>
+                                                        <td> <?php echo htmlentities($row['state_name']); ?> </td>
+                                                        <td> <span class="badge" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px;"><?php echo htmlentities($row['pincode']); ?></span> </td>
+                                                    </tr>
+                                                <?php } ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Mobile Card View -->
+                                        <div class="mobile-only">
                                             <?php 
-                                                    $i =$i+1; 
-                                                }
-                                            ?>
-                                            </tbody>
-                                        </table>
+                                            $mi = 1;
+                                            foreach($res['data'] as $row) { ?>
+                                                <div class="result-card mb-4 p-4">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="mr-3 card-num"><?php echo $mi++; ?></div>
+                                                            <h5 class="mb-0" style="font-weight: 700; color: #1e293b; font-size: 17px;"><?php echo htmlentities($row['locality_name']); ?></h5>
+                                                        </div>
+                                                        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 6px 12px; border-radius: 6px;"><?php echo htmlentities($row['pincode']); ?></span>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <div class="row no-gutters">
+                                                            <div class="col-6 mb-2">
+                                                                <small class="text-uppercase text-muted font-weight-bold" style="letter-spacing: 0.5px; font-size: 10px;">Post Office</small>
+                                                                <p class="mb-0 text-dark" style="font-size: 13px;"><?php echo htmlentities($row['office_name']); ?></p>
+                                                            </div>
+                                                            <div class="col-6 mb-2">
+                                                                <small class="text-uppercase text-muted font-weight-bold" style="letter-spacing: 0.5px; font-size: 10px;">District</small>
+                                                                <p class="mb-0 text-dark" style="font-size: 13px;"><?php echo htmlentities($row['district_name']); ?></p>
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <small class="text-uppercase text-muted font-weight-bold" style="letter-spacing: 0.5px; font-size: 10px;">State / UT</small>
+                                                                <p class="mb-0 text-dark" style="font-size: 13px;"><?php echo htmlentities($row['state_name']); ?></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
                                     </div>
                     <?php
                                 }

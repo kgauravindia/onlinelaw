@@ -35,12 +35,12 @@
 				</div>
 				<div class="col-md-6 col-sm-12">
 				  <ul class="social-media-1 float-md-right float-sm-left mt-2 mt-md-0 m-0 p-0" style="list-style: none;">
-					<li class="mr-30 d-inline-block"><a href="<?php echo $inst_facebook; ?>" target="_blank"><i class="fab fa-facebook-f"></i></a> </li>
-					<li class="mr-30 d-inline-block"><a href="<?php echo $inst_twitter; ?>" target="_blank"><i class="fab fa-twitter"></i></a> </li>
-					<li class="mr-30 d-inline-block"><a href="<?php echo $inst_blog; ?>" target="_blank"><i class="fab fa-blogger-b"></i></a> </li>
-					<li class="mr-30 d-inline-block"><a href="<?php echo $inst_instagram; ?>" target="_blank"><i class="fab fa-instagram"></i></a> </li>
-					<li class="mr-30 d-inline-block"><a href="<?php echo $inst_youtube; ?>" target="_blank"><i class="fab fa-youtube"></i></a> </li>
-					<li class="mr-30 d-inline-block"><a href="<?php echo $inst_whatsapp; ?>" target="_blank"><i class="fab fa-whatsapp"></i></a> </li>
+					<li class="mr-30 d-inline-block"><a href="<?php echo $facebook; ?>" target="_blank"><i class="fab fa-facebook-f"></i></a> </li>
+					<li class="mr-30 d-inline-block"><a href="<?php echo $twitter; ?>" target="_blank"><i class="fab fa-twitter"></i></a> </li>
+					<li class="mr-30 d-inline-block"><a href="<?php echo $linkedin; ?>" target="_blank"><i class="fab fa-linkedin-in"></i></a> </li>
+					<li class="mr-30 d-inline-block"><a href="<?php echo $instagram; ?>" target="_blank"><i class="fab fa-instagram"></i></a> </li>
+					<li class="mr-30 d-inline-block"><a href="<?php echo $youtube; ?>" target="_blank"><i class="fab fa-youtube"></i></a> </li>
+					<li class="mr-30 d-inline-block"><a href="<?php echo $pinterest; ?>" target="_blank"><i class="fab fa-pinterest-p"></i></a> </li>
 				  </ul>
 				</div>
 			  </div>

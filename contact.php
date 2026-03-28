@@ -119,7 +119,7 @@
 
                     <div class="mb-0">
                         <h4 class="small fw-bold text-uppercase text-warning mb-3" style="letter-spacing: 2px;">Phone</h4>
-                        <p class="text-dark mb-0" style="font-weight: 600;"><?php echo $inst_contact; ?></p>
+                        <p class="text-dark mb-0" style="font-weight: 600;"><?php echo $inst_contact; ?><br><?php echo $inst_contact2; ?></p>
                     </div>
                 </div>
             </div>
