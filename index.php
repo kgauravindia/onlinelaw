@@ -44,8 +44,8 @@
 		</div>
 		<div class="row align-items-center justify-content-center">
 			
-			<div class="col-lg-4 col-md-6 mb-4">
-				<div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+			<div class="col-lg-3 col-md-6 mb-4">
+				<div class="detail-area text-center" style="padding: 40px 20px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; min-height: 380px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
 					<div class="icon-box mb-4">
 						<i class="fas fa-map-marked-alt" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
@@ -55,8 +55,8 @@
 				</div>
 			</div>
 			
-			<div class="col-lg-4 col-md-6 mb-4">
-				<div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+			<div class="col-lg-3 col-md-6 mb-4">
+				<div class="detail-area text-center" style="padding: 40px 20px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; min-height: 380px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
 					<div class="icon-box mb-4">
 						<i class="fas fa-university" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
@@ -66,8 +66,8 @@
 				</div>
 			</div>
 			
-			<div class="col-lg-4 col-md-6 mb-4">
-                <div class="detail-area text-center" style="padding: 40px 30px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+			<div class="col-lg-3 col-md-6 mb-4">
+                <div class="detail-area text-center" style="padding: 40px 20px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; min-height: 380px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
 					<div class="icon-box mb-4">
 						<i class="fas fa-file-invoice-dollar" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
@@ -76,11 +76,52 @@
 					<a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search HSN/SAC <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
+
+			<div class="col-lg-3 col-md-6 mb-4">
+                <div class="detail-area text-center" style="padding: 40px 20px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; min-height: 380px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+					<div class="icon-box mb-4">
+						<i class="fas fa-passport" style="font-size: 40px; color: var(--primary-color);"></i>
+					</div>
+					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Passport Seva Offices</h4>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Locate your nearest Passport Seva Kendra (PSK) or Regional Passport Office (RPO) with full contact details.</p>
+					<a href="<?php echo $base_url; ?>passport" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search Offices <i class="fas fa-search ml-1"></i></a>
+				</div>
+			</div>
 			
 		</div>
 	</div>
 </section>
 <!-- Features Grid End --> 
+
+<!-- Regional Passport Offices (RPO) Section Start -->
+<section class="full-row bg-white py-80" style="padding: 80px 0; background: #fafafa !important;">
+	<div class="container">
+		<div class="row text-center mb-5">
+			<div class="col-lg-12">
+				<h2 class="section-title mb-3" style="font-family: var(--font-heading); font-size: 36px; color: var(--text-main);">Regional Passport Offices (RPO)</h2>
+				<p style="color: var(--text-muted); font-size: 16px;">Quickly browse passport seva services spanning all Regional Passport Offices across India.</p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="rpo-grid d-flex flex-wrap justify-content-center">
+					<?php 
+						$rpos = ["Ahmedabad", "Amritsar", "Bareilly", "Bengaluru", "Bhopal", "Bhubaneswar", "Chandigarh", "Chennai", "Cochin", "Coimbatore", "Dehradun", "Delhi", "Ghaziabad", "Goa", "Guwahati", "Hyderabad", "Jaipur", "Jalandhar", "Jammu", "Kolkata", "Kota", "Kozhikode", "Lucknow", "Madurai", "Mumbai", "Nagpur", "Patna", "Pune", "Raipur", "Ranchi", "Shimla", "Srinagar", "Surat", "Tiruchirappalli", "Trivandrum", "Vijayawada", "Visakhapatnam"];
+						foreach($rpos as $rpo) {
+					?>
+						<a href="<?php echo $base_url; ?>passport?q=<?php echo urlencode($rpo); ?>" class="rpo-item m-2 px-3 py-2" style="background: #fff; border: 1px solid #e2e8f0; border-radius: var(--radius-md); color: var(--text-main); font-family: var(--font-body); font-weight: 500; font-size: 14px; text-decoration: none; transition: all 0.3s ease; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--primary-color)'; this.style.color='var(--primary-color)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='var(--text-main)'; this.style.transform='translateY(0)';">
+							<i class="fas fa-university mr-2 text-primary" style="font-size: 11px; opacity: 0.7;"></i><?php echo $rpo; ?>
+						</a>
+					<?php } ?>
+				</div>
+				<div class="text-center mt-5">
+					<a href="<?php echo $base_url; ?>passport" class="btn btn-outline-primary" style="border-radius: var(--radius-md); padding: 12px 30px;">View All Passport Offices <i class="fas fa-arrow-right ml-2"></i></a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<!-- Regional Passport Offices (RPO) Section End -->
 
 <!-- achievement-2 Section Start -->
 <div class="bg-primary full-row" style="padding: 60px 0 !important; background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;">
