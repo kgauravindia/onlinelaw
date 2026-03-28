@@ -58,6 +58,11 @@
 					<div class="d-flex flex-column align-items-center text-center mb-5">
 						<h3 class="pb-2" style="font-family: var(--font-heading); font-weight: 700;">Find IFSC by Branch or City Name</h3>
 						<span style="color: var(--text-muted); font-size: 15px;">Enter the name of your city or bank branch below to retrieve matching IFSC records.</span>
+						<div class="mt-3">
+							<span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); font-weight: 500; padding: 8px 16px; border-radius: 50px; font-size: 13px; border: 1px solid rgba(var(--primary-rgb), 0.2);">
+								<i class="fas fa-check-circle mr-1"></i> 178,453 Bank IFSC Added (Last Update: 15 March 2026 - RBI Official)
+							</span>
+						</div>
 					</div>
 					
 					<form method="post" action="<?php echo $base_url; ?>bank-ifsc-by-branch-name" class="form-style-1 mb-5">
