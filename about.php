@@ -13,16 +13,16 @@
 <?php require_once ('includes/header.php'); ?> 
 
 <!-- Page Banner -->
-<section class="bg-img-3 overlay p-0 full-row" style="padding: 60px 0 !important;">
+<section class="bg-img-3 overlay p-0 full-row" style="padding: 20px 0 !important;">
 	<div class="container">
 		<div class="row">
 			<div class="col-lg-12">
 				<div class="banner-text text-center">
-					<h2 class="text-white banner-tittle position-relative mb-30" style="font-family: var(--font-heading) !important; font-size: 36px; color: #fff !important; margin: 0;">About Online Law</h2>
-					<ul class="d-inline-block mt-3" style="list-style: none; padding: 0; display: flex; justify-content: center; color: #cbd5e1; font-family: var(--font-body); font-size: 14px;">
-						<li class="mr-10" style="margin-right: 10px;"><a href="index" style="color: rgba(255,255,255,0.8);">Home</a></li>
-						<li class="mr-10" style="margin-right: 10px;">/</li>
-						<li class="text-white" style="color: #fff; font-weight: 500;">About Us</li>
+					<h2 class="text-white banner-tittle position-relative mb-1" style="font-family: var(--font-heading) !important; font-size: 28px; color: #fff !important; margin: 0;">About Online Law</h2>
+					<ul class="list-inline mt-2 mb-0" style="color: #cbd5e1; font-family: var(--font-body); font-size: 14px;">
+						<li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: rgba(255,255,255,0.8); text-decoration: none;">Home</a></li>
+						<li class="list-inline-item mx-2">/</li>
+						<li class="list-inline-item" style="color: #fff; font-weight: 500;">About Us</li>
 					</ul>
 				</div>
 			</div>
@@ -91,9 +91,9 @@
 							</div>
 							<div class="col-lg-3 col-md-6 mb-4">
 								<div class="success-history d-flex flex-column align-items-center"> 
-                                    <i class="fas fa-database text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+                                    <i class="fas fa-university text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
 									<div class="counting-digit text-white">
-										<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">125</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">K+</span>
+										<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">178</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">K+</span>
 										<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">IFSC Records</div>
 									</div>
 								</div>
@@ -102,8 +102,8 @@
 								<div class="success-history d-flex flex-column align-items-center"> 
                                     <i class="far fa-map text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
 									<div class="counting-digit text-white"> 
-										<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">2.5</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">M</span>
-										<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">PIN Codes</div>
+										<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">2.5</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">M+</span>
+										<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">PIN Locations</div>
 									</div>
 								</div>
 							</div>

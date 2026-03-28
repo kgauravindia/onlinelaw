@@ -82,4 +82,49 @@
 </section>
 <!-- Features Grid End --> 
 
+<!-- achievement-2 Section Start -->
+<div class="bg-primary full-row" style="padding: 60px 0 !important; background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;">
+	<div class="container">
+		<div class="row text-center">
+			<div class="col-lg-3 col-md-6 mb-4">
+				<div class="success-history d-flex flex-column align-items-center"> 
+					<i class="fas fa-gavel text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+					<div class="counting-digit text-white"> 
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">85</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">%</span>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">Online Works</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-3 col-md-6 mb-4">
+				<div class="success-history d-flex flex-column align-items-center"> 
+					<i class="far fa-smile text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+					<div class="counting-digit text-white"> 
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">5000</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">+</span>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">Happy Users</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-3 col-md-6 mb-4">
+				<div class="success-history d-flex flex-column align-items-center"> 
+					<i class="fas fa-university text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+					<div class="counting-digit text-white">
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">178</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">K+</span>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">IFSC Records</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-3 col-md-6 mb-4">
+				<div class="success-history d-flex flex-column align-items-center"> 
+					<i class="far fa-map text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+					<div class="counting-digit text-white"> 
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">2.5</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">M+</span>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">PIN Locations</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- achievement-2 Section End --> 
+
 <?php require_once ('includes/footer.php'); ?> 

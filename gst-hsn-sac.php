@@ -96,7 +96,6 @@
                                             <th> Type </th>
                                             <th> Code </th>
                                             <th> Description </th>
-                                            <th> Last Update </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -104,9 +103,8 @@
                                             <tr>
                                                 <td> <?php echo $i++; ?> </td>
                                                 <td> <span class="badge" style="background: <?php echo ($row['type'] == 'HSN') ? '#eff6ff' : '#ecfdf5'; ?>; color: <?php echo ($row['type'] == 'HSN') ? '#1e40af' : '#065f46'; ?>; font-size: 13px; padding: 4px 10px; border-radius: 4px;"><?php echo htmlentities($row['type']); ?></span> </td>
-                                                <td> <strong style="color: var(--text-main);"><?php echo htmlentities($row['code']); ?></strong> </td>
+                                                <td> <strong style="color: var(--text-main); font-size: 16px;"><?php echo htmlentities($row['code']); ?></strong> </td>
                                                 <td style="white-space: normal; min-width: 300px; line-height: 1.6;"><?php echo htmlentities($row['description']); ?> </td>
-                                                <td class="small text-muted"> <?php echo date('d M Y', strtotime($row['updated_at'])); ?> </td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>
