@@ -157,7 +157,7 @@
                                                     <tr>
                                                         <td> <?php echo $i++; ?> </td>
                                                         <td> <span style="font-weight: 600; color: var(--text-main);"><?php echo htmlentities($row['bank']); ?></span> </td>
-                                                        <td> <span class="badge" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px;"><?php echo htmlentities($row['ifsc']); ?></span> </td>
+                                                        <td> <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px; text-decoration: none;"><?php echo htmlentities($row['ifsc']); ?></a> </td>
                                                         <td> <?php echo htmlentities($row['branch']); ?> </td>
                                                         <td> <?php echo htmlentities($row['city2']); ?> </td>
                                                         <td> <?php echo htmlentities($row['state']); ?> </td>
@@ -177,7 +177,7 @@
                                                 <div class="bank-card mb-4 p-4">
                                                     <div class="d-flex justify-content-between align-items-start mb-3">
                                                         <h5 class="mb-0 text-primary" style="font-weight: 800; font-size: 18px; line-height: 1.3;"><?php echo htmlentities($row['bank']); ?></h5>
-                                                        <span class="badge" style="background: #eff6ff; color: #1e40af; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700;"><?php echo htmlentities($row['ifsc']); ?></span>
+                                                        <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge" style="background: #eff6ff; color: #1e40af; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700; text-decoration: none;"><?php echo htmlentities($row['ifsc']); ?></a>
                                                     </div>
                                                     
                                                     <div class="mb-3 d-flex align-items-center">
@@ -208,7 +208,69 @@
                                             <?php } ?>
                                         </div>
                                     </div>
+
                     <?php
+                                    // Nearest Banks Logic derived from the first search result
+                                    $bank_ref = $res['data'][0]['bank'];
+                                    $city_ref = $res['data'][0]['city2'];
+                                    $state_ref = $res['data'][0]['state'];
+                                    
+                                    $safe_bank = addslashes($bank_ref);
+                                    $safe_city = addslashes($city_ref);
+                                    $safe_state = addslashes($state_ref);
+                                    $safe_ifsc = addslashes($res['data'][0]['ifsc']);
+
+                                    // Very Near (Same Bank in Same City)
+                                    $very_near_sql = "SELECT DISTINCT branch, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND city2 = '$safe_city' AND ifsc != '$safe_ifsc' ORDER BY branch LIMIT 12";
+                                    $very_near_res = direct_sql($very_near_sql);
+
+                                    // Nearby (Same Bank in Same State, excluding Same City)
+                                    $nearby_sql = "SELECT DISTINCT branch, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' ORDER BY branch LIMIT 12";
+                                    $nearby_res = direct_sql($nearby_sql);
+
+                                    if($very_near_res['count'] > 0 || $nearby_res['count'] > 0) {
+                    ?>
+                                        <div class="nearby-banks mt-5 pt-4" style="border-top: 1px solid #eef2f6;">
+                                            <div class="d-flex align-items-center mb-4">
+                                                <div style="width: 40px; height: 40px; background: #fff7ed; color: #ea580c; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                                    <i class="fas fa-university"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="mb-0" style="font-family: var(--font-heading); font-weight: 700; color: #1e293b; font-size: 20px;">Other Nearby Branches</h4>
+                                                    <p class="mb-0 text-muted" style="font-size: 13px;">Find more branches of <?php echo htmlentities($bank_ref); ?> in this region</p>
+                                                </div>
+                                            </div>
+
+                                            <?php if($very_near_res['count'] > 0) { ?>
+                                                <h6 class="text-uppercase text-muted font-weight-bold mb-3" style="font-size: 11px; letter-spacing: 1px;">In <?php echo htmlentities($city_ref); ?> District</h6>
+                                                <div class="row mb-4">
+                                                    <?php foreach($very_near_res['data'] as $rel) { ?>
+                                                        <div class="col-lg-3 col-md-4 col-6 mb-3">
+                                                            <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $rel['ifsc']; ?>" class="d-block p-3 text-center text-decoration-none" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                                                <div style="font-weight: 700; color: #3b82f6; font-size: 15px;"><?php echo htmlentities($rel['branch']); ?></div>
+                                                                <div class="text-muted" style="font-size: 12px; font-weight: 600;"><?php echo htmlentities($rel['ifsc']); ?></div>
+                                                            </a>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                            <?php } ?>
+
+                                            <?php if($nearby_res['count'] > 0) { ?>
+                                                <h6 class="text-uppercase text-muted font-weight-bold mb-3" style="font-size: 11px; letter-spacing: 1px;">Other Branches in <?php echo htmlentities($state_ref); ?></h6>
+                                                <div class="row">
+                                                    <?php foreach($nearby_res['data'] as $rel) { ?>
+                                                        <div class="col-lg-3 col-md-4 col-6 mb-3">
+                                                            <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $rel['ifsc']; ?>" class="d-block p-3 text-center text-decoration-none" style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; transition: all 0.2s ease;">
+                                                                <div style="font-weight: 700; color: #64748b; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlentities($rel['branch']); ?></div>
+                                                                <div class="text-muted" style="font-size: 11px;"><?php echo htmlentities($rel['city2']); ?> - <?php echo htmlentities($rel['ifsc']); ?></div>
+                                                            </a>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                    <?php
+                                    }
                                 }
                                 else
                                 {
