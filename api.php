@@ -564,12 +564,12 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
 const apiKey = 'YOUR_API_KEY';
 const ifsc = 'SBIN0000001';
 
-fetch(`<?php echo $base_url; ?>api.php?api_key=${apiKey}&action=bank-ifsc&ifsc=${ifsc}`)
+fetch(`<?php echo $base_url; ?>api.php?api_key=${apiKey}&action=pincode&pincode=${pin}`)
   .then(response => response.json())
   .then(data => {
     if(data.status === 'success') {
-      console.log('Bank Name:', data.data.bank);
-      console.log('Branch:', data.data.branch);
+      console.log('Office Name:', data.data[0].office_name);
+      console.log('District:', data.data[0].district_name);
     } else {
       console.error('Error:', data.message);
     }
@@ -585,7 +585,7 @@ fetch(`<?php echo $base_url; ?>api.php?api_key=${apiKey}&action=bank-ifsc&ifsc=$
                                 <pre>
 &lt;?php
 $apiKey = 'YOUR_API_KEY';
-$url = "<?php echo $base_url; ?>api.php?api_key=$apiKey&action=bank-ifsc&ifsc=SBIN0000001";
+$url = "<?php echo $base_url; ?>api.php?api_key=$apiKey&action=pincode&pincode=800001";
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
@@ -595,7 +595,7 @@ curl_close($ch);
 
 $data = json_decode($response, true);
 if ($data['status'] === 'success') {
-    echo "Bank: " . $data['data']['bank'];
+    echo "Office: " . $data['data'][0]['office_name'];
 }
 ?&gt;
                                 </pre>
@@ -608,9 +608,9 @@ if ($data['status'] === 'success') {
                                 <div class="code-header">WordPress (wp_remote_get)</div>
                                 <pre>
 // Add this to your functions.php or a custom plugin
-function get_legal_data_from_olaw($ifsc) {
+function get_legal_data_from_olaw($pincode) {
     $api_key = 'YOUR_API_KEY';
-    $url = "<?php echo $base_url; ?>api.php?api_key=$api_key&action=bank-ifsc&ifsc=$ifsc";
+    $url = "<?php echo $base_url; ?>api.php?api_key=$api_key&action=pincode&pincode=$pincode";
     
     $response = wp_remote_get($url);
     if (is_wp_error($response)) return false;
