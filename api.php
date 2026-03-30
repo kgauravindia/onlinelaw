@@ -4,15 +4,29 @@ require_once ('includes/function.php');
 // --- API Logic ---
 if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
     header('Content-Type: application/json');
+    $api_key_input = trim($_REQUEST['api_key']);
+    $action = $_REQUEST['action'];
+    $response = ['status' => 'success', 'data' => []];
     
-    // Validate API Key
-    if ($_REQUEST['api_key'] !== $api_key) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid API Key']);
+    // Validate API Key against Database
+    $safe_key = addslashes($api_key_input);
+    $key_res = direct_sql("SELECT * FROM api_keys WHERE api_key = '$safe_key' AND is_active = 1 LIMIT 1");
+    
+    if ($key_res['count'] == 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid or inactive API Key']);
         exit;
     }
 
-    $action = $_REQUEST['action'];
-    $response = ['status' => 'success', 'data' => []];
+    $key_data = $key_res['data'][0];
+    
+    // Check Validity (if set)
+    if ($key_data['valid_until'] && strtotime($key_data['valid_until']) < time()) {
+        echo json_encode(['status' => 'error', 'message' => 'API Key has expired']);
+        exit;
+    }
+
+    // Increment Usage Count
+    direct_sql("UPDATE api_keys SET usage_count = usage_count + 1 WHERE id = " . $key_data['id'], 'set');
 
     switch ($action) {
         case 'bank-ifsc':
@@ -300,6 +314,7 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
                 <a href="#pincode" class="sidebar-link">Pincode API</a>
                 <a href="#hsn-sac" class="sidebar-link">HSN/SAC API</a>
                 <a href="#passport" class="sidebar-link">Passport API</a>
+                <a href="#integration" class="sidebar-link">Integration (WP/JS)</a>
                 <a href="#errors" class="sidebar-link">Error Codes</a>
                 
                 <div class="mt-5 p-3 rounded" style="background: rgba(var(--primary-rgb), 0.05); border: 1px dashed rgba(var(--primary-rgb), 0.2);">
@@ -523,6 +538,94 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
                     </div>
                 </section>
                 
+                <!-- Integration Examples -->
+                <section id="integration" class="api-section">
+                    <h2>Integration Examples</h2>
+                    <p style="color: #64748b;">Easily integrate our data into your website or WordPress blog using the snippets below.</p>
+                    
+                    <ul class="nav nav-tabs mb-4" id="apiTabs" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="js-tab" data-toggle="tab" href="#js-code" role="tab" style="border: none; font-weight: 600; color: #64748b; padding: 10px 20px;">Vanilla JavaScript (AJAX)</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="php-tab" data-toggle="tab" href="#php-code" role="tab" style="border: none; font-weight: 600; color: #64748b; padding: 10px 20px;">PHP (cURL)</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="wp-tab" data-toggle="tab" href="#wp-code" role="tab" style="border: none; font-weight: 600; color: #64748b; padding: 10px 20px;">WordPress</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- JS Tab -->
+                        <div class="tab-pane fade show active" id="js-code" role="tabpanel">
+                            <div class="code-block">
+                                <div class="code-header">JavaScript (Fetch)</div>
+                                <pre>
+const apiKey = 'YOUR_API_KEY';
+const ifsc = 'SBIN0000001';
+
+fetch(`<?php echo $base_url; ?>api.php?api_key=${apiKey}&action=bank-ifsc&ifsc=${ifsc}`)
+  .then(response => response.json())
+  .then(data => {
+    if(data.status === 'success') {
+      console.log('Bank Name:', data.data.bank);
+      console.log('Branch:', data.data.branch);
+    } else {
+      console.error('Error:', data.message);
+    }
+  });
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- PHP Tab -->
+                        <div class="tab-pane fade" id="php-code" role="tabpanel">
+                            <div class="code-block">
+                                <div class="code-header">PHP (cURL)</div>
+                                <pre>
+&lt;?php
+$apiKey = 'YOUR_API_KEY';
+$url = "<?php echo $base_url; ?>api.php?api_key=$apiKey&action=bank-ifsc&ifsc=SBIN0000001";
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response, true);
+if ($data['status'] === 'success') {
+    echo "Bank: " . $data['data']['bank'];
+}
+?&gt;
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- WordPress Tab -->
+                        <div class="tab-pane fade" id="wp-code" role="tabpanel">
+                            <div class="code-block">
+                                <div class="code-header">WordPress (wp_remote_get)</div>
+                                <pre>
+// Add this to your functions.php or a custom plugin
+function get_legal_data_from_olaw($ifsc) {
+    $api_key = 'YOUR_API_KEY';
+    $url = "<?php echo $base_url; ?>api.php?api_key=$api_key&action=bank-ifsc&ifsc=$ifsc";
+    
+    $response = wp_remote_get($url);
+    if (is_wp_error($response)) return false;
+    
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    
+    return ($data['status'] === 'success') ? $data['data'] : false;
+}
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Errors -->
                 <section id="errors" class="api-section">
                     <h2>Error Codes</h2>
