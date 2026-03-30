@@ -11,13 +11,14 @@ $xml = '<?xml version="1.0" encoding="UTF-8"?>
 ';
 
 // Main Passport Finder tool
-$xml .= "\t<url>\n\t\t<loc>https://olaw.in/passport</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
+$base = rtrim($inst_url, '/') . '/';
+$xml .= "\t<url>\n\t\t<loc>".$base."passport</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
 
 // 2. Add individual PSK searches
 if($res['count'] > 0) {
     foreach($res['data'] as $row) {
         $name = $row['name'];
-        $url = "https://olaw.in/passport?q=" . urlencode($name);
+        $url = $base . "passport?q=" . urlencode($name);
         $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.6</priority>\n\t</url>\n";
     }
 }
@@ -28,7 +29,7 @@ $res_rpo = direct_sql($sql_rpo);
 if($res_rpo['count'] > 0) {
     foreach($res_rpo['data'] as $row) {
         $rpo = $row['rpo'];
-        $url = "https://olaw.in/passport?q=" . urlencode($rpo);
+        $url = $base . "passport?q=" . urlencode($rpo);
         $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>weekly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
     }
 }

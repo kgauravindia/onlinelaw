@@ -12,7 +12,7 @@ $xml = '<?xml version="1.0" encoding="UTF-8"?>
 if($res['count'] > 0) {
     foreach($res['data'] as $row) {
         $pin = $row['pincode'];
-        $url = "https://olaw.in/pincode/" . $pin;
+        $url = rtrim($inst_url, '/') . "/pincode/" . $pin;
         $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
     }
 }
