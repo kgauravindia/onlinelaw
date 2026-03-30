@@ -4,6 +4,9 @@ require_once ('includes/function.php');
 // --- API Logic ---
 if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
     header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
     $api_key_input = trim($_REQUEST['api_key']);
     $action = $_REQUEST['action'];
     $response = ['status' => 'success', 'data' => []];
