@@ -47,7 +47,7 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
             $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
             if (!empty($q)) {
                 $safe_q = addslashes($q);
-                $res = direct_sql("SELECT * FROM hsnsac WHERE code LIKE '%$safe_q%' OR description LIKE '%$safe_q%' LIMIT 50");
+                $res = direct_sql("SELECT * FROM hsnsac WHERE code LIKE '%$safe_q%' OR description LIKE '%$safe_q%' OR hsn_sac LIKE '%$safe_q%' LIMIT 50");
                 if ($res['count'] > 0) {
                     $response['data'] = $res['data'];
                 } else {
@@ -55,6 +55,21 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
                 }
             } else {
                 $response = ['status' => 'error', 'message' => 'Query parameter (q) is required'];
+            }
+            break;
+
+        case 'passport':
+            $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
+            if (!empty($q)) {
+                $safe_q = addslashes($q);
+                $res = direct_sql("SELECT * FROM passport WHERE name LIKE '%$safe_q%' OR rpo LIKE '%$safe_q%' OR state LIKE '%$safe_q%' LIMIT 50");
+                if ($res['count'] > 0) {
+                    $response['data'] = $res['data'];
+                } else {
+                    $response = ['status' => 'error', 'message' => 'No record found for passport query: ' . $q];
+                }
+            } else {
+                $response = ['status' => 'error', 'message' => 'Query parameter (q) is required for passport search'];
             }
             break;
 
@@ -284,6 +299,7 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
                 <a href="#bank-ifsc" class="sidebar-link">Bank IFSC API</a>
                 <a href="#pincode" class="sidebar-link">Pincode API</a>
                 <a href="#hsn-sac" class="sidebar-link">HSN/SAC API</a>
+                <a href="#passport" class="sidebar-link">Passport API</a>
                 <a href="#errors" class="sidebar-link">Error Codes</a>
                 
                 <div class="mt-5 p-3 rounded" style="background: rgba(var(--primary-rgb), 0.05); border: 1px dashed rgba(var(--primary-rgb), 0.2);">
@@ -453,6 +469,58 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
                             </tr>
                         </tbody>
                     </table>
+                </section>
+
+                <!-- Passport API -->
+                <section id="passport" class="api-section">
+                    <h2>Passport Office API</h2>
+                    <p style="color: #64748b;">Locate Passport Seva Kendras (PSK), Post Office Passport Seva Kendras (POPSK), and Regional Passport Offices (RPO).</p>
+                    
+                    <div class="endpoint-url">
+                        <span class="method-badge">GET</span> <?php echo $base_url; ?>api.php?api_key=...&action=passport&q=Patna
+                    </div>
+                    
+                    <h5>Request Parameters</h5>
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Param</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">action</span></td>
+                                <td>Yes</td>
+                                <td>Must be <code>passport</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">q</span></td>
+                                <td>Yes</td>
+                                <td>Office Name, RPO, or State (e.g. Patna, Bihar, PSK)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h5>Sample Response</h5>
+                    <div class="code-block">
+                        <div class="code-header">JSON</div>
+                        <pre>
+{
+  "status": "success",
+  "data": [
+    {
+      "name": "PSK PATNA",
+      "rpo": "PATNA",
+      "state": "Bihar",
+      "address": "Gala Diamond Building, Exhibition Road, Patna",
+      "phone": "0612-1234567"
+    }
+  ]
+}
+                        </pre>
+                    </div>
                 </section>
                 
                 <!-- Errors -->
