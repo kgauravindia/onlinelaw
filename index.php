@@ -50,7 +50,7 @@
 						<i class="fas fa-map-marked-alt" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
 					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">PIN Code Directory</h4>
-					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Search and verify over 2.5 million accurate Postal Index Numbers spanning every state and UT in India.</p>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Search and verify over 1,063,393 accurate Postal Index Numbers spanning every state and UT in India.</p>
 					<a href="<?php echo $base_url; ?>pincode" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Explore PINs <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
@@ -72,7 +72,7 @@
 						<i class="fas fa-file-invoice-dollar" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
 					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">GST HSN & SAC Finder</h4>
-					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Search and verify thousands of GST HSN (Goods) and SAC (Services) codes with current tax rates and descriptions.</p>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Search and verify 22,471 GST HSN (Goods) and SAC (Services) codes with current tax rates and descriptions.</p>
 					<a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search HSN/SAC <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
@@ -83,7 +83,7 @@
 						<i class="fas fa-passport" style="font-size: 40px; color: var(--primary-color);"></i>
 					</div>
 					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Passport Seva Offices</h4>
-					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Locate your nearest Passport Seva Kendra (PSK) or Regional Passport Office (RPO) with full contact details.</p>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Locate your nearest Passport Seva Kendra (PSK) or Regional Passport Office (RPO) from 784 mapped locations.</p>
 					<a href="<?php echo $base_url; ?>passport" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search Offices <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
@@ -129,19 +129,19 @@
 		<div class="row text-center">
 			<div class="col-lg-3 col-md-6 mb-4">
 				<div class="success-history d-flex flex-column align-items-center"> 
-					<i class="fas fa-gavel text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+					<i class="fas fa-file-invoice-dollar text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
 					<div class="counting-digit text-white"> 
-						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">85</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">%</span>
-						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">Online Works</div>
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">22</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">K+</span>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">GST HSN & SAC</div>
 					</div>
 				</div>
 			</div>
 			<div class="col-lg-3 col-md-6 mb-4">
 				<div class="success-history d-flex flex-column align-items-center"> 
-					<i class="far fa-smile text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
+					<i class="fas fa-passport text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
 					<div class="counting-digit text-white"> 
-						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">5000</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">+</span>
-						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">Happy Users</div>
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">784</span>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">Passport Offices</div>
 					</div>
 				</div>
 			</div>
@@ -150,7 +150,7 @@
 					<i class="fas fa-university text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
 					<div class="counting-digit text-white">
 						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">178</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">K+</span>
-						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">IFSC Records</div>
+						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">Bank IFSC Records</div>
 					</div>
 				</div>
 			</div>
@@ -158,7 +158,7 @@
 				<div class="success-history d-flex flex-column align-items-center"> 
 					<i class="far fa-map text-white mb-3" style="font-size: 40px;" aria-hidden="true"></i>
 					<div class="counting-digit text-white"> 
-						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">2.5</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">M+</span>
+						<span class="count-num" style="font-size: 36px; font-weight: 700; font-family: var(--font-heading);">1</span><span style="font-size: 36px; font-family: var(--font-heading); font-weight: 700;">M+</span>
 						<div class="name mt-2" style="font-family: var(--font-body); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 12px; color: rgba(255,255,255,0.8);">PIN Locations</div>
 					</div>
 				</div>
