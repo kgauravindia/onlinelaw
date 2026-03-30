@@ -3,7 +3,7 @@
 		<footer class="bg-dark full-row" style="padding: 60px 0 0 0;">
 		  <div class="container">
 			<div class="row pb-50">
-			  <div class="col-lg-5 col-md-12 mb-4">
+			  <div class="col-lg-4 col-md-12 mb-4">
 				<div class="footer-widget">
 				  <div class="footer-logo mb-4"> <img src="<?php echo $base_url; ?>images/logo/logo-white.png" alt="Online Law" style="filter: brightness(0) invert(1); max-height: 50px;"> </div>
 				  <p class="mb-4" style="max-width: 400px; line-height: 1.8;">Online Law is a common platform providing essential legal resources to every citizen. Legal education empowers all to understand their rights and duties.</p>
@@ -17,7 +17,6 @@
 				  </div>
 				  <ul class="quick-links" style="list-style: none; padding: 0; margin: 0;">
 					<li class="mb-2"><a href="<?php echo $base_url; ?>index" style="transition: color 0.2s;">Home</a></li>
-					<li class="mb-2"><a href="<?php echo $base_url; ?>about" style="transition: color 0.2s;">About Us</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>pincode" style="transition: color 0.2s;">PIN Code Locator</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>bank-ifsc" style="transition: color 0.2s;">Bank IFSC Finder</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>gst-hsn-sac" style="transition: color 0.2s;">GST HSN & SAC Finder</a></li>
@@ -26,7 +25,20 @@
 				  </ul>
 				</div>
 			  </div>
-			  <div class="col-lg-4 col-md-6 mb-4">
+			  <div class="col-lg-2 col-md-6 mb-4">
+				<div class="footer-widget">
+				  <div class="widget-top pb-20">
+					<h3 class="title text-uppercase mb-4">Other Projects</h3>
+				  </div>
+				  <ul class="quick-links" style="list-style: none; padding: 0; margin: 0;">
+					<li class="mb-2"><a href="https://caseos.olaw.in" target="_blank" style="transition: color 0.2s;"><i class="fas fa-balance-scale mr-2" style="font-size: 13px; color: var(--primary-color);"></i> CaseOS | Case Operating System</a></li>
+					<li class="mb-2"><a href="https://advocateindex.com" target="_blank" style="transition: color 0.2s;"><i class="fas fa-users mr-2" style="font-size: 13px; color: var(--primary-color);"></i> Advocate Index</a></li>
+					<li class="mb-2"><a href="https://myadv.in" target="_blank" style="transition: color 0.2s;"><i class="fas fa-user-shield mr-2" style="font-size: 13px; color: var(--primary-color);"></i> MyAdv India</a></li>
+					<li class="mb-2"><a href="<?php echo $base_url; ?>about" style="transition: color 0.2s;"><i class="fas fa-info-circle mr-2" style="font-size: 13px; color: var(--primary-color);"></i> About Online Law</a></li>
+				  </ul>
+				</div>
+			  </div>
+			  <div class="col-lg-3 col-md-6 mb-4">
 				<div class="footer-widget">
 				  <div class="widget-top pb-20">
 					<h3 class="title text-uppercase mb-4">Connect With Us</h3>
@@ -56,7 +68,7 @@
 				  </ul>
 				</div>
                 <div class="col-md-6 text-center text-md-right">
-                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Last website update: 28 March 2026</div>
+                    <div style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;">Last website update: 29 March 2026</div>
 				    <span style="font-size: 14px; color: #94a3b8;">Copyright &copy; 2026 Online Law. An initiative of <a href="https://offerplant.com" target="_blank" style="color: var(--primary-color); font-weight: 500; text-decoration: none; transition: color 0.3s;">OfferPlant</a></span> 
                 </div>
 			  </div>

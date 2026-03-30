@@ -198,6 +198,67 @@
                                     </div>
                     <?php
                                 }
+
+                                // Nearest PIN Codes Logic
+                                if(strlen($pincode) >= 3) {
+                                    $prefix3 = substr($pincode, 0, 3);
+                                    $prefix4 = (strlen($pincode) >= 4) ? substr($pincode, 0, 4) : $prefix3;
+                                    
+                                    $safe_prefix3 = addslashes($prefix3);
+                                    $safe_prefix4 = addslashes($prefix4);
+
+                                    // Very Near (4-digit match)
+                                    $very_near_sql = "SELECT DISTINCT pincode, district_name FROM pincode WHERE pincode LIKE '$safe_prefix4%' AND pincode != '$safe_pincode' ORDER BY pincode LIMIT 12";
+                                    $very_near_res = direct_sql($very_near_sql);
+
+                                    // Nearby (3-digit match, excluding 4-digit pool)
+                                    $nearby_sql = "SELECT DISTINCT pincode, district_name FROM pincode WHERE pincode LIKE '$safe_prefix3%' AND pincode NOT LIKE '$safe_prefix4%' AND pincode != '$safe_pincode' ORDER BY pincode LIMIT 12";
+                                    $nearby_res = direct_sql($nearby_sql);
+
+                                    if($very_near_res['count'] > 0 || $nearby_res['count'] > 0) {
+                    ?>
+                                        <div class="nearby-pincodes mt-5 pt-4" style="border-top: 1px solid #eef2f6;">
+                                            <div class="d-flex align-items-center mb-4">
+                                                <div style="width: 40px; height: 40px; background: #eff6ff; color: #2563eb; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="mb-0" style="font-family: var(--font-heading); font-weight: 700; color: #1e293b; font-size: 20px;">Nearest PIN Codes</h4>
+                                                    <p class="mb-0 text-muted" style="font-size: 13px;">Discover other PIN codes in this region</p>
+                                                </div>
+                                            </div>
+
+                                            <?php if($very_near_res['count'] > 0) { ?>
+                                                <h6 class="text-uppercase text-muted font-weight-bold mb-3" style="font-size: 11px; letter-spacing: 1px;">Very Near (<?php echo $prefix4; ?>...)</h6>
+                                                <div class="row mb-4">
+                                                    <?php foreach($very_near_res['data'] as $rel) { ?>
+                                                        <div class="col-lg-3 col-md-4 col-6 mb-3">
+                                                            <a href="<?php echo $base_url; ?>pincode?pincode=<?php echo $rel['pincode']; ?>" class="d-block p-3 text-center text-decoration-none" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                                                <div style="font-weight: 700; color: #3b82f6; font-size: 16px;"><?php echo htmlentities($rel['pincode']); ?></div>
+                                                                <div class="text-muted" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlentities($rel['district_name']); ?></div>
+                                                            </a>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                            <?php } ?>
+
+                                            <?php if($nearby_res['count'] > 0) { ?>
+                                                <h6 class="text-uppercase text-muted font-weight-bold mb-3" style="font-size: 11px; letter-spacing: 1px;">Nearby (<?php echo $prefix3; ?>...)</h6>
+                                                <div class="row">
+                                                    <?php foreach($nearby_res['data'] as $rel) { ?>
+                                                        <div class="col-lg-3 col-md-4 col-6 mb-3">
+                                                            <a href="<?php echo $base_url; ?>pincode?pincode=<?php echo $rel['pincode']; ?>" class="d-block p-3 text-center text-decoration-none" style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; transition: all 0.2s ease;">
+                                                                <div style="font-weight: 700; color: #64748b; font-size: 16px;"><?php echo htmlentities($rel['pincode']); ?></div>
+                                                                <div class="text-muted" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlentities($rel['district_name']); ?></div>
+                                                            </a>
+                                                        </div>
+                                                    <?php } ?>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                    <?php
+                                    }
+                                }
                             }
                         }
                     ?>
