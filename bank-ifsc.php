@@ -21,8 +21,8 @@
         $res_seo = direct_sql("select * from bank_ifsc where ifsc = '$ifsccode' limit 1");
         if($res_seo['count'] > 0) {
             $row_seo = $res_seo['data'][0];
-            $page_title = $row_seo['bank'] . " " . $row_seo['branch'] . " Details : Online Law";
-            $meta_desc = "Find exact branch details for " . $row_seo['bank'] . " " . $row_seo['branch'] . " (IFSC: $ifsccode). Address: " . $row_seo['address'];
+            $page_title = $row_seo['bank'] . " " . $row_seo['branch'] . ", " . $row_seo['city2'] . ", " . $row_seo['state'] . " IFSC Code Details : Online Law";
+            $meta_desc = "Find IFSC Code $ifsccode for " . $row_seo['bank'] . " " . $row_seo['branch'] . " branch in " . $row_seo['city2'] . " district of " . $row_seo['state'] . ". Exact address: " . $row_seo['address'];
         } else {
             $page_title = "IFSC Code $ifsccode Details : Online Law";
             $meta_desc = "View full branch details for IFSC Code $ifsccode on Online Law.";
