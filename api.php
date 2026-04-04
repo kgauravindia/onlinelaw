@@ -99,7 +99,25 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
     exit;
 }
 
-// --- Documentation Page ---
+// --- Internal API Stats Handler ---
+if(isset($_REQUEST['check_usage'])) {
+    header('Content-Type: application/json');
+    $key = trim($_REQUEST['check_usage']);
+    $safe_key = addslashes($key);
+    $res = direct_sql("SELECT website_name, usage_count, is_active, valid_until FROM api_keys WHERE api_key = '$safe_key' LIMIT 1");
+    if($res['count'] > 0) {
+        echo json_encode(['status' => 'success', 'data' => $res['data'][0]]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'API Key not found or invalid.']);
+    }
+    exit;
+}
+
+// --- Documentation Data ---
+$stats = direct_sql("SELECT COUNT(*) as total_keys, SUM(usage_count) as total_calls FROM api_keys WHERE is_active = 1");
+$total_keys = $stats['data'][0]['total_keys'] ?? 0;
+$total_calls = $stats['data'][0]['total_calls'] ?? 0;
+
 $page_title = "Developer API Documentation - Online Law";
 $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN Code, and GST HSN/SAC data programmatically through our RESTful API.";
 ?>
@@ -333,20 +351,51 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
                     <p class="lead" style="color: #64748b; font-size: 18px; line-height: 1.6;">
                         Welcome to the <strong>Online Law REST API</strong>. Our API provides developers with programmatic access to comprehensive datasets including Bank IFSC codes, Indian Post Office Pincodes, and GST HSN/SAC classifications.
                     </p>
+                    
+                    <!-- Live Stats Dashboard -->
+                    <div class="row mt-4 mb-5">
+                        <div class="col-md-6 mb-3">
+                            <div class="p-4 text-center" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 16px; border: 1px solid #bfdbfe;">
+                                <div style="font-size: 32px; font-weight: 800; color: #1e40af;"><?php echo number_format($total_calls); ?>+</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #60a5fa; text-transform: uppercase; letter-spacing: 1px;">Requests Served</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="p-4 text-center" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 16px; border: 1px solid #bbf7d0;">
+                                <div style="font-size: 32px; font-weight: 800; color: #166534;"><?php echo number_format($total_keys); ?>+</div>
+                                <div style="font-size: 14px; font-weight: 600; color: #4ade80; text-transform: uppercase; letter-spacing: 1px;">Active Developers</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <p style="color: #64748b; font-size: 15px; line-height: 1.7;">
                         All API responses are returned in standard JSON format. The API is designed to be easy to integrate into your existing applications, websites, or business workflows.
                     </p>
                     
-                    <div class="alert alert-info mt-4" style="border-radius: 12px; border: none; background: #eff6ff; color: #1e40af;">
-                        <i class="fas fa-info-circle mr-2"></i> Base URL: <strong><?php echo $base_url; ?>api.php</strong>
+                    <div class="alert alert-info mt-4" style="border-radius: 12px; border: none; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;">
+                        <i class="fas fa-link mr-2 text-primary"></i> Base Endpoint: <code style="background: #fff; padding: 2px 8px; border-radius: 4px;"><?php echo $base_url; ?>api.php</code>
                     </div>
                 </section>
                 
                 <!-- Authentication -->
                 <section id="authentication" class="api-section">
                     <h2>Authentication</h2>
-                    <p style="color: #64748b; font-size: 15px; mb-3">To access the API, you must include your API Key in every request as a query parameter.</p>
+                    <p style="color: #64748b; font-size: 15px; mb-4">To access the API, you must include your API Key in every request as a query parameter. You can track your usage in real-time below.</p>
                     
+                    <!-- Usage Checker -->
+                    <div class="p-4 mb-4 rounded-lg" style="background: #ffffff; border: 2px solid var(--primary-color); border-style: dashed; border-radius: 16px;">
+                        <h6 class="mb-3" style="font-weight: 700;">Check Your API Usage</h6>
+                        <div class="row">
+                            <div class="col-md-9 mb-2">
+                                <input type="text" id="usage_key" class="form-control" style="height: 45px; border-radius: 8px;" placeholder="Enter your API Key here...">
+                            </div>
+                            <div class="col-md-3">
+                                <button onclick="checkUsage()" class="btn btn-primary w-100" style="height: 45px; border-radius: 8px;">Check</button>
+                            </div>
+                        </div>
+                        <div id="usage_result" class="mt-3 small" style="display: none;"></div>
+                    </div>
+
                     <table class="param-table">
                         <thead>
                             <tr>
@@ -365,8 +414,8 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
                     </table>
                     
                     <div class="p-4 rounded-lg" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                        <span class="text-muted small d-block mb-1">YOUR CURRENT API KEY:</span>
-                        <code style="font-size: 16px; font-weight: 700; color: var(--primary-color);"><?php echo $api_key; ?></code>
+                        <span class="text-muted small d-block mb-1">DEFAULT PUBLIC KEY:</span>
+                        <code style="font-size: 16px; font-weight: 700; color: #64748b;"><?php echo $api_key; ?></code>
                     </div>
                 </section>
                 
@@ -691,6 +740,40 @@ function get_legal_data_from_olaw($pincode) {
         changeActiveLink();
         window.addEventListener('scroll', changeActiveLink);
     });
+
+    function checkUsage() {
+        const key = document.getElementById('usage_key').value;
+        const resultDiv = document.getElementById('usage_result');
+        if(!key) return alert('Please enter an API Key');
+        
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<span class="text-muted">Checking database...</span>';
+        
+        fetch(`?check_usage=${encodeURIComponent(key)}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    const statusClass = data.data.is_active == 1 ? 'text-success' : 'text-danger';
+                    const statusText = data.data.is_active == 1 ? 'Active' : 'Inactive';
+                    resultDiv.innerHTML = `
+                        <div class="alert mt-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="row">
+                                <div class="col-6"><strong>Website:</strong><br>${data.data.website_name}</div>
+                                <div class="col-6"><strong>Status:</strong><br><span class="${statusClass}">${statusText}</span></div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6"><strong>Total Calls:</strong><br><span class="text-primary font-weight-bold" style="font-size: 18px;">${data.data.usage_count}</span></div>
+                                <div class="col-6"><strong>Valid Until:</strong><br>${data.data.valid_until || 'No expiry'}</div>
+                            </div>
+                        </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger mt-2">${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                resultDiv.innerHTML = '<div class="alert alert-danger mt-2">Error connecting to server.</div>';
+            });
+    }
 </script>
 
 </body>
