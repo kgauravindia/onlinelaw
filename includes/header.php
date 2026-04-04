@@ -52,7 +52,7 @@
 						<div class="col-md-12">
 							<nav class="navbar navbar-expand-lg navbar-light w-100 p-0"> 
                                 <a class="navbar-brand" href="<?php echo $base_url; ?>index" style="font-family: var(--font-heading); font-size: 26px; font-weight: 800; color: var(--text-main); text-decoration: none; letter-spacing: -0.5px; padding: 15px 0;">
-                                    <span style="color: var(--primary-color);">Online</span> Law
+                                    <i class="fas fa-balance-scale text-primary mr-1"></i> <span style="color: var(--primary-color);">Online</span> Law
                                 </a>
 							<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> <i class="fas fa-bars"></i> </button>
 							<div class="collapse navbar-collapse" id="navbarSupportedContent">
