@@ -16,15 +16,15 @@
     }
 
     if(!empty($branch_search)) {
-        $page_title = "Bank IFSC results for '$branch_search' : Online Law";
-        $meta_desc = "Quickly find Bank IFSC details by searching for '$branch_search' branch or city name across all banks in India.";
+        $page_title = "Bank IFSC results for '$branch_search' Branch - Online Law";
+        $meta_desc = "Quickly find Bank IFSC details by searching for '$branch_search' branch or city name. All banks in India covered - SBI, ICICI, HDFC, PNB, and more.";
     } else {
-        $page_title = "Find IFSC by Branch or City Name : Online Law";
-        $meta_desc = "Quickly search for Bank IFSC codes by branch name or city across India using Online Law.";
+        $page_title = "Search Bank IFSC by Branch or City Name | Online Law";
+        $meta_desc = "Search for any Bank IFSC by typing the branch name or city. Comprehensive IFSC database for all Indian bank branches.";
     }
 ?>
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Search IFSC, <?php echo $branch_search; ?>, IFSC Code, Bank, What is my IFSC, IFSC Code Download">
+<meta name="keywords" content="IFSC Search by City, Bank Branch Name Search India, Find IFSC by Town, State Bank Branch Location, District Wise IFSC Codes, <?php echo $branch_search; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <style>

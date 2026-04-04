@@ -3,11 +3,11 @@
 	$q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 	
 	if(!empty($q)) {
-		$meta_desc = "Search results for GST HSN/SAC Code $q. Find full description, GST rates, and classification for $q at Online Law.";
-		$page_title = "HSN/SAC Code $q Details - Online Law";
+		$meta_desc = "Quickly find GST HSN/SAC code $q details. Get full descriptions, current GST rates, and classification for $q at Online Law.";
+		$page_title = "HSN/SAC Code $q GST Rates & Details - Online Law";
 	} else {
-		$meta_desc = "Search GST HSN and SAC codes for all goods and services under GST India. Free lookup for HSN chapters and SAC services at Online Law.";
-		$page_title = "GST HSN and SAC Code Finder - Online Law";
+		$meta_desc = "Professional GST HSN and SAC code lookup for goods and services. Search for tax rates, HSN chapters, and service accounting codes instantly.";
+		$page_title = "GST HSN and SAC Code Finder | Current GST Rates India - Online Law";
 	}
 ?>
 <!DOCTYPE html>
@@ -18,7 +18,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="GST, HSN Code, SAC Code, GST Search, HSN Finder, SAC Finder, GST Rates, HSN List, SAC List, GST India">
+<meta name="keywords" content="GST HSN Code Finder, SAC Code Search, GST Rate Finder 2026, HSN Chapters List, Service Accounting Codes, Goods and Services Tax Search, <?php echo $q; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <style>

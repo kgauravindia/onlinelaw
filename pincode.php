@@ -3,22 +3,15 @@
 	$pincode = isset($_REQUEST['pincode']) ? trim($_REQUEST['pincode']) : '';
 	
 	if(!empty($pincode) && is_numeric($pincode)) {
-		$meta_desc = "Get all post office details for PIN Code $pincode. Find locality, district, and state information for $pincode instantly at Online Law.";
-		$page_title = "PIN Code $pincode Details - Online Law";
+		$meta_desc = "Get all post office details for PIN Code $pincode. Find precise locality, district, and state information for $pincode instantly on Online Law.";
+		$page_title = "PIN Code $pincode Details | Post Office Info - Online Law";
 	} else {
-		$meta_desc = "Search PIN Code of all states and UT of India in one click for free. Easily find post office detials using Online Law.";
-		$page_title = "PIN Code Search by PIN : Online Law";
+		$meta_desc = "Search for any Indian PIN Code (Postal Index Number) by digit. Instant details for 1M+ locations across all Indian states and Union Territories.";
+		$page_title = "PIN Code Search by Digital Code | Indian Postal Directory - Online Law";
 	}
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<!-- Meta Tag -->
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Search PIN, <?php echo $pincode; ?>, PIN Code, PINCODE, Post Office, Where is my Post Office, Local Post Office, PIN Code Download">
+<meta name="keywords" content="PIN Code Finder, Indian Post Office Search, Postal Index Number, Pin Code Search by Digit, Post Office Locality Finder, Pincode List India, <?php echo $pincode; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <style>

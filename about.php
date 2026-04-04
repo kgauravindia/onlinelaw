@@ -5,10 +5,10 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Learn more about Online Law (olaw.in), our mission, and the team providing free legal resources to every citizen.">
-<meta name="keywords" content="about online law, legal resources team, online law mission">
+<meta name="description" content="Discover Online Law's mission to democratize legal and financial data in India. We provide free, high-performance tools for Bank IFSC, PIN Code lookup, GST HSN/SAC, and Passport office discovery.">
+<meta name="keywords" content="about online law, legal tools mission india, democratizing legal data, free financial tools team, offerplant legal initiative">
 <meta name="author" content="OfferPlant">
-<title>About Us : Online Law - For Every Citizen</title>
+<title>About Us | Redefining Legal Access in India - Online Law</title>
 
 <?php require_once ('includes/header.php'); ?> 
 

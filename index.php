@@ -5,10 +5,10 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Online Law (olaw.in) provides free digital legal resources, PIN code lookup, and bank IFSC finder in one place.">
-<meta name="keywords" content="online law, free legal resources, pin code, ifsc, bank ifsc finder">
+<meta name="description" content="India's leading digital legal tool directory. Search 1M+ PIN Codes, 178K+ Bank IFSC codes, 22K+ GST HSN/SAC codes, and 700+ Passport Offices instantly. 100% free for every citizen.">
+<meta name="keywords" content="bank ifsc finder, pin code lookup india, gst hsn sac finder, passport seva office locator, indian postal index number directory, bank branch codes, sack finder, post office address search">
 <meta name="author" content="OfferPlant">
-<title>Online Law - For Every Citizen</title>
+<title>Online Law | Free Bank IFSC, PIN Code, GST HSN & Passport Finder India</title>
 
 <?php require_once ('includes/header.php'); ?> 
 

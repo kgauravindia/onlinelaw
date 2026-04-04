@@ -28,12 +28,12 @@
             $meta_desc = "View full branch details for IFSC Code $ifsccode on Online Law.";
         }
     } else {
-        $page_title = "Bank IFSC Search Tool : Online Law";
-        $meta_desc = "Quickly search for any Bank IFSC code across India. Secure and fast Indian Financial System Code lookup for all major banks.";
+        $page_title = "Bank IFSC Search Tool | Find Any Bank Branch in India - Online Law";
+        $meta_desc = "Quickly search for any Bank IFSC code across India. Get instant details for NEFT, RTGS, and IMPS transactions for all nationalized and private banks. 100% accurate RBI data.";
     }
 ?>
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Search IFSC, <?php echo $ifsccode; ?>, IFSC Code, Bank, What is my IFSC, IFSC Code Download">
+<meta name="keywords" content="IFSC Code Search, Find Bank IFSC, RBI IFSC List, NEFT RTGS Codes, Bank Branch Finder India, MICR Code Search, Net Banking Codes, <?php echo $ifsccode; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <style>

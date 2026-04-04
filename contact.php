@@ -65,8 +65,8 @@
         }
     }
 
-    $page_title = "Contact Us | " . $inst_name;
-    $meta_desc = "Get in touch with $inst_name for any information or legal resource support. We are here to help every citizen.";
+    $page_title = "Contact Us | Support for Bank IFSC, PIN Code & Legal Tools - Online Law";
+    $meta_desc = "Have questions about our Bank IFSC, PIN Code, or GST HSN/SAC tools? Contact the Online Law support team for help, API inquiries, or suggestions. We're here for every citizen.";
 ?>
 <!DOCTYPE html>
 <html lang="en">

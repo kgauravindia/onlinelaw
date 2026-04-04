@@ -118,8 +118,8 @@ $stats = direct_sql("SELECT COUNT(*) as total_keys, SUM(usage_count) as total_ca
 $total_keys = $stats['data'][0]['total_keys'] ?? 0;
 $total_calls = $stats['data'][0]['total_calls'] ?? 0;
 
-$page_title = "Developer API Documentation - Online Law";
-$meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN Code, and GST HSN/SAC data programmatically through our RESTful API.";
+$page_title = "Developer API Documentation | Bank IFSC & Pincode JSON API India - Online Law";
+$meta_desc = "Integrate real-time Bank IFSC, PIN Code, and GST HSN/SAC data into your apps with the Online Law Developer API. Fast, reliable RESTful JSON endpoints for Indian datasets.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -129,7 +129,7 @@ $meta_desc = "Official API documentation for Online Law. Access Bank IFSC, PIN C
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="API, Developer API, Bank IFSC API, Pincode API, GST API, HSN API, Online Law API, REST API India">
+<meta name="keywords" content="Developer API India, Bank IFSC API JSON, Pincode API for website, GST HSN API service, Indian Financial Data API, Free REST API India, Passport Office API">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 

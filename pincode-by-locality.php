@@ -16,15 +16,15 @@
     }
 
     if(!empty($locality_search)) {
-        $page_title = "Pincode results for '$locality_search' : Online Law";
-        $meta_desc = "Search for Indian PIN Codes in '$locality_search'. Find postal details for city, village, and post office names instantly.";
+        $page_title = "Pincode results for '$locality_search' Locality - Online Law";
+        $meta_desc = "Quickly search for Indian PIN Codes in '$locality_search'. Find precise postal details for cities, villages, and post office names instantly.";
     } else {
-        $page_title = "PIN Code Search by Locality : Online Law";
-        $meta_desc = "Search PIN Code by Village, City or Post Office name of all state and UT of India in single search.";
+        $page_title = "Find PIN Code by Locality, City or Village | Online Law";
+        $meta_desc = "Search for Indian PIN Codes by entering a locality, city, or village name. Fast and comprehensive postal index directory.";
     }
 ?>
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Search PIN, <?php echo $locality_search; ?>, Search PIN Code, PINCODE by Locality, PI Code By Post Office Name, Village Name, City Post Office, PIN Code Download">
+<meta name="keywords" content="PIN Code by Locality, Village PIN Code Search, City Postal Codes India, Post Office Name Search, Find PIN by Area, <?php echo $locality_search; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <style>

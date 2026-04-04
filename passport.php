@@ -3,11 +3,11 @@
 	$q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 	
 	if(!empty($q)) {
-		$meta_desc = "Search results for Passport Seva Kendra $q. Find contact details and office addresses for $q at Online Law.";
-		$page_title = "Passport Office $q Details - Online Law";
+		$meta_desc = "Quickly locate Passport Seva Kendra (PSK) details for $q. Get office addresses, contact numbers, and Regional Passport Office (RPO) links.";
+		$page_title = "Passport Office $q | PSK & RPO Contact Details - Online Law";
 	} else {
-		$meta_desc = "Find Passport Seva Kendra (PSK) and Regional Passport Offices (RPO) across India. Look up office addresses and contact information at Online Law.";
-		$page_title = "Passport Office Finder - Online Law";
+		$meta_desc = "Find your nearest Passport Seva Kendra (PSK), POPSK, or Regional Passport Office (RPO) in India. Full directory of passport office addresses and helplines.";
+		$page_title = "Passport Office Finder | Locate PSK & RPO Offices India - Online Law";
 	}
 ?>
 <!DOCTYPE html>
@@ -18,7 +18,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Passport Office, PSK, RPO, Passport Seva Kendra, Regional Passport Office, Passport India, Passport Seva, Contact Passport Office">
+<meta name="keywords" content="Passport Office Search, Find PSK Near Me, Regional Passport Office India, Passport Seva Kendra Address, POPSK Locations, Passport Help Number, <?php echo $q; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <style>
