@@ -87,6 +87,16 @@
 					<a href="<?php echo $base_url; ?>passport" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search Offices <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
+			<div class="col-lg-3 col-md-6 mb-4">
+                <div class="detail-area text-center" style="padding: 40px 20px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; min-height: 380px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+					<div class="icon-box mb-4">
+						<i class="fas fa-gavel" style="font-size: 40px; color: var(--primary-color);"></i>
+					</div>
+					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Bare Acts Directory</h4>
+					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Browse and search a comprehensive directory of Indian Central Acts, including act numbers and years of enactment.</p>
+					<a href="<?php echo $base_url; ?>acts" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search Acts <i class="fas fa-search ml-1"></i></a>
+				</div>
+			</div>
 			
 		</div>
 	</div>

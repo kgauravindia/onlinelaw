@@ -69,6 +69,7 @@
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc-by-branch-name">Bank IFSC by Branch</a></li>
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>gst-hsn-sac">GST HSN & SAC Finder</a></li>
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>passport">Passport Office Finder</a></li>
+									<li><a class="dropdown-item" href="<?php echo $base_url; ?>acts">Bare Acts</a></li>
 								  </ul>
 								</li>
 								<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>api">Developer API</a> </li>

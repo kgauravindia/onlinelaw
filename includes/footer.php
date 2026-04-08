@@ -21,6 +21,7 @@
 					<li class="mb-2"><a href="<?php echo $base_url; ?>bank-ifsc" style="transition: color 0.2s;">Bank IFSC Finder</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>gst-hsn-sac" style="transition: color 0.2s;">GST HSN & SAC Finder</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>passport" style="transition: color 0.2s;">Passport Office Locator</a></li>
+					<li class="mb-2"><a href="<?php echo $base_url; ?>acts" style="transition: color 0.2s;">Bare Acts Directory</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>contact" style="transition: color 0.2s;">Contact Support</a></li>
 				  </ul>
 				</div>
