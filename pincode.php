@@ -1,10 +1,23 @@
 <?php
 	require_once ('includes/function.php'); 
 	$pincode = isset($_REQUEST['pincode']) ? trim($_REQUEST['pincode']) : '';
-	
+	$res = ['count' => 0, 'data' => []];
+	$ct = 0;
+
 	if(!empty($pincode) && is_numeric($pincode)) {
+		$safe_pincode = addslashes($pincode);
+		$sql = "select * from pincode where pincode ='$safe_pincode' order by locality_name";
+		$res = direct_sql($sql);
+		$ct = $res['count'];
+
+		if($ct > 0) {
+			$dist = $res['data'][0]['district_name'];
+			$st = $res['data'][0]['state_name'];
+			$page_title = "PIN Code $pincode Details of All Post Offices in $dist, $st - Online Law";
+		} else {
+			$page_title = "PIN Code $pincode Details | Post Office Info - Online Law";
+		}
 		$meta_desc = "Get all post office details for PIN Code $pincode. Find precise locality, district, and state information for $pincode instantly on Online Law.";
-		$page_title = "PIN Code $pincode Details | Post Office Info - Online Law";
 	} else {
 		$meta_desc = "Search for any Indian PIN Code (Postal Index Number) by digit. Instant details for 1M+ locations across all Indian states and Union Territories.";
 		$page_title = "PIN Code Search by Digital Code | Indian Postal Directory - Online Law";
@@ -100,19 +113,11 @@
 					
 					<!-- Table Results -->
 					<?php 
-                        if(isset($_REQUEST['pincode']))
+                        if(!empty($pincode))
                         {
-                            extract($_REQUEST);
-                            // Safety Check for empty
-                            if(!empty($pincode)) {
-                                $safe_pincode = addslashes($pincode);
-                                $sql = "select * from pincode where pincode ='$safe_pincode' order by locality_name";
-                                $res = direct_sql($sql);
-                                $ct =$res['count'];
-                                
-                                if($ct >0)
-                                {
-                                    $i=1;
+                            if($ct > 0)
+                            {
+                                $i=1;
                     ?>
                                     <div class="results-container mt-4">
                                         <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;">Showing results for PIN Code "<?php echo htmlentities($pincode); ?>" </h4>
@@ -253,7 +258,6 @@
                                     }
                                 }
                             }
-                        }
                     ?>
 				</div>
 			</div>
