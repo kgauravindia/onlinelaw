@@ -17,6 +17,7 @@ $pages = [
     'bank-ifsc-by-branch-name' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'gst-hsn-sac' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'passport' => ['priority' => '0.9', 'changefreq' => 'daily'],
+    'acts' => ['priority' => '0.9', 'changefreq' => 'daily'],
 ];
 
 $xml = '<?xml version="1.0" encoding="UTF-8"?>
