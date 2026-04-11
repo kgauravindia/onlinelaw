@@ -22,6 +22,7 @@
 					<li class="mb-2"><a href="<?php echo $base_url; ?>gst-hsn-sac" style="transition: color 0.2s;">GST HSN & SAC Finder</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>passport" style="transition: color 0.2s;">Passport Office Locator</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>acts" style="transition: color 0.2s;">Bare Acts Directory</a></li>
+					<li class="mb-2"><a href="<?php echo $base_url; ?>new-banks" style="transition: color 0.2s; color: #10b981; font-weight: 500;"><i class="fas fa-star mr-1" style="font-size: 10px;"></i> Newly Opened Banks</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>contact" style="transition: color 0.2s;">Contact Support</a></li>
 				  </ul>
 				</div>
