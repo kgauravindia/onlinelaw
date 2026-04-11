@@ -6,126 +6,82 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, follow">
-<title>Page Not Found | Online Law</title>
+<title>404 - Page Not Found | Online Law</title>
 
 <?php 
     require_once ('includes/function.php');
     require_once ('includes/header.php'); 
 ?>
 
-<style>
-    .error-container {
-        padding: 100px 0;
-        min-height: 80vh;
-        display: flex;
-        align-items: center;
-        background: radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.05), transparent),
-                    radial-gradient(circle at bottom left, rgba(var(--primary-rgb), 0.05), transparent);
-    }
-    .error-code {
-        font-size: 150px;
-        font-weight: 900;
-        line-height: 1;
-        background: linear-gradient(135deg, var(--primary-color), #38bdf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 20px;
-        font-family: var(--font-heading);
-        letter-spacing: -5px;
-    }
-    .error-title {
-        font-family: var(--font-heading);
-        font-size: 32px;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 15px;
-    }
-    .error-desc {
-        font-size: 18px;
-        color: var(--text-muted);
-        max-width: 500px;
-        margin: 0 auto 40px;
-        line-height: 1.6;
-    }
-    .tool-card {
-        background: #fff;
-        border: 1px solid #f1f5f9;
-        border-radius: 16px;
-        padding: 25px;
-        text-align: center;
-        transition: all 0.3s ease;
-        text-decoration: none !important;
-        height: 100%;
-        display: block;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    }
-    .tool-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-        border-color: var(--primary-color);
-    }
-    .tool-card i {
-        font-size: 32px;
-        color: var(--primary-color);
-        margin-bottom: 15px;
-        display: block;
-    }
-    .tool-card h5 {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 5px;
-    }
-    .tool-card span {
-        font-size: 13px;
-        color: var(--text-muted);
-    }
-</style>
+<!-- Page Banner -->
+<section class="bg-img-3 overlay p-0 full-row" style="padding: 20px 0 !important;">
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="banner-text text-center">
+					<h2 class="text-white banner-tittle position-relative mb-1" style="font-family: var(--font-heading) !important; font-size: 28px; color: #fff !important; margin: 0;">404 Page Not Found</h2>
+					<ul class="list-inline mt-2 mb-0" style="color: #cbd5e1; font-family: var(--font-body); font-size: 14px;">
+						<li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: rgba(255,255,255,0.8); text-decoration: none;">Home</a></li>
+						<li class="list-inline-item mx-2">/</li>
+						<li class="list-inline-item" style="color: #fff; font-weight: 500;">404 Error</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
 
-<section class="error-container">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-12 text-center">
-                <div class="error-code">404</div>
-                <h1 class="error-title">Objection! Page Not Found</h1>
-                <p class="error-desc">It seems the link you followed has been dismissed or relocated. Don't worry, you can still find what you're looking for using our tools below.</p>
-                
-                <div class="row justify-content-center mt-5">
-                    <div class="col-lg-8">
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <a href="<?php echo $base_url; ?>bank-ifsc" class="tool-card">
-                                    <i class="fas fa-university"></i>
-                                    <h5>Bank IFSC</h5>
-                                    <span>Find any branch code</span>
-                                </a>
+<!-- Error Section Content -->
+<section class="full-row bg-body pt-80 pb-50" style="padding-top: 80px; min-height: 60vh;">
+	<div class="container">
+		<div class="row justify-content-center">
+			<div class="col-lg-10 text-center">
+                <div class="error-visual mb-5">
+                    <h1 style="font-family: var(--font-heading); font-size: 150px; font-weight: 800; line-height: 1; background: linear-gradient(135deg, var(--primary-color), #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px;">404</h1>
+                    <h2 class="section-title mb-3" style="font-family: var(--font-heading); font-size: 36px;">Objection! <span style="color: var(--primary-color);">Page Not Found</span></h2>
+                    <p style="font-size: 18px; color: var(--text-muted); max-width: 700px; margin: 0 auto;">The page you're searching for seems to have been dismissed. Let's get you back on track with our official legal tools.</p>
+                </div>
+
+                <!-- Tools Grid -->
+                <div class="row mt-5">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="detail-area p-4 text-center" style="background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); transition: all 0.3s ease;">
+                            <div class="icon-box mb-3">
+                                <i class="fas fa-university" style="font-size: 32px; color: var(--primary-color);"></i>
                             </div>
-                            <div class="col-md-4 mb-4">
-                                <a href="<?php echo $base_url; ?>pincode" class="tool-card">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <h5>PIN Code</h5>
-                                    <span>Search 1M+ locations</span>
-                                </a>
+                            <h5 style="font-family: var(--font-heading); font-weight: 700;">Bank IFSC</h5>
+                            <p style="font-size: 13px; color: var(--text-muted);">Find any branch code instantly</p>
+                            <a href="<?php echo $base_url; ?>bank-ifsc" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 14px;">Find IFSC <i class="fas fa-arrow-right ml-1" style="font-size: 10px;"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="detail-area p-4 text-center" style="background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); transition: all 0.3s ease;">
+                            <div class="icon-box mb-3">
+                                <i class="fas fa-map-marker-alt" style="font-size: 32px; color: var(--primary-color);"></i>
                             </div>
-                            <div class="col-md-4 mb-4">
-                                <a href="<?php echo $base_url; ?>gst-hsn-sac" class="tool-card">
-                                    <i class="fas fa-file-invoice-dollar"></i>
-                                    <h5>GST Finder</h5>
-                                    <span>HSN & SAC codes</span>
-                                </a>
+                            <h5 style="font-family: var(--font-heading); font-weight: 700;">PIN Code</h5>
+                            <p style="font-size: 13px; color: var(--text-muted);">Search 1.1M+ Pincode locations</p>
+                            <a href="<?php echo $base_url; ?>pincode" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 14px;">Locate PIN <i class="fas fa-arrow-right ml-1" style="font-size: 10px;"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="detail-area p-4 text-center" style="background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); transition: all 0.3s ease;">
+                            <div class="icon-box mb-3">
+                                <i class="fas fa-file-invoice-dollar" style="font-size: 32px; color: var(--primary-color);"></i>
                             </div>
+                            <h5 style="font-family: var(--font-heading); font-weight: 700;">GST Finder</h5>
+                            <p style="font-size: 13px; color: var(--text-muted);">Complete HSN & SAC directory</p>
+                            <a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 14px;">Search GST <i class="fas fa-arrow-right ml-1" style="font-size: 10px;"></i></a>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-5">
-                    <a href="<?php echo $base_url; ?>index" class="btn btn-primary px-4 py-3" style="border-radius: 12px; font-weight: 600;">
-                        <i class="fas fa-home mr-2"></i> Return to Homepage
-                    </a>
+                    <a href="<?php echo $base_url; ?>index" class="btn btn-primary px-5 py-3" style="border-radius: var(--radius-md); font-weight: 700;">Return to Homepage</a>
                 </div>
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 </section>
 
 <?php require_once ('includes/footer.php'); ?> 
