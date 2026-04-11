@@ -1,5 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    ErrorDocument 404 /404.php
     
     # 1. Search tool detail URLs
     RewriteRule ^pincode/([0-9]+)/?$ pincode.php?pincode=$1 [L,QSA]
