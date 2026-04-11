@@ -97,16 +97,6 @@
 					<a href="<?php echo $base_url; ?>acts" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Search Acts <i class="fas fa-search ml-1"></i></a>
 				</div>
 			</div>
-			<div class="col-lg-3 col-md-6 mb-4">
-                <div class="detail-area text-center" style="padding: 40px 20px !important; border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; min-height: 380px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
-					<div class="icon-box mb-4">
-						<i class="fas fa-plus-circle" style="font-size: 40px; color: #10b981;"></i>
-					</div>
-					<h4 class="mb-3" style="font-family: var(--font-heading); font-weight: 700;">Newly Opened Banks</h4>
-					<p style="color: var(--text-muted); font-size: 15px; margin-bottom: 25px;">Stay updated with the 479 latest bank branches inaugurated across India in 2026 with verified IFSC codes.</p>
-					<a href="<?php echo $base_url; ?>new-banks" style="color: #10b981; font-weight: 600; text-decoration: none;">View New Banks <i class="fas fa-search ml-1"></i></a>
-				</div>
-			</div>
 			
 		</div>
 	</div>

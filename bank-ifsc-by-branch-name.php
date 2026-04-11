@@ -90,6 +90,16 @@
                                 </div>
 							</div>
 						</div>
+
+                        <!-- News Ticker / Latest News -->
+                        <div class="mt-4 w-100" style="background: #fff8f1; border: 1px dashed #fb923c; border-radius: 12px; padding: 12px 20px; overflow: hidden;">
+                            <div class="d-flex align-items-center">
+                                <span class="badge py-1 px-2 mr-3" style="background: #ea580c; color: #fff; font-size: 11px; font-weight: 700; border-radius: 6px; text-transform: uppercase;">Latest News</span>
+                                <div style="font-size: 14px; color: #7c2d12; font-weight: 500;">
+                                    <i class="fas fa-bullhorn mr-2 text-warning"></i> 479 bank branches have been recently inaugurated and updated in the RBI official record as of 31 March 2026.
+                                </div>
+                            </div>
+                        </div>
 					</div>
 					
 					<form method="post" action="<?php echo $base_url; ?>bank-ifsc-by-branch-name" class="form-style-1 mb-5">

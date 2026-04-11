@@ -70,7 +70,6 @@
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>gst-hsn-sac">GST HSN & SAC Finder</a></li>
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>passport">Passport Office Finder</a></li>
 									<li><a class="dropdown-item" href="<?php echo $base_url; ?>acts">Bare Acts</a></li>
-									<li><a class="dropdown-item" href="<?php echo $base_url; ?>new-banks" style="color: #059669; font-weight: 600;"><i class="fas fa-plus-circle mr-1"></i> Newly Opened Banks</a></li>
 								  </ul>
 								</li>
 								<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>api">Developer API</a> </li>
