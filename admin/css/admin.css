@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Online Law - Modern Admin Design System (Inspired by AdvocateIndex)
+   Online Law - Modern Admin Design System (Premium AdvocateIndex Edition)
    ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -9,8 +9,8 @@
     --primary-light: #eff6ff;
     --primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
     --secondary-bg: #f8fafc;
-    --sidebar-bg: #0f172a;
-    --sidebar-surface: #1e293b;
+    --sidebar-bg: #0b1120;
+    --sidebar-surface: #0f172a;
     --sidebar-hover: rgba(255, 255, 255, 0.06);
     --sidebar-active: rgba(37, 99, 235, 0.18);
     --text-main: #0f172a;
@@ -572,6 +572,55 @@ h1, h2, h3, h4, h5, h6, .page-title, .font-heading {
     border-bottom: none;
 }
 
+/* Custom DataTables Styling */
+.dataTables_wrapper {
+    padding: 1.25rem;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1rem;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.85rem;
+    font-size: 0.88rem;
+    outline: none;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 0.35rem 0.6rem;
+    font-size: 0.88rem;
+    outline: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid transparent !important;
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--primary-gradient) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
+    background: #f1f5f9 !important;
+    color: var(--text-main) !important;
+}
+
 /* Badges */
 .badge-premium {
     padding: 0.35rem 0.75rem;
@@ -591,7 +640,7 @@ h1, h2, h3, h4, h5, h6, .page-title, .font-heading {
 .badge-premium-primary { background: var(--primary-light); color: var(--primary); }
 
 /* Forms & Inputs */
-.form-control {
+.form-control, .form-select {
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-soft);
     padding: 0.6rem 0.9rem;
@@ -599,10 +648,52 @@ h1, h2, h3, h4, h5, h6, .page-title, .font-heading {
     transition: var(--transition);
 }
 
-.form-control:focus {
+.form-control:focus, .form-select:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     outline: none;
+}
+
+/* Custom Dropzone / Upload Box */
+.custom-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: var(--radius-lg);
+    background: #f8fafc;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.custom-dropzone:hover {
+    border-color: var(--primary);
+    background: #eff6ff;
+}
+
+/* Action Buttons */
+.btn-action-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: var(--transition);
+    border: 1px solid var(--border-soft);
+    background: #ffffff;
+}
+
+.btn-action-circle:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+}
+
+/* Charts */
+.chart-container-box {
+    position: relative;
+    height: 280px;
+    width: 100%;
 }
 
 /* ==========================================================================

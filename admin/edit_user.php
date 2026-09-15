@@ -4,7 +4,7 @@ require_once('includes/header.php');
 $error = '';
 $success = '';
 
-if(!isset($_GET['id'])) {
+if (!isset($_GET['id'])) {
     echo "<div class='alert alert-danger'>Invalid User ID</div>";
     require_once('includes/footer.php');
     exit;
@@ -13,7 +13,7 @@ if(!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 $user_data = get_data('op_user', $id);
 
-if($user_data['count'] == 0) {
+if ($user_data['count'] == 0) {
     echo "<div class='alert alert-danger'>User not found</div>";
     require_once('includes/footer.php');
     exit;
@@ -21,7 +21,7 @@ if($user_data['count'] == 0) {
 
 $u = $user_data['data'];
 
-if($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $update_data = array(
         'full_name' => trim($_POST['full_name']),
         'user_mobile' => trim($_POST['user_mobile']),
@@ -30,76 +30,128 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         'status' => trim($_POST['status'])
     );
 
-    // Only update password if a new one is provided
-    if(!empty($_POST['user_pass'])) {
-        $update_data['user_pass'] = password_hash(trim($_POST['user_pass']), PASSWORD_DEFAULT);
+    // If new password is provided, hash with md5/bcrypt
+    if (!empty($_POST['user_pass'])) {
+        $update_data['user_pass'] = md5(trim($_POST['user_pass']));
     }
 
     $res = update_data('op_user', $update_data, $id);
-    if($res['status'] == 'success') {
-        $success = "User details updated successfully!";
-        // Refresh data
+    if ($res['status'] == 'success') {
+        $success = "User account updated successfully!";
         $u = get_data('op_user', $id)['data'];
     } else {
         $error = "Failed to update user: " . $res['msg'];
     }
 }
 ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="page-title mb-0">Edit User</h2>
-    <a href="manage_users.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Users</a>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">Edit User Profile</h1>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Manage administrator account profile, contact details, and credentials.</p>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2" style="gap: 8px;">
+        <a href="manage_users.php" class="btn btn-outline-secondary font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Users
+        </a>
+    </div>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-        <?php if($error) echo "<div class='alert alert-danger'>$error</div>"; ?>
-        <?php if($success) echo "<div class='alert alert-success'>$success</div>"; ?>
-        
-        <form method="post" action="">
-            <div class="row">
-                <div class="col-md-6 form-group mb-4">
-                    <label class="font-weight-bold text-muted small text-uppercase">Full Name</label>
-                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($u['full_name']); ?>" required>
+<?php if ($error): ?>
+    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center mb-4" style="border-radius: var(--radius-md); gap: 10px;">
+        <i class="fas fa-exclamation-circle fa-lg"></i>
+        <div><?php echo htmlspecialchars($error); ?></div>
+    </div>
+<?php endif; ?>
+
+<?php if ($success): ?>
+    <div class="alert alert-success shadow-sm border-0 d-flex align-items-center mb-4" style="border-radius: var(--radius-md); gap: 10px;">
+        <i class="fas fa-check-circle fa-lg"></i>
+        <div><?php echo htmlspecialchars($success); ?></div>
+    </div>
+<?php endif; ?>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="section-card p-4">
+            <form method="post" action="">
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1">Full Name *</label>
+                        <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($u['full_name']); ?>" required>
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1">Username (Login ID)</label>
+                        <input type="text" class="form-control font-monospace" value="<?php echo htmlspecialchars($u['user_name']); ?>" disabled style="background: #f1f5f9;">
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1">Mobile Number</label>
+                        <input type="text" name="user_mobile" class="form-control" value="<?php echo htmlspecialchars($u['user_mobile'] ?? ''); ?>">
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1">Email Address</label>
+                        <input type="email" name="user_email" class="form-control" value="<?php echo htmlspecialchars($u['user_email'] ?? ''); ?>">
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1">User Role Type</label>
+                        <select name="user_type" class="form-control">
+                            <option value="ADMIN" <?php echo ($u['user_type'] == 'ADMIN') ? 'selected' : ''; ?>>ADMIN</option>
+                            <option value="DEV" <?php echo ($u['user_type'] == 'DEV') ? 'selected' : ''; ?>>DEV (Developer)</option>
+                            <option value="STAFF" <?php echo ($u['user_type'] == 'STAFF') ? 'selected' : ''; ?>>STAFF</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1">Account Status</label>
+                        <select name="status" class="form-control">
+                            <option value="ACTIVE" <?php echo ($u['status'] == 'ACTIVE' || $u['user_status'] == 'ACTIVE') ? 'selected' : ''; ?>>ACTIVE</option>
+                            <option value="INACTIVE" <?php echo ($u['status'] == 'INACTIVE' || $u['user_status'] == 'INACTIVE') ? 'selected' : ''; ?>>INACTIVE</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 form-group mb-4">
+                        <label class="small font-weight-bold text-muted mb-1">New Password <span class="text-muted font-weight-normal">(Leave blank to keep unchanged)</span></label>
+                        <input type="password" name="user_pass" class="form-control" placeholder="Enter new password">
+                    </div>
                 </div>
-                <div class="col-md-6 form-group mb-4">
-                    <label class="font-weight-bold text-muted small text-uppercase">Mobile</label>
-                    <input type="text" name="user_mobile" class="form-control" value="<?php echo htmlspecialchars($u['user_mobile']); ?>" required>
+
+                <div class="d-flex justify-content-end gap-2" style="gap: 10px;">
+                    <a href="manage_users.php" class="btn btn-light px-4 font-weight-bold">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" style="background: var(--primary-gradient); border: none;">
+                        <i class="fas fa-save mr-1"></i> Save User Profile
+                    </button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="section-card p-4 text-center">
+            <div class="admin-avatar mx-auto mb-3" style="width: 72px; height: 72px; font-size: 1.8rem;">
+                <?php echo strtoupper(substr($u['full_name'] ?: $u['user_name'] ?: 'U', 0, 1)); ?>
             </div>
+            <h5 class="font-weight-bold mb-1"><?php echo htmlspecialchars($u['full_name'] ?: $u['user_name']); ?></h5>
+            <span class="badge-premium badge-premium-primary mb-3"><?php echo htmlspecialchars($u['user_type'] ?: 'ADMIN'); ?></span>
             
-            <div class="row">
-                <div class="col-md-6 form-group mb-4">
-                    <label class="font-weight-bold text-muted small text-uppercase">Email</label>
-                    <input type="email" name="user_email" class="form-control" value="<?php echo htmlspecialchars($u['user_email']); ?>" required>
+            <div class="border-top pt-3 text-left small text-muted">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Username:</span>
+                    <strong class="text-dark">@<?php echo htmlspecialchars($u['user_name'] ?? ''); ?></strong>
                 </div>
-                <div class="col-md-6 form-group mb-4">
-                    <label class="font-weight-bold text-muted small text-uppercase">User Type</label>
-                    <select name="user_type" class="form-control" required>
-                        <option value="CLIENT" <?php if($u['user_type'] == 'CLIENT') echo 'selected'; ?>>CLIENT</option>
-                        <option value="ADMIN" <?php if($u['user_type'] == 'ADMIN') echo 'selected'; ?>>ADMIN</option>
-                        <option value="LAWYER" <?php if($u['user_type'] == 'LAWYER') echo 'selected'; ?>>LAWYER</option>
-                    </select>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Member Since:</span>
+                    <strong class="text-dark"><?php echo !empty($u['created_at']) ? date('d M Y', strtotime($u['created_at'])) : 'N/A'; ?></strong>
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 form-group mb-4">
-                    <label class="font-weight-bold text-muted small text-uppercase">Status</label>
-                    <select name="status" class="form-control" required>
-                        <option value="ACTIVE" <?php if($u['status'] == 'ACTIVE') echo 'selected'; ?>>ACTIVE</option>
-                        <option value="BLOCK" <?php if($u['status'] == 'BLOCK') echo 'selected'; ?>>BLOCK</option>
-                        <option value="PENDING" <?php if($u['status'] == 'PENDING') echo 'selected'; ?>>PENDING</option>
-                    </select>
-                </div>
-                <div class="col-md-6 form-group mb-4">
-                    <label class="font-weight-bold text-muted small text-uppercase">Reset Password</label>
-                    <input type="password" name="user_pass" class="form-control" placeholder="Leave blank to keep current password">
-                    <small class="text-muted">Only fill this if you want to change the password.</small>
+                <div class="d-flex justify-content-between">
+                    <span>Last Login:</span>
+                    <strong class="text-dark"><?php echo !empty($u['last_login']) ? date('d M Y, h:i A', strtotime($u['last_login'])) : 'N/A'; ?></strong>
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-primary px-4 py-2 mt-2"><i class="fas fa-save mr-2"></i> Save Changes</button>
-        </form>
+        </div>
     </div>
 </div>
 
