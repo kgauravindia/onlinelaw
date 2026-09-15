@@ -37,28 +37,39 @@ $sender_id ="OLAWIN"; // OFFAPP
 $noreply_email ="noreply@olaw.in";
 $auth_key_msg ="b0e99bea1fa7d15e27e1c5fd8e3c868"; // MSG CLUB myadvindia updated on 12 jan 2023 
 $auth_key_sms ="180367At8cchpCRSTV59ed9c10"; // MSG 91
-// Determine if the request is over HTTPS
-$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-// For production, always use https
-if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && $_SERVER['HTTP_HOST'] !== '127.0.0.1') {
+// Determine if the request is over HTTPS (support Cloudflare, reverse proxies, and direct SSL)
+$protocol = "http";
+if (
+    (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1')) ||
+    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+    (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
+    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+) {
+    $protocol = "https";
+} elseif (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && $_SERVER['HTTP_HOST'] !== '127.0.0.1' && !str_starts_with($_SERVER['HTTP_HOST'], 'localhost:')) {
+    // Default to https for online/production hostnames
     $protocol = "https";
 }
 
-// Get the document root relative path (e.g., /onlinelaw/)
-$script_path = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-// Ensure the path ends with a single slash
-$base_path = rtrim($script_path, '/') . '/';
-
-// Get the host name from the server, or default to olaw.in if run from CLI
+// Host detection (fallback to olaw.in if CLI)
 $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'olaw.in';
 
-// Combine for a full absolute URL
+// Calculate base path from project root directory relative to DOCUMENT_ROOT
+$doc_root = isset($_SERVER['DOCUMENT_ROOT']) ? str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])) : '';
+$app_root = str_replace('\\', '/', realpath(dirname(__DIR__)));
+
+$subpath = '';
+if (!empty($doc_root) && !empty($app_root) && strpos($app_root, $doc_root) === 0) {
+    $subpath = substr($app_root, strlen($doc_root));
+} else {
+    // Fallback based on script name if document root realpath mismatch
+    $script_dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+    $subpath = preg_replace('#/(admin|bank|includes)$#i', '', rtrim($script_dir, '/'));
+}
+
+$base_path = '/' . trim($subpath, '/') . (trim($subpath, '/') !== '' ? '/' : '');
 $base_url = $protocol . "://" . $host . $base_path;
 
-// Hardcode production URL if not on localhost to ensure consistency
-if ($host !== 'localhost' && $host !== '127.0.0.1') {
-    $base_url = "https://olaw.in/";
-}
 
 $docs_fee =200;
 $google_map = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3592.2970631671963!2d84.74506377610148!3d25.7937490072049!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3992bb0071acc88d%3A0x667cb9b46cda2f4f!2sOnline%20Law!5e0!3m2!1sen!2sin!4v1743079268383!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';

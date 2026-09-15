@@ -14,7 +14,6 @@
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/owl.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>webfonts/flaticon/flaticon.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/style.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/layerslider.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/responsive.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
