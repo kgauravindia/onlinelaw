@@ -27,12 +27,21 @@ $main_pages = [
     'privacy-policy' => ['priority' => '0.3', 'changefreq' => 'monthly'],
     'terms-and-conditions' => ['priority' => '0.3', 'changefreq' => 'monthly'],
     'disclaimer' => ['priority' => '0.3', 'changefreq' => 'monthly'],
+    'company-incorporation' => ['priority' => '0.9', 'changefreq' => 'daily'],
+    'nic' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'pincode' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'pincode-by-locality' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'bank-ifsc' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'bank-ifsc-by-branch-name' => ['priority' => '0.9', 'changefreq' => 'daily'],
+    'bank-micr' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'gst-hsn-sac' => ['priority' => '0.9', 'changefreq' => 'daily'],
     'passport' => ['priority' => '0.9', 'changefreq' => 'daily'],
+    'acts' => ['priority' => '0.9', 'changefreq' => 'daily'],
+    'bank' => ['priority' => '0.9', 'changefreq' => 'daily'],
+    'bank/services' => ['priority' => '0.8', 'changefreq' => 'monthly'],
+    'bank/card' => ['priority' => '0.8', 'changefreq' => 'monthly'],
+    'bank/account' => ['priority' => '0.8', 'changefreq' => 'monthly'],
+    'bank/contact-details' => ['priority' => '0.8', 'changefreq' => 'monthly'],
 ];
 
 $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
@@ -134,6 +143,42 @@ if($res['count'] > 0) {
     echo "✓ Generated sitemap-ifsc.xml (Index) + " . count($sitemaps) . " parts.\n";
 }
 
+// --- 4.1 BANK MICR SITEMAP (MULTI-PART) ---
+echo "Generating Bank MICR Sitemap (Multi-part)...\n";
+$sql = "SELECT DISTINCT micr FROM bank_ifsc WHERE micr IS NOT NULL AND micr != ''";
+$res = direct_sql($sql);
+if($res['count'] > 0) {
+    $chunk_size = 45000;
+    $chunks = array_chunk($res['data'], $chunk_size);
+    $sitemaps = [];
+
+    foreach($chunks as $index => $chunk) {
+        $part = $index + 1;
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        foreach($chunk as $row) {
+            $micr = $row['micr'];
+            $url = $base . "bank-micr/" . $micr;
+            $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.7</priority>\n\t</url>\n";
+        }
+        $xml .= '</urlset>';
+        $filename = "sitemap-micr-part$part.xml";
+        file_put_contents($filename, $xml);
+        $sitemaps[] = $filename;
+    }
+
+    // Index for MICR
+    $xml_index = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml_index .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    foreach($sitemaps as $map) {
+        $map_url = $base . $map;
+        $xml_index .= "\t<sitemap>\n\t\t<loc>".htmlspecialchars($map_url)."</loc>\n\t\t<lastmod>".date('Y-m-d')."</lastmod>\n\t</sitemap>\n";
+    }
+    $xml_index .= '</sitemapindex>';
+    file_put_contents('sitemap-micr.xml', $xml_index);
+    echo "✓ Generated sitemap-micr.xml (Index) + " . count($sitemaps) . " parts.\n";
+}
+
 
 // --- 5. GST HSN/SAC SITEMAP (MULTI-PART) ---
 echo "Generating GST HSN/SAC Sitemap (Multi-part)...\n";
@@ -175,6 +220,65 @@ if($res['count'] > 0) {
     file_put_contents('sitemap-gst.xml', $xml_index);
     echo "✓ Generated sitemap-gst.xml (Index) + " . count($sitemaps) . " parts.\n";
 }
+
+// --- 6. BARE ACTS SITEMAP ---
+echo "Generating Bare Acts Sitemap...\n";
+$sql = "SELECT DISTINCT name FROM acts WHERE name IS NOT NULL AND name != '' ORDER BY name ASC";
+$res = direct_sql($sql);
+$xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+$xml .= "\t<url>\n\t\t<loc>".$base."acts</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
+
+if($res['count'] > 0) {
+    foreach($res['data'] as $row) {
+        $name = $row['name'];
+        $url = $base . "acts/" . urlencode($name);
+        $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.7</priority>\n\t</url>\n";
+    }
+}
+$xml .= '</urlset>';
+file_put_contents('sitemap-acts.xml', $xml);
+echo "✓ Generated sitemap-acts.xml with " . ($res['count'] + 1) . " URLs.\n";
+
+
+// --- 7. NIC 2025 SITEMAP ---
+echo "Generating NIC 2025 Sitemap...\n";
+$sql = "SELECT DISTINCT code FROM nic WHERE code IS NOT NULL AND code != '' ORDER BY code ASC";
+$res = direct_sql($sql);
+$xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+$xml .= "\t<url>\n\t\t<loc>".$base."nic</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
+
+if($res['count'] > 0) {
+    foreach($res['data'] as $row) {
+        $code = $row['code'];
+        $url = $base . "nic/" . urlencode($code);
+        $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
+    }
+}
+$xml .= '</urlset>';
+file_put_contents('sitemap-nic.xml', $xml);
+echo "✓ Generated sitemap-nic.xml with " . ($res['count'] + 1) . " URLs.\n";
+
+
+// --- 8. COMPANY INCORPORATION SITEMAP ---
+echo "Generating Company Incorporation Sitemap...\n";
+$sql = "SELECT DISTINCT cin FROM companies_incorporated WHERE cin IS NOT NULL AND cin != '' ORDER BY cin ASC";
+$res = direct_sql($sql);
+$xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+$xml .= "\t<url>\n\t\t<loc>".$base."company-incorporation</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
+
+if($res['count'] > 0) {
+    foreach($res['data'] as $row) {
+        $cin = $row['cin'];
+        $url = $base . "company-incorporation/" . urlencode($cin);
+        $xml .= "\t<url>\n\t\t<loc>".htmlspecialchars($url)."</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
+    }
+}
+$xml .= '</urlset>';
+file_put_contents('sitemap-company.xml', $xml);
+echo "✓ Generated sitemap-company.xml with " . ($res['count'] + 1) . " URLs.\n";
 
 echo "\nAll sitemaps generated successfully!\n";
 ?>

@@ -35,7 +35,7 @@
 			<div class="col-lg-12">
 				<div class="detail-area">
 					<div class="section-title-2 mb-50">
-					<h3 class="section-title"><span>Last Update on 27 March 2026</span>Privacy Policy</h3>
+					<h3 class="section-title"><span>Last Update on 15 August 2026</span>Privacy Policy</h3>
 <p>1. <b>Introduction</b></p>
 <p>Welcome to <b> Online Law </b> an initiative of <b> OfferPlant Technologies Private Limited</b>.</p>
 <p><b>Online Law </b> an initiative of <b> OfferPlant Technologies Private Limited</b> (“us”, “we”, or “our”) operates <b>https://olaw.in</b> (hereinafter referred to as <b>“Service”</b>).</p>

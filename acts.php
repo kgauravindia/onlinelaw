@@ -4,11 +4,11 @@
     $year_filter = isset($_REQUEST['year']) ? trim($_REQUEST['year']) : '';
 	
 	if(!empty($q)) {
-		$meta_desc = "Quickly search for Bare Acts and Central Acts in India: $q. Get act numbers, years, and categories.";
-		$page_title = "Bare Act: $q | Indian Central Acts Directory - Online Law";
+		$meta_desc = "Quickly search for Bare Acts and Central Acts in India: $q. Get act numbers, years, and categories. Updated 2026.";
+		$page_title = "Bare Act: $q | Indian Central Acts Directory (Updated 2026) - Online Law";
 	} else {
-		$meta_desc = "Complete directory of Indian Bare Acts and Central Acts. Search by act name, year, or number. 100% free legal resource for every citizen.";
-		$page_title = "Bare Acts Directory | Indian Law Central Acts Search - Online Law";
+		$meta_desc = "Complete directory of Indian Bare Acts and Central Acts. Search by act name, year, or number. Free legal resource updated 2026.";
+		$page_title = "Bare Acts Directory | Indian Law Central Acts Search (Updated 2026) - Online Law";
 	}
 ?>
 <!DOCTYPE html>
@@ -254,7 +254,7 @@
                                 </div>
                                 
                                 <div class="mt-4 pt-3 border-top text-center">
-                                    <p class="text-muted small mb-0">Source: Government of India, Ministry of Law & Justice, Legislative Department. <br>Official Website: www.legislative.gov.in | Last Updated: <strong>03 March 2026</strong></p>
+                                    <p class="text-muted small mb-0">Source: Government of India, Ministry of Law & Justice, Legislative Department. <br>Official Website: www.legislative.gov.in | Last Updated: <strong>08 April 2026</strong></p>
                                 </div>
                             </div>
                     <?php } else { ?>

@@ -3,11 +3,11 @@
 	$q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 	
 	if(!empty($q)) {
-		$meta_desc = "Quickly find GST HSN/SAC code $q details. Get full descriptions, current GST rates, and classification for $q at Online Law.";
-		$page_title = "HSN/SAC Code $q GST Rates & Details - Online Law";
+		$meta_desc = "Quickly find GST HSN/SAC code $q details. Get full descriptions, current GST rates, and classification for $q. Updated 2026.";
+		$page_title = "HSN/SAC Code $q GST Rates & Details (Updated 2026) - Online Law";
 	} else {
-		$meta_desc = "Professional GST HSN and SAC code lookup for goods and services. Search for tax rates, HSN chapters, and service accounting codes instantly.";
-		$page_title = "GST HSN and SAC Code Finder | Current GST Rates India - Online Law";
+		$meta_desc = "Professional GST HSN and SAC code lookup for goods and services. Search for tax rates, HSN chapters, and service accounting codes. Updated 2026.";
+		$page_title = "GST HSN and SAC Code Finder | Current GST Rates India (Updated 2026) - Online Law";
 	}
 ?>
 <!DOCTYPE html>

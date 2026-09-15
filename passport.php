@@ -3,11 +3,11 @@
 	$q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 	
 	if(!empty($q)) {
-		$meta_desc = "Quickly locate Passport Seva Kendra (PSK) details for $q. Get office addresses, contact numbers, and Regional Passport Office (RPO) links.";
-		$page_title = "Passport Office $q | PSK & RPO Contact Details - Online Law";
+		$meta_desc = "Quickly locate Passport Seva Kendra (PSK) details for $q. Get office addresses, contact numbers, and Regional Passport Office (RPO) links. Fully updated 2026.";
+		$page_title = "Passport Office $q | PSK & RPO Contact Details (Updated 2026) - Online Law";
 	} else {
-		$meta_desc = "Find your nearest Passport Seva Kendra (PSK), POPSK, or Regional Passport Office (RPO) in India. Full directory of passport office addresses and helplines.";
-		$page_title = "Passport Office Finder | Locate PSK & RPO Offices India - Online Law";
+		$meta_desc = "Find your nearest Passport Seva Kendra (PSK), POPSK, or Regional Passport Office (RPO) in India. Full directory of passport office addresses and helplines updated 2026.";
+		$page_title = "Passport Office Finder | Locate PSK & RPO Offices India (Updated 2026) - Online Law";
 	}
 ?>
 <!DOCTYPE html>

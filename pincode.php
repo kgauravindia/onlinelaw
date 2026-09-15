@@ -13,14 +13,14 @@
 		if($ct > 0) {
 			$dist = $res['data'][0]['district_name'];
 			$st = $res['data'][0]['state_name'];
-			$page_title = "PIN Code $pincode Details of All Post Offices in $dist, $st - Online Law";
+			$page_title = "PIN Code $pincode Details of All Post Offices in $dist, $st (Updated 2026) - Online Law";
 		} else {
-			$page_title = "PIN Code $pincode Details | Post Office Info - Online Law";
+			$page_title = "PIN Code $pincode Details | Post Office Info (Updated 2026) - Online Law";
 		}
-		$meta_desc = "Get all post office details for PIN Code $pincode. Find precise locality, district, and state information for $pincode instantly on Online Law.";
+		$meta_desc = "Get all post office details for PIN Code $pincode. Find precise locality, district, and state information for $pincode instantly on Online Law. Updated 2026.";
 	} else {
-		$meta_desc = "Search for any Indian PIN Code (Postal Index Number) by digit. Instant details for 1M+ locations across all Indian states and Union Territories.";
-		$page_title = "PIN Code Search by Digital Code | Indian Postal Directory - Online Law";
+		$meta_desc = "Search for any Indian PIN Code (Postal Index Number) by digit. Instant details for 1M+ locations across all Indian states and Union Territories. Updated 2026.";
+		$page_title = "PIN Code Search by Digital Code | Indian Postal Directory (Updated 2026) - Online Law";
 	}
 ?>
 <meta name="description" content="<?php echo $meta_desc; ?>">

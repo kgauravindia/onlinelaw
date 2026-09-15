@@ -217,8 +217,8 @@
 		margin-left: 0
 	}
 	.banner-text {
-		padding-top: 80px;
-		padding-bottom: 80px
+		padding-top: 100px;
+		padding-bottom: 20px;
 	}
 	.other-one-attorney img {
 		float: left;
@@ -415,8 +415,8 @@
 		font-size: 36px
 	}
 	.banner-text {
-		padding-top: 70px;
-		padding-bottom: 70px;
+		padding-top: 90px;
+		padding-bottom: 20px;
 	}
 	footer .line-menu {
 		padding-bottom: 15px
@@ -664,5 +664,34 @@
 @media screen and (max-width:767px) {
 	.subscribe.center-middle{
 		top: 3%
+	}
+
+	/* Global Mobile Responsiveness Overrides */
+	
+	/* Override inline paddings for sections */
+	.full-row, .page-banner, .bg-img-3, .bg-primary, .bg-white, .bg-body {
+		padding-top: clamp(30px, 6vw, 60px) !important;
+		padding-bottom: clamp(30px, 6vw, 60px) !important;
+	}
+
+	/* Fluid Typography for Headings */
+	h1, .h1 { font-size: clamp(32px, 6vw, 42px) !important; line-height: 1.2 !important; }
+	h2, .h2, .section-title, .banner-tittle { font-size: clamp(24px, 5vw, 36px) !important; }
+	h3, .h3 { font-size: clamp(20px, 4vw, 30px) !important; }
+	h4, .h4 { font-size: clamp(18px, 3.5vw, 24px) !important; }
+	h5, .h5 { font-size: clamp(16px, 3vw, 20px) !important; }
+
+	/* Handle overflowing DataTables on mobile */
+	.dataTables_wrapper {
+		overflow-x: auto !important;
+		-webkit-overflow-scrolling: touch;
+		width: 100%;
+		display: block;
+	}
+	
+	/* Ensure body doesn't horizontally scroll */
+	html, body {
+		overflow-x: hidden;
+		width: 100%;
 	}
 }

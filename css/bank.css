@@ -1,0 +1,302 @@
+/* Custom Styles for Bank Directory Pages */
+
+@media (max-width: 767px) {
+    .banner-tittle { font-size: 26px !important; }
+    .detail-area { padding: 25px 15px !important; }
+    .desktop-only { display: none !important; }
+    .mobile-only { display: block !important; }
+}
+@media (min-width: 768px) {
+    .mobile-only { display: none !important; }
+    .desktop-only { display: block !important; }
+}
+
+/* Search Tabs styling */
+.nav-tabs-custom {
+    border-bottom: 2px solid #f1f5f9;
+    margin-bottom: 30px;
+    gap: 10px;
+}
+.nav-tabs-custom .nav-link {
+    border: none !important;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 16px;
+    padding: 12px 20px;
+    background: transparent;
+    position: relative;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+.nav-tabs-custom .nav-link:hover {
+    color: var(--primary-color);
+    background: rgba(14, 165, 233, 0.05);
+}
+.nav-tabs-custom .nav-link.active {
+    color: var(--primary-color);
+    background: rgba(14, 165, 233, 0.08);
+}
+.nav-tabs-custom .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    width: 80%;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 3px;
+}
+
+/* Popular banks card design */
+.bank-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.bank-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+.bank-icon-wrapper {
+    width: 54px;
+    height: 54px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+.bank-card:hover .bank-icon-wrapper {
+    background: var(--primary-color);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+/* FAQ Accordion Styling */
+.faq-accordion .card {
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    overflow: hidden;
+}
+.faq-accordion .card-header {
+    background: #fff;
+    border-bottom: none;
+    padding: 0;
+}
+.faq-accordion .btn-link {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: left;
+    width: 100%;
+    padding: 18px 24px;
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+.faq-accordion .btn-link:hover, .faq-accordion .btn-link[aria-expanded="true"] {
+    color: var(--primary-color);
+}
+.faq-accordion .btn-link i {
+    transition: transform 0.3s ease;
+}
+.faq-accordion .btn-link[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+.faq-accordion .card-body {
+    padding: 0 24px 20px 24px;
+    color: #64748b;
+    line-height: 1.6;
+    font-size: 14.5px;
+}
+
+/* Service card styling */
+.service-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    overflow: hidden;
+}
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+.service-header {
+    padding: 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+}
+.service-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 16px;
+    transition: all 0.3s ease;
+}
+.service-card:hover .service-icon {
+    background: var(--primary-color);
+    color: #fff;
+}
+.service-body {
+    padding: 24px;
+    color: #64748b;
+    line-height: 1.6;
+    font-size: 14.5px;
+}
+.service-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+/* Comparison Table Styling */
+.table-comparison {
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-soft);
+}
+.table-comparison th {
+    background-color: #f8fafc !important;
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-soft) !important;
+    padding: 16px 20px !important;
+    text-align: center;
+}
+.table-comparison td {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #475569 !important;
+    font-size: 14.5px;
+    text-align: center;
+}
+.table-comparison tr:last-child td {
+    border-bottom: none;
+}
+.table-comparison tr:hover {
+    background-color: #f8fafc;
+}
+.table-comparison td:first-child {
+    font-weight: 600;
+    color: var(--text-main);
+    text-align: left;
+}
+
+/* Card design */
+.feature-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    overflow: hidden;
+}
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+.card-header-custom {
+    padding: 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+}
+.card-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 16px;
+    transition: all 0.3s ease;
+}
+.feature-card:hover .card-icon {
+    background: var(--primary-color);
+    color: #fff;
+}
+.card-body-custom {
+    padding: 24px;
+    color: #64748b;
+    line-height: 1.6;
+    font-size: 14.5px;
+}
+.card-title-custom {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+/* Hotline Table Styling */
+.table-hotline {
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-soft);
+}
+.table-hotline th {
+    background-color: #f8fafc !important;
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-soft) !important;
+    padding: 16px 20px !important;
+}
+.table-hotline td {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #475569 !important;
+    font-size: 14.5px;
+}
+.table-hotline tr:last-child td {
+    border-bottom: none;
+}
+.table-hotline tr:hover {
+    background-color: #f8fafc;
+}

@@ -90,6 +90,49 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
             }
             break;
 
+        case 'company':
+            $cin = isset($_REQUEST['cin']) ? trim($_REQUEST['cin']) : '';
+            $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : $cin;
+            if (!empty($q)) {
+                $safe_q = addslashes($q);
+                $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe_q' OR cin LIKE '%$safe_q%' OR company_name LIKE '%$safe_q%' LIMIT 50");
+                if ($res['count'] > 0) {
+                    // Enrich with NIC info
+                    foreach ($res['data'] as &$row) {
+                        $row['nic_details'] = get_nic_details($row['cin'] ?: $row['activity_code']);
+                    }
+                    $response['data'] = $res['data'];
+                } else {
+                    $response = ['status' => 'error', 'message' => 'No record found for company: ' . $q];
+                }
+            } else {
+                $response = ['status' => 'error', 'message' => 'CIN or query parameter (q) is required'];
+            }
+            break;
+
+        case 'nic':
+            $code = isset($_REQUEST['code']) ? trim($_REQUEST['code']) : '';
+            $cin = isset($_REQUEST['cin']) ? trim($_REQUEST['cin']) : '';
+            $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : ($code ?: $cin);
+            
+            if (!empty($code) || !empty($cin)) {
+                $nic_info = get_nic_details($code ?: $cin);
+                $response['data'] = $nic_info;
+            } elseif (!empty($q)) {
+                $safe_q = addslashes($q);
+                $level = isset($_REQUEST['level']) ? strtoupper(trim($_REQUEST['level'])) : '';
+                $level_sql = !empty($level) ? "AND level = '$level'" : "";
+                $res = direct_sql("SELECT code, level, title, description, section_code, division_code FROM `nic` WHERE (code LIKE '%$safe_q%' OR title LIKE '%$safe_q%' OR description LIKE '%$safe_q%') $level_sql ORDER BY CHAR_LENGTH(code) ASC, code ASC LIMIT 50");
+                if ($res['count'] > 0) {
+                    $response['data'] = $res['data'];
+                } else {
+                    $response = ['status' => 'error', 'message' => 'No NIC activity code found for query: ' . $q];
+                }
+            } else {
+                $response = ['status' => 'error', 'message' => 'Query parameter (q), code, or cin is required for NIC lookup'];
+            }
+            break;
+
         default:
             $response = ['status' => 'error', 'message' => 'Invalid action'];
             break;

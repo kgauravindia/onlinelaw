@@ -16,11 +16,11 @@
     }
 
     if(!empty($locality_search)) {
-        $page_title = "Pincode results for '$locality_search' Locality - Online Law";
-        $meta_desc = "Quickly search for Indian PIN Codes in '$locality_search'. Find precise postal details for cities, villages, and post office names instantly.";
+        $page_title = "Pincode results for '$locality_search' Locality (Updated 2026) - Online Law";
+        $meta_desc = "Quickly search for Indian PIN Codes in '$locality_search'. Find precise postal details for cities, villages, and post offices. Updated 2026.";
     } else {
-        $page_title = "Find PIN Code by Locality, City or Village | Online Law";
-        $meta_desc = "Search for Indian PIN Codes by entering a locality, city, or village name. Fast and comprehensive postal index directory.";
+        $page_title = "Find PIN Code by Locality, City or Village (Updated 2026) | Online Law";
+        $meta_desc = "Search for Indian PIN Codes by entering a locality, city, or village name. Fast, comprehensive postal index directory updated 2026.";
     }
 ?>
 <meta name="description" content="<?php echo $meta_desc; ?>">

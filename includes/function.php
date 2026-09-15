@@ -1,5 +1,5 @@
 <?php
-require_once('includes/config.php');
+require_once(__DIR__ . '/config.php');
 $con = mysqli_connect( $host_name, $db_user, $db_password, $db_name) or die("Unable to Connect, Check the Connection Parameter. " .mysqli_error($con)) ;
 mysqli_query($con, "SET character_set_results = 'utf8', character_set_client = 'utf8', character_set_connection = 'utf8', character_set_database = 'utf8', character_set_server = 'utf8'");
 /*-------------- DUMMY DATA------------------------*/
@@ -1224,6 +1224,151 @@ function lastupdate($id)
 	//return $date->diff($now)->format("%d days ago ");
 	}
 }
+
+/*-------- NIC 2025 Helper Functions ---------*/
+function get_nic_details($code_or_cin) {
+    global $con;
+    $codeOrCin = trim($code_or_cin);
+    $result = [
+        'section' => null,
+        'division' => null,
+        'group' => null,
+        'class' => null,
+        'subclass' => null,
+        'primary_title' => '',
+        'primary_level' => '',
+        'primary_code' => ''
+    ];
+
+    if (empty($codeOrCin)) return $result;
+
+    $divCode = '';
+    $classCode = '';
+
+    // If it's a CIN (starts with U/L followed by 5 digits)
+    if (preg_match('/^[UL](\d{5})/i', $codeOrCin, $m)) {
+        $cin5 = $m[1];
+        $divCode = substr($cin5, 0, 2);
+        $grpCode = substr($cin5, 0, 3);
+        $classCode = substr($cin5, 0, 4);
+
+        $cin5_esc = mysqli_real_escape_string($con, $cin5);
+        $qSub = mysqli_query($con, "SELECT * FROM `nic` WHERE (code LIKE '{$cin5_esc}%' OR code_5digit = '{$cin5_esc}' OR code = '{$cin5_esc}') AND level = 'SUBCLASS' ORDER BY code ASC LIMIT 1");
+        if ($qSub && $rSub = mysqli_fetch_assoc($qSub)) {
+            $result['subclass'] = $rSub;
+        }
+
+        $cls_esc = mysqli_real_escape_string($con, $classCode);
+        $qCls = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$cls_esc}' AND level = 'CLASS' LIMIT 1");
+        if ($qCls && $rCls = mysqli_fetch_assoc($qCls)) {
+            $result['class'] = $rCls;
+        }
+
+        $grp_esc = mysqli_real_escape_string($con, $grpCode);
+        $qGrp = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$grp_esc}' AND level = 'GROUP' LIMIT 1");
+        if ($qGrp && $rGrp = mysqli_fetch_assoc($qGrp)) {
+            $result['group'] = $rGrp;
+        }
+    } elseif (strlen($codeOrCin) >= 5 && is_numeric($codeOrCin)) {
+        // 5 or 6 digit subclass code
+        $sub_esc = mysqli_real_escape_string($con, $codeOrCin);
+        $qSub = mysqli_query($con, "SELECT * FROM `nic` WHERE (code = '{$sub_esc}' OR code LIKE '{$sub_esc}%' OR code_5digit = '{$sub_esc}') AND level = 'SUBCLASS' LIMIT 1");
+        if ($qSub && $rSub = mysqli_fetch_assoc($qSub)) {
+            $result['subclass'] = $rSub;
+            $classCode = $rSub['class_code'] ?: substr($codeOrCin, 0, 4);
+            $grpCode = $rSub['group_code'] ?: substr($codeOrCin, 0, 3);
+            $divCode = $rSub['division_code'] ?: substr($codeOrCin, 0, 2);
+        } else {
+            $classCode = substr($codeOrCin, 0, 4);
+            $grpCode = substr($codeOrCin, 0, 3);
+            $divCode = substr($codeOrCin, 0, 2);
+        }
+
+        if (!empty($classCode)) {
+            $cls_esc = mysqli_real_escape_string($con, $classCode);
+            $qCls = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$cls_esc}' AND level = 'CLASS' LIMIT 1");
+            if ($qCls && $rCls = mysqli_fetch_assoc($qCls)) $result['class'] = $rCls;
+        }
+        if (!empty($grpCode)) {
+            $grp_esc = mysqli_real_escape_string($con, $grpCode);
+            $qGrp = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$grp_esc}' AND level = 'GROUP' LIMIT 1");
+            if ($qGrp && $rGrp = mysqli_fetch_assoc($qGrp)) $result['group'] = $rGrp;
+        }
+    } elseif (strlen($codeOrCin) === 4 && is_numeric($codeOrCin)) {
+        $classCode = $codeOrCin;
+        $grpCode = substr($codeOrCin, 0, 3);
+        $divCode = substr($codeOrCin, 0, 2);
+        $cls_esc = mysqli_real_escape_string($con, $classCode);
+        $qCls = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$cls_esc}' AND level = 'CLASS' LIMIT 1");
+        if ($qCls && $rCls = mysqli_fetch_assoc($qCls)) $result['class'] = $rCls;
+        $grp_esc = mysqli_real_escape_string($con, $grpCode);
+        $qGrp = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$grp_esc}' AND level = 'GROUP' LIMIT 1");
+        if ($qGrp && $rGrp = mysqli_fetch_assoc($qGrp)) $result['group'] = $rGrp;
+    } elseif (strlen($codeOrCin) === 3 && is_numeric($codeOrCin)) {
+        $grpCode = $codeOrCin;
+        $divCode = substr($codeOrCin, 0, 2);
+        $grp_esc = mysqli_real_escape_string($con, $grpCode);
+        $qGrp = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$grp_esc}' AND level = 'GROUP' LIMIT 1");
+        if ($qGrp && $rGrp = mysqli_fetch_assoc($qGrp)) $result['group'] = $rGrp;
+    } elseif (strlen($codeOrCin) <= 2 && is_numeric($codeOrCin)) {
+        $divCode = str_pad($codeOrCin, 2, '0', STR_PAD_LEFT);
+    } elseif (preg_match('/^[A-U]$/i', $codeOrCin)) {
+        $sec_esc = strtoupper($codeOrCin);
+        $qSec = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$sec_esc}' AND level = 'SECTION' LIMIT 1");
+        if ($qSec && $rSec = mysqli_fetch_assoc($qSec)) {
+            $result['section'] = $rSec;
+        }
+    }
+
+    if (!empty($divCode)) {
+        $div_esc = mysqli_real_escape_string($con, $divCode);
+        $qDiv = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$div_esc}' AND level = 'DIVISION' LIMIT 1");
+        if ($qDiv && $rDiv = mysqli_fetch_assoc($qDiv)) {
+            $result['division'] = $rDiv;
+            $secCode = $rDiv['section_code'];
+            if (!empty($secCode)) {
+                $sec_esc = mysqli_real_escape_string($con, $secCode);
+                $qSec = mysqli_query($con, "SELECT * FROM `nic` WHERE code = '{$sec_esc}' AND level = 'SECTION' LIMIT 1");
+                if ($qSec && $rSec = mysqli_fetch_assoc($qSec)) {
+                    $result['section'] = $rSec;
+                }
+            }
+        }
+    }
+
+    if (!empty($result['subclass'])) {
+        $result['primary_title'] = $result['subclass']['title'];
+        $result['primary_level'] = 'Sub-Class (' . $result['subclass']['code'] . ')';
+        $result['primary_code'] = $result['subclass']['code'];
+    } elseif (!empty($result['class'])) {
+        $result['primary_title'] = $result['class']['title'];
+        $result['primary_level'] = 'Class (' . $result['class']['code'] . ')';
+        $result['primary_code'] = $result['class']['code'];
+    } elseif (!empty($result['group'])) {
+        $result['primary_title'] = $result['group']['title'];
+        $result['primary_level'] = 'Group (' . $result['group']['code'] . ')';
+        $result['primary_code'] = $result['group']['code'];
+    } elseif (!empty($result['division'])) {
+        $result['primary_title'] = $result['division']['title'];
+        $result['primary_level'] = 'Division (' . $result['division']['code'] . ')';
+        $result['primary_code'] = $result['division']['code'];
+    }
+
+    return $result;
+}
+
+function get_all_nic_divisions() {
+    global $con;
+    $res = mysqli_query($con, "SELECT code, title, section_code FROM `nic` WHERE level = 'DIVISION' AND status = 'ACTIVE' ORDER BY code ASC");
+    $list = [];
+    if ($res) {
+        while ($r = mysqli_fetch_assoc($res)) {
+            $list[] = $r;
+        }
+    }
+    return $list;
+}
+
 /*-------- Test Area Start ---------*/
 
 //echo advuniv('1');

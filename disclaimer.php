@@ -34,7 +34,7 @@
 			<div class="col-lg-12">
 				<div class="detail-area">
 					<div class="section-title-2 mb-50">
-					<h3 class="section-title"><span>Last Update on 27 March 2026</span>Disclaimer</h3>
+					<h3 class="section-title"><span>Last Update on 15 August 2026</span>Disclaimer</h3>
 
 
 <p><b>WEBSITE DISCLAIMER</b></p>

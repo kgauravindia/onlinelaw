@@ -21,21 +21,45 @@
         $res_seo = direct_sql("select * from bank_ifsc where ifsc = '$ifsccode' limit 1");
         if($res_seo['count'] > 0) {
             $row_seo = $res_seo['data'][0];
-            $page_title = $row_seo['bank'] . " " . $row_seo['branch'] . ", " . $row_seo['city2'] . ", " . $row_seo['state'] . " IFSC Code Details : Online Law";
-            $meta_desc = "Find IFSC Code $ifsccode for " . $row_seo['bank'] . " " . $row_seo['branch'] . " branch in " . $row_seo['city2'] . " district of " . $row_seo['state'] . ". Exact address: " . $row_seo['address'];
+            $page_title = "IFSC Code: $ifsccode, " . $row_seo['branch'] . ", " . $row_seo['bank'];
+            $meta_desc = "IFSC Code: $ifsccode. Get " . $row_seo['bank'] . " " . $row_seo['branch'] . " branch IFSC, MICR Code, Address: " . $row_seo['address'] . ", " . $row_seo['city2'] . ", " . $row_seo['state'] . ".";
+            
+            // Generate Schema.org JSON-LD
+            $schema_json = [
+                "@context" => "https://schema.org",
+                "@type" => "BankOrCreditUnion",
+                "name" => $row_seo['bank'] . " " . $row_seo['branch'],
+                "branchOf" => [
+                    "@type" => "BankOrCreditUnion",
+                    "name" => $row_seo['bank']
+                ],
+                "address" => [
+                    "@type" => "PostalAddress",
+                    "streetAddress" => $row_seo['address'],
+                    "addressLocality" => $row_seo['city2'],
+                    "addressRegion" => $row_seo['state'],
+                    "addressCountry" => "IN"
+                ],
+                "identifier" => $ifsccode
+            ];
+            $seo_schema = '<script type="application/ld+json">' . json_encode($schema_json) . '</script>';
+            
         } else {
-            $page_title = "IFSC Code $ifsccode Details : Online Law";
-            $meta_desc = "View full branch details for IFSC Code $ifsccode on Online Law.";
+            $page_title = "IFSC Code: $ifsccode Details - Online Law";
+            $meta_desc = "Find details for IFSC Code $ifsccode on Online Law. Fully updated RBI database.";
+            $seo_schema = "";
         }
     } else {
-        $page_title = "Bank IFSC Search Tool | Find Any Bank Branch in India - Online Law";
-        $meta_desc = "Quickly search for any Bank IFSC code across India. Get instant details for NEFT, RTGS, and IMPS transactions for all nationalized and private banks. 100% accurate RBI data.";
+        $page_title = "IFSC Code Search | All Bank Branches in India - Online Law";
+        $meta_desc = "Quickly search for any Bank IFSC code across India. Get instant details for NEFT, RTGS, and IMPS transactions. 100% accurate RBI database.";
+        $seo_schema = "";
     }
 ?>
 <meta name="description" content="<?php echo $meta_desc; ?>">
 <meta name="keywords" content="IFSC Code Search, Find Bank IFSC, RBI IFSC List, NEFT RTGS Codes, Bank Branch Finder India, MICR Code Search, Net Banking Codes, <?php echo $ifsccode; ?>">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
+<?php echo $seo_schema; ?>
 <style>
     @media (max-width: 767px) {
         .banner-tittle { font-size: 26px !important; }
@@ -95,7 +119,7 @@
 						<div class="mt-3">
 							<div class="d-inline-flex align-items-center justify-content-center p-2 px-3 text-center" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); font-weight: 600; border-radius: 12px; font-size: 13px; border: 1px solid rgba(var(--primary-rgb), 0.2); line-height: 1.5; max-width: 100%;">
                                 <div class="px-1">
-								    <i class="fas fa-check-circle mr-1"></i> 178,915 Bank IFSC Added <span class="d-block d-md-inline-block text-muted" style="font-weight: 500; font-size: 12px;">(Last Update: 31 March 2026 - RBI Official)</span>
+								    <i class="fas fa-check-circle mr-1"></i> 181,913 Bank IFSC Added <span class="d-block d-md-inline-block text-muted" style="font-weight: 500; font-size: 12px;">(Last Update: 15 Aug 2026 - RBI Official)</span>
                                 </div>
 							</div>
 						</div>
@@ -105,7 +129,7 @@
                             <div class="d-flex align-items-center">
                                 <span class="badge py-1 px-2 mr-3" style="background: #ea580c; color: #fff; font-size: 11px; font-weight: 700; border-radius: 6px; text-transform: uppercase;">Latest News</span>
                                 <div style="font-size: 14px; color: #7c2d12; font-weight: 500;">
-                                    <i class="fas fa-bullhorn mr-2 text-warning"></i> 479 bank branches have been recently inaugurated and updated in the RBI official record as of 31 March 2026.
+                                    <i class="fas fa-bullhorn mr-2 text-warning"></i> 1,096 bank branches have been recently inaugurated and updated in the RBI official record as of 15 Aug 2026.
                                 </div>
                             </div>
                         </div>
@@ -154,12 +178,11 @@
                                                 <tr>
                                                     <th> No </th>
                                                     <th> Bank Name </th>
-                                                    <th> IFSC </th>
+                                                    <th> IFSC / MICR </th>
                                                     <th> Branch</th>
                                                     <th> District</th>
                                                     <th>State / UT</th>
                                                     <th> Address</th>
-                                                    <th> Phone </th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -167,12 +190,14 @@
                                                     <tr>
                                                         <td> <?php echo $i++; ?> </td>
                                                         <td> <span style="font-weight: 600; color: var(--text-main);"><?php echo htmlentities($row['bank']); ?></span> </td>
-                                                        <td> <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px; text-decoration: none;"><?php echo htmlentities($row['ifsc']); ?></a> </td>
+                                                        <td> 
+                                                            <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge mb-1" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-block;"><?php echo htmlentities($row['ifsc']); ?></a><br>
+                                                            <span style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">MICR: <?php echo !empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-' ? htmlentities($row['micr']) : 'N/A'; ?></span> 
+                                                        </td>
                                                         <td> <?php echo htmlentities($row['branch']); ?> </td>
                                                         <td> <?php echo htmlentities($row['city2']); ?> </td>
                                                         <td> <?php echo htmlentities($row['state']); ?> </td>
                                                         <td style="white-space: normal; max-width: 250px;"> <?php echo htmlentities($row['address']); ?> </td>
-                                                        <td> <?php echo htmlentities($row['phone']); ?> </td>
                                                     </tr>
                                                 <?php } ?>
                                                 </tbody>
@@ -186,8 +211,11 @@
                                             foreach($res['data'] as $row) { ?>
                                                 <div class="bank-card mb-4 p-4">
                                                     <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <h5 class="mb-0 text-primary" style="font-weight: 800; font-size: 18px; line-height: 1.3;"><?php echo htmlentities($row['bank']); ?></h5>
-                                                        <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge" style="background: #eff6ff; color: #1e40af; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700; text-decoration: none;"><?php echo htmlentities($row['ifsc']); ?></a>
+                                                        <h5 class="mb-0 text-primary" style="font-weight: 800; font-size: 18px; line-height: 1.3; margin-right: 10px;"><?php echo htmlentities($row['bank']); ?></h5>
+                                                        <div class="text-right">
+                                                            <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge mb-1" style="background: #eff6ff; color: #1e40af; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-block;"><?php echo htmlentities($row['ifsc']); ?></a>
+                                                            <div style="font-size: 10px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; display: inline-block;">MICR: <?php echo !empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-' ? htmlentities($row['micr']) : 'N/A'; ?></div>
+                                                        </div>
                                                     </div>
                                                     
                                                     <div class="mb-3 d-flex align-items-center">
@@ -204,16 +232,6 @@
                                                             <?php echo htmlentities($row['city2']); ?>, <?php echo htmlentities($row['state']); ?>
                                                         </div>
                                                     </div>
-
-                                                    <?php if(!empty($row['phone']) && $row['phone'] != '-') { ?>
-                                                        <a href="tel:<?php echo $row['phone']; ?>" class="btn btn-primary btn-block py-3" style="border-radius: 12px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2);">
-                                                            <i class="fas fa-phone-alt mr-2"></i> <?php echo htmlentities($row['phone']); ?>
-                                                        </a>
-                                                    <?php } else { ?>
-                                                        <div class="text-center py-2" style="background: #fff5f5; border: 1px dashed #feb2b2; border-radius: 10px;">
-                                                            <span class="text-secondary small font-italic" style="color: #c53030 !important;"><i class="fas fa-info-circle mr-1"></i> Contact bank directly for phone info</span>
-                                                        </div>
-                                                    <?php } ?>
                                                 </div>
                                             <?php } ?>
                                         </div>

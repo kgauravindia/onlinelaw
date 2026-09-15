@@ -1,4 +1,4 @@
-﻿/**
+/**
 	
 * Template Name: Unilex - Law Firm Responsive HTML Template
 * Version: 1.0.5
@@ -1095,7 +1095,7 @@ label {
 	background-size: cover
 }
 .bg-img-3 {
-	background: rgba(0, 0, 0, 0) url("../images/slider/1.jpg") no-repeat 40% 80%
+	background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
 }
 .bg-img-4 {
 	background: var(--off-white-theme-color) url("../images/bg/3.jpg") no-repeat scroll 0 0 / 50% 100%
@@ -2714,8 +2714,8 @@ form .form-style-1{
 	 33.0 Banner CSS Start 
 ===============================*/
 .banner-text {
-	padding-top: 200px;
-	padding-bottom: 80px
+	padding-top: 160px;
+	padding-bottom: 40px;
 }
 .banner-tittle{
 	font-size: 45px

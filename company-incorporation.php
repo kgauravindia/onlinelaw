@@ -1,0 +1,1187 @@
+<?php
+    require_once('includes/config.php');
+    require_once('includes/function.php');
+
+    $cin_param = isset($_GET['cin']) ? trim($_GET['cin']) : '';
+    $q_param = isset($_GET['q']) ? trim($_GET['q']) : $cin_param;
+    $category_param = isset($_GET['category']) ? strtoupper(trim($_GET['category'])) : '';
+    $activity_param = isset($_GET['activity']) ? trim($_GET['activity']) : '';
+    $date_param = isset($_GET['date']) ? trim($_GET['date']) : '';
+    $month_param = isset($_GET['month']) ? trim($_GET['month']) : '';
+    $view_mode = isset($_GET['view']) && $_GET['view'] === 'table' ? 'table' : 'grid';
+    $page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
+    $limit = 30;
+    $offset = ($page - 1) * $limit;
+
+    $has_search = (!empty($q_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param) || !empty($cin_param));
+
+    $single_company = null;
+    $page_title = "New Company Incorporations in India | Indian Companies, LLPs & Foreign Companies - Online Law";
+    $meta_desc = "Search newly registered companies and LLPs in India. Browse daily and monthly company incorporations (Indian Companies, LLP, Foreign Companies) from official MCA records.";
+
+    if (!empty($cin_param)) {
+        $safe_cin = mysqli_real_escape_string($con, $cin_param);
+        $res_single = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe_cin' LIMIT 1");
+        if ($res_single['count'] > 0) {
+            $single_company = $res_single['data'][0];
+            $page_title = htmlspecialchars($single_company['company_name']) . " (" . $single_company['cin'] . ") - Registration & Incorporation Details";
+            $meta_desc = "Registration details for " . $single_company['company_name'] . " (" . $single_company['cin'] . "). Category: " . $single_company['category'] . ", Class: " . $single_company['class'] . ", Type: " . $single_company['company_type'] . ", Registered on " . ($single_company['registration_date'] ? date('d F Y', strtotime($single_company['registration_date'])) : 'N/A') . ".";
+        }
+    }
+
+    $companies_list = ['count' => 0, 'data' => []];
+    $total_companies = 0;
+    $total_pages = 0;
+
+    // Only query database for search results when a query or filter is active
+    if ($has_search) {
+        $where = ["1=1"];
+        if (!empty($q_param)) {
+            $sq = mysqli_real_escape_string($con, $q_param);
+            $sub_clauses = ["cin LIKE '%$sq%'", "company_name LIKE '%$sq%'", "activity_code = '$sq'"];
+
+            // Check if search keyword matches any NIC activity title or description in table nic
+            $nic_kw_res = mysqli_query($con, "SELECT DISTINCT division_code FROM `nic` WHERE (title LIKE '%$sq%' OR description LIKE '%$sq%') AND division_code != '' LIMIT 15");
+            if ($nic_kw_res && mysqli_num_rows($nic_kw_res) > 0) {
+                $matched_divs = [];
+                while ($ndr = mysqli_fetch_assoc($nic_kw_res)) {
+                    $matched_divs[] = "'" . mysqli_real_escape_string($con, $ndr['division_code']) . "'";
+                    // also single digit if leading zero
+                    if (str_starts_with($ndr['division_code'], '0')) {
+                        $matched_divs[] = "'" . (int)$ndr['division_code'] . "'";
+                    }
+                }
+                if (!empty($matched_divs)) {
+                    $sub_clauses[] = "activity_code IN (" . implode(',', array_unique($matched_divs)) . ")";
+                }
+            }
+            $where[] = "(" . implode(' OR ', $sub_clauses) . ")";
+        }
+        if (!empty($activity_param)) {
+            $s_act = mysqli_real_escape_string($con, $activity_param);
+            $act_pad = str_pad($s_act, 2, '0', STR_PAD_LEFT);
+            $where[] = "(activity_code = '$s_act' OR activity_code = '$act_pad')";
+        }
+        if (!empty($category_param) && in_array($category_param, ['INDIAN', 'LLP', 'FOREIGN'])) {
+            $where[] = "category = '$category_param'";
+        }
+        if (!empty($date_param)) {
+            $sd = mysqli_real_escape_string($con, $date_param);
+            $where[] = "registration_date = '$sd'";
+        }
+        if (!empty($month_param)) {
+            $sm = mysqli_real_escape_string($con, $month_param);
+            $where[] = "report_month = '$sm'";
+        }
+
+        $where_sql = implode(' AND ', $where);
+
+        $count_res = direct_sql("SELECT COUNT(*) as total FROM companies_incorporated WHERE $where_sql");
+        $total_companies = isset($count_res['data'][0]['total']) ? (int)$count_res['data'][0]['total'] : 0;
+        $total_pages = ceil($total_companies / $limit);
+
+        $companies_list = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY registration_date DESC, id DESC LIMIT $offset, $limit");
+    }
+
+    // Stats breakdown
+    $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
+    $stats = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0, 'TOTAL' => 0];
+    if ($stats_res['count'] > 0) {
+        foreach ($stats_res['data'] as $s) {
+            $cat = strtoupper($s['category']);
+            $stats[$cat] = (int)$s['cnt'];
+            $stats['TOTAL'] += (int)$s['cnt'];
+        }
+    }
+
+    // State / ROC Code Map
+    $state_roc_map = [
+        'AP' => 'Andhra Pradesh (Vijayawada)',
+        'AR' => 'Arunachal Pradesh',
+        'AS' => 'Assam (Shillong/Guwahati)',
+        'BR' => 'Bihar (Patna)',
+        'CT' => 'Chhattisgarh (Bilaspur)',
+        'CH' => 'Chandigarh',
+        'DC' => 'Delhi (NCT)',
+        'DL' => 'Delhi (NCT)',
+        'DN' => 'Dadra & Nagar Haveli',
+        'GA' => 'Goa',
+        'GJ' => 'Gujarat (Ahmedabad)',
+        'HR' => 'Haryana (Delhi/Chandigarh)',
+        'HP' => 'Himachal Pradesh',
+        'JH' => 'Jharkhand (Ranchi)',
+        'JK' => 'Jammu & Kashmir',
+        'KA' => 'Karnataka (Bengaluru)',
+        'KL' => 'Kerala (Ernakulam)',
+        'LD' => 'Lakshadweep',
+        'MH' => 'Maharashtra (Mumbai/Pune)',
+        'MP' => 'Madhya Pradesh (Gwalior)',
+        'MN' => 'Manipur',
+        'ML' => 'Meghalaya',
+        'MZ' => 'Mizoram',
+        'NL' => 'Nagaland',
+        'OR' => 'Odisha (Cuttack)',
+        'PB' => 'Punjab (Chandigarh)',
+        'PY' => 'Puducherry',
+        'RJ' => 'Rajasthan (Jaipur)',
+        'SK' => 'Sikkim',
+        'TN' => 'Tamil Nadu (Chennai/Coimbatore)',
+        'TG' => 'Telangana (Hyderabad)',
+        'TR' => 'Tripura',
+        'UP' => 'Uttar Pradesh (Kanpur)',
+        'UT' => 'Uttarakhand (Dehradun)',
+        'WB' => 'West Bengal (Kolkata)'
+    ];
+
+    // Company Class Map
+    $class_map = [
+        'PTC' => 'Private Limited Company',
+        'PLC' => 'Public Limited Company',
+        'FTC' => 'Subsidiary of a Foreign Company',
+        'GAP' => 'General Association (Private Sec 8)',
+        'GPL' => 'General Association (Public Sec 8)',
+        'GOI' => 'Government of India Company',
+        'SGC' => 'State Government Company',
+        'ULL' => 'Unlimited Liability (Private)',
+        'ULT' => 'Unlimited Liability (Public)'
+    ];
+
+    // Helper: Parse CIN
+    function parseCINDetails($cin, $state_roc_map, $class_map) {
+        $cin = strtoupper(trim($cin));
+        if (strlen($cin) === 21) {
+            $stCode = substr($cin, 6, 2);
+            $classCode = substr($cin, 12, 3);
+            return [
+                'type' => 'CIN',
+                'listing' => substr($cin, 0, 1) === 'L' ? 'Listed on Stock Exchange' : 'Unlisted Company',
+                'listing_code' => substr($cin, 0, 1),
+                'industry' => substr($cin, 1, 5),
+                'state_code' => $stCode,
+                'state_name' => isset($state_roc_map[$stCode]) ? $state_roc_map[$stCode] : $stCode,
+                'year' => substr($cin, 8, 4),
+                'class_code' => $classCode,
+                'class_name' => isset($class_map[$classCode]) ? $class_map[$classCode] : $classCode,
+                'serial' => substr($cin, 15, 6),
+            ];
+        }
+        return null;
+    }
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Meta Tag -->
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="<?php echo $meta_desc; ?>">
+<meta name="keywords" content="Company Incorporation India, New Company Registration, MCA Registered Companies, Search CIN, LLP Registration, Foreign Company FCIN, Daily Registered Companies">
+<meta name="author" content="OfferPlant">
+<title><?php echo $page_title; ?></title>
+
+<!-- Schema.org Structured Data -->
+<?php if ($single_company): ?>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "<?php echo addslashes($single_company['company_name']); ?>",
+  "identifier": "<?php echo addslashes($single_company['cin']); ?>",
+  "foundingDate": "<?php echo $single_company['registration_date']; ?>",
+  "additionalType": "<?php echo addslashes($single_company['company_type']); ?>",
+  "description": "Incorporated under MCA Ministry of Corporate Affairs, India. Class: <?php echo addslashes($single_company['class']); ?>"
+}
+</script>
+<?php endif; ?>
+
+<style>
+    .company-badge-indian { background: #eff6ff; color: #1d4ed8; font-weight: 700; }
+    .company-badge-llp { background: #ecfdf5; color: #047857; font-weight: 700; }
+    .company-badge-foreign { background: #fffbeb; color: #b45309; font-weight: 700; }
+    
+    .company-card-elevated {
+        background: #ffffff;
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-md);
+        transition: var(--transition-smooth);
+        box-shadow: var(--shadow-xs);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    .company-card-elevated:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(37, 99, 235, 0.35);
+    }
+    .nav-pills-modern .nav-link {
+        color: #475569;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 13.5px;
+        border-radius: var(--radius-pill);
+        padding: 7px 16px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        background: #ffffff;
+        border: 1.5px solid var(--border-soft);
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .nav-pills-modern .nav-link:hover {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+        background: var(--primary-light);
+    }
+    .nav-pills-modern .nav-link.active {
+        background: var(--primary-gradient);
+        color: #ffffff !important;
+        border-color: transparent;
+        box-shadow: var(--shadow-glow-blue);
+    }
+    .view-switch-btn {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-soft);
+        background: #ffffff;
+        color: #64748b;
+        transition: var(--transition-smooth);
+    }
+    .view-switch-btn.active, .view-switch-btn:hover {
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    /* Infographic Components */
+    .infographic-card {
+        background: #ffffff;
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-xl);
+        padding: 32px 28px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition-bounce);
+        height: 100%;
+    }
+    .infographic-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    .cin-anatomy-diagram {
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: var(--radius-xl);
+        padding: 36px 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    .cin-segment-pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+</style>
+
+<?php require_once('includes/header.php'); ?>
+
+<!-- Banner Section Start -->
+<section class="hero-modern-banner" style="padding: clamp(36px, 5vw, 60px) 0 clamp(50px, 7vw, 75px) 0;">
+	<div class="hero-glow-sphere-1"></div>
+	<div class="hero-glow-sphere-2"></div>
+	<div class="container position-relative" style="z-index: 2;">
+		<div class="row justify-content-center">
+			<div class="col-lg-10 col-12 text-center">
+				<div class="hero-pill-tag mb-3">
+					<span class="hero-pulse-dot"></span>
+					<span>OFFICIAL MCA CORPORATE REGISTRY • UPDATED 2026</span>
+				</div>
+				<h1 class="hero-main-heading" style="font-size: clamp(26px, 4vw, 38px) !important;">
+					Indian Company &amp; LLP <br>
+					<span class="hero-gradient-text">Incorporations Directory</span>
+				</h1>
+				<p class="hero-subtext" style="max-width: 700px; margin-bottom: 0;">
+					Instant search, verification, and registration details for Indian Companies, LLPs, and Foreign Entities from official MCA records.
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+<!-- Banner Section End -->
+
+<div class="full-row py-4" style="background-color: var(--bg-body); margin-top: -40px; position: relative; z-index: 10;">
+	<div class="container">
+
+        <!-- Search Form Console -->
+        <div class="bg-white rounded-xl shadow-md border p-4 mb-4">
+            <form action="company-incorporation.php" method="GET">
+                <div class="row align-items-end">
+                    <div class="col-lg-4 col-md-12 mb-3 mb-lg-0">
+                        <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-search mr-1 text-primary"></i> Company Name, CIN, or Keyword</label>
+                        <input type="text" name="q" class="form-control" style="height: 48px;" placeholder="e.g. Tata, Infosys, U47713DC2026PTC474566, Software..." value="<?php echo htmlspecialchars($q_param); ?>">
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                        <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-industry mr-1 text-warning"></i> NIC 2025 Industry Sector</label>
+                        <select name="activity" class="form-control" style="height: 48px;">
+                            <option value="">All Industry Sectors</option>
+                            <?php
+                            $top_nic_sectors = [
+                                '62' => '62 - Software, IT & Consultancy',
+                                '46' => '46 - Wholesale Trade (B2B)',
+                                '47' => '47 - Retail Trade & E-Commerce',
+                                '68' => '68 - Real Estate Activities',
+                                '85' => '85 - Education & Training',
+                                '70' => '70 - Management Consulting & HQ',
+                                '88' => '88 - Social Work & Foundations',
+                                '43' => '43 - Specialized Construction',
+                                '10' => '10 - Food Manufacturing',
+                                '41' => '41 - Building Construction',
+                                '86' => '86 - Hospitals & Healthcare',
+                                '35' => '35 - Electricity, Solar & Power',
+                                '56' => '56 - Restaurants & Food Service',
+                                '66' => '66 - Financial Services Support',
+                                '78' => '78 - Employment & Placement',
+                                '52' => '52 - Warehousing & Logistics',
+                                '63' => '63 - Data Processing & Hosting',
+                                '55' => '55 - Hotels & Accommodation',
+                                '01' => '01 - Agriculture & Crop Production',
+                                '20' => '20 - Chemical Products',
+                                '21' => '21 - Pharmaceuticals & Drugs',
+                                '74' => '74 - Professional & Design Services',
+                                '73' => '73 - Advertising & Media',
+                                '42' => '42 - Civil Engineering & Infra',
+                                '79' => '79 - Travel & Tour Operations',
+                                '71' => '71 - Architecture & Engineering',
+                            ];
+                            foreach ($top_nic_sectors as $act_code => $act_name) {
+                                $sel = ($activity_param == $act_code || $activity_param == (int)$act_code) ? 'selected' : '';
+                                echo "<option value=\"$act_code\" $sel>$act_name</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                        <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-filter mr-1 text-primary"></i> Category</label>
+                        <select name="category" class="form-control" style="height: 48px;">
+                            <option value="">All Categories</option>
+                            <option value="INDIAN" <?php echo ($category_param === 'INDIAN') ? 'selected' : ''; ?>>Indian Companies</option>
+                            <option value="LLP" <?php echo ($category_param === 'LLP') ? 'selected' : ''; ?>>LLPs</option>
+                            <option value="FOREIGN" <?php echo ($category_param === 'FOREIGN') ? 'selected' : ''; ?>>Foreign Companies</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                        <label class="small font-weight-bold text-muted mb-2"><i class="far fa-calendar-alt mr-1 text-primary"></i> Reg. Date</label>
+                        <input type="date" name="date" class="form-control" style="height: 48px;" value="<?php echo htmlspecialchars($date_param); ?>">
+                    </div>
+                    <div class="col-lg-1 col-md-6">
+                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0" style="height: 48px;" title="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Quick Filter Tags -->
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
+                <span class="small text-muted font-weight-bold mr-1"><i class="fas fa-bolt text-warning mr-1"></i> Quick Industry Lookups:</span>
+                <a href="company-incorporation.php?activity=62" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Software &amp; IT (62)</a>
+                <a href="company-incorporation.php?activity=47" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Retail &amp; E-Com (47)</a>
+                <a href="company-incorporation.php?activity=86" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Healthcare (86)</a>
+                <a href="company-incorporation.php?activity=68" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Real Estate (68)</a>
+                <a href="company-incorporation.php?activity=35" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Solar &amp; Power (35)</a>
+                <a href="company-incorporation.php?activity=85" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Education (85)</a>
+                <a href="company-incorporation.php?category=LLP" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">LLPs</a>
+                <?php if ($has_search): ?>
+                <a href="company-incorporation.php" class="badge badge-danger px-2.5 py-1 text-white font-weight-semibold ml-auto">
+                    <i class="fas fa-times mr-1"></i> Clear Search
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php if ($has_search): ?>
+
+            <!-- Single Company Detail View (if selected) -->
+            <?php if ($single_company): ?>
+            <?php 
+                $parsedCin = parseCINDetails($single_company['cin'], $state_roc_map, $class_map);
+                $badgeClass = 'company-badge-indian';
+                if ($single_company['category'] === 'LLP') $badgeClass = 'company-badge-llp';
+                if ($single_company['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+
+                // Resolve full NIC 2025 classification
+                $nic_info = get_nic_details($single_company['cin'] ?: $single_company['activity_code']);
+            ?>
+            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3 border-bottom mb-4">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge <?php echo $badgeClass; ?> px-3 py-1 text-uppercase rounded-pill">
+                                <?php echo htmlspecialchars($single_company['category']); ?> COMPANY
+                            </span>
+                            <span class="badge badge-success px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857;">
+                                <i class="fas fa-check-circle mr-1"></i> <?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?>
+                            </span>
+                        </div>
+                        <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(20px, 3vw, 28px); font-family: var(--font-heading);">
+                            <?php echo htmlspecialchars($single_company['company_name']); ?>
+                        </h2>
+                        <div class="text-muted small mt-1">
+                            Corporate Identification Number: 
+                            <code class="font-weight-bold text-primary font-monospace fs-6 ml-1"><?php echo htmlspecialchars($single_company['cin']); ?></code>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-muted ml-2" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($single_company['cin']); ?>'); alert('CIN copied to clipboard: <?php echo htmlspecialchars($single_company['cin']); ?>');" title="Copy CIN">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();">
+                            <i class="fas fa-print mr-1"></i> Print / PDF
+                        </button>
+                        <a href="company-incorporation.php" class="btn btn-secondary font-weight-bold">
+                            <i class="fas fa-arrow-left mr-1"></i> Back to All
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Clean Key-Value Data Specs List -->
+                <div class="row">
+                    <div class="col-md-6 pr-md-4">
+                        <div class="d-flex justify-content-between py-2.5 border-bottom">
+                            <span class="text-muted"><i class="fas fa-layer-group mr-2 text-primary"></i> Class of Company</span>
+                            <strong class="text-dark"><?php echo htmlspecialchars($single_company['class'] ?: 'N/A'); ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2.5 border-bottom">
+                            <span class="text-muted"><i class="fas fa-tag mr-2 text-info"></i> Company Type</span>
+                            <strong class="text-dark"><?php echo htmlspecialchars($single_company['company_type'] ?: 'N/A'); ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2.5 border-bottom">
+                            <span class="text-muted"><i class="far fa-calendar-alt mr-2 text-success"></i> Official Registration Date</span>
+                            <strong class="text-primary"><?php echo !empty($single_company['registration_date']) ? date('d F Y', strtotime($single_company['registration_date'])) : 'N/A'; ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6 pl-md-4">
+                        <div class="d-flex justify-content-between py-2.5 border-bottom">
+                            <span class="text-muted"><i class="fas fa-industry mr-2 text-warning"></i> Activity / NIC Code</span>
+                            <strong class="text-dark">
+                                Division <?php echo htmlspecialchars($single_company['activity_code'] ?: 'N/A'); ?>
+                                <?php if (!empty($nic_info['division']['title'])): ?>
+                                    <span class="text-primary font-weight-normal small ml-1">&bull; <?php echo htmlspecialchars($nic_info['division']['title']); ?></span>
+                                <?php endif; ?>
+                            </strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2.5 border-bottom">
+                            <span class="text-muted"><i class="fas fa-archive mr-2 text-secondary"></i> Batch Month</span>
+                            <strong class="text-dark"><?php echo htmlspecialchars($single_company['report_month'] ?: 'N/A'); ?></strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2.5 border-bottom">
+                            <span class="text-muted"><i class="fas fa-shield-alt mr-2 text-success"></i> MCA Status</span>
+                            <span class="text-success font-weight-bold"><i class="fas fa-check-circle mr-1"></i> Active / Registered</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- National Industrial Classification (NIC 2025) Official Record -->
+                <?php if (!empty($nic_info['division']) || !empty($nic_info['class']) || !empty($nic_info['subclass'])): ?>
+                <div class="mt-4 pt-4 border-top">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="small font-weight-bold text-uppercase text-muted">
+                            <i class="fas fa-sitemap text-primary mr-1"></i> Official National Industrial Classification (NIC 2025) Hierarchy
+                        </span>
+                        <span class="badge badge-light border text-muted small">MoSPI NIC 2025 Standard</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-lg border bg-light">
+                        <div class="row">
+                            <?php if (!empty($nic_info['section'])): ?>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block font-weight-bold">SECTION <?php echo htmlspecialchars($nic_info['section']['code']); ?>:</small>
+                                <span class="font-weight-semibold text-dark"><?php echo htmlspecialchars($nic_info['section']['title']); ?></span>
+                            </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($nic_info['division'])): ?>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block font-weight-bold">DIVISION <?php echo htmlspecialchars($nic_info['division']['code']); ?>:</small>
+                                <span class="font-weight-semibold text-primary"><?php echo htmlspecialchars($nic_info['division']['title']); ?></span>
+                            </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($nic_info['group'])): ?>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block font-weight-bold">GROUP <?php echo htmlspecialchars($nic_info['group']['code']); ?>:</small>
+                                <span class="font-weight-semibold text-dark"><?php echo htmlspecialchars($nic_info['group']['title']); ?></span>
+                            </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($nic_info['class'])): ?>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block font-weight-bold">CLASS <?php echo htmlspecialchars($nic_info['class']['code']); ?>:</small>
+                                <span class="font-weight-semibold text-dark"><?php echo htmlspecialchars($nic_info['class']['title']); ?></span>
+                            </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($nic_info['subclass'])): ?>
+                            <div class="col-12 mt-2 pt-2 border-top">
+                                <small class="text-muted d-block font-weight-bold">SUB-CLASS <?php echo htmlspecialchars($nic_info['subclass']['code']); ?> (Exact Operation):</small>
+                                <span class="font-weight-bold text-success"><?php echo htmlspecialchars($nic_info['subclass']['title']); ?></span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (!empty($nic_info['class']['description'])): ?>
+                        <div class="mt-2 pt-2 border-top small text-muted">
+                            <strong>Official Scope &amp; Notes:</strong> <?php echo nl2br(htmlspecialchars($nic_info['class']['description'])); ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Clean Inline CIN Breakdown -->
+                <?php if ($parsedCin): ?>
+                <div class="mt-4 pt-3 border-top">
+                    <div class="small font-weight-bold text-muted text-uppercase mb-2">
+                        <i class="fas fa-info-circle text-primary mr-1"></i> CIN Architecture Breakdown (21 Digits)
+                    </div>
+                    <p class="small text-muted mb-0">
+                        <strong>Listing:</strong> <?php echo $parsedCin['listing_code']; ?> (<?php echo $parsedCin['listing']; ?>) &bull;
+                        <strong>NIC Activity:</strong> <?php echo $parsedCin['industry']; ?> &bull;
+                        <strong>State ROC:</strong> <?php echo $parsedCin['state_code']; ?> (<?php echo $parsedCin['state_name']; ?>) &bull;
+                        <strong>Year:</strong> <?php echo $parsedCin['year']; ?> &bull;
+                        <strong>Class:</strong> <?php echo $parsedCin['class_code']; ?> (<?php echo $parsedCin['class_name']; ?>) &bull;
+                        <strong>ROC Serial:</strong> <?php echo $parsedCin['serial']; ?>
+                    </p>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
+            <!-- Category Nav Pills Filter & View Switcher -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <ul class="nav nav-pills nav-pills-modern m-0 p-0">
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo empty($category_param) ? 'active' : ''; ?>" href="company-incorporation.php?q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-th-large"></i> All Search Results <span class="badge badge-light ml-1"><?php echo number_format($total_companies); ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($category_param === 'INDIAN') ? 'active' : ''; ?>" href="company-incorporation.php?category=INDIAN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-building"></i> Indian Companies
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($category_param === 'LLP') ? 'active' : ''; ?>" href="company-incorporation.php?category=LLP&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-handshake"></i> LLPs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($category_param === 'FOREIGN') ? 'active' : ''; ?>" href="company-incorporation.php?category=FOREIGN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-globe"></i> Foreign Companies
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex align-items-center gap-1">
+                        <?php 
+                            $gridQuery = $_GET; $gridQuery['view'] = 'grid';
+                            $tableQuery = $_GET; $tableQuery['view'] = 'table';
+                        ?>
+                        <a href="?<?php echo http_build_query($gridQuery); ?>" class="view-switch-btn <?php echo $view_mode === 'grid' ? 'active' : ''; ?>" title="Grid View">
+                            <i class="fas fa-th-large"></i>
+                        </a>
+                        <a href="?<?php echo http_build_query($tableQuery); ?>" class="view-switch-btn <?php echo $view_mode === 'table' ? 'active' : ''; ?>" title="Table View">
+                            <i class="fas fa-list"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Companies Grid / List -->
+            <?php if ($companies_list['count'] > 0): ?>
+
+                <?php if ($view_mode === 'table'): ?>
+                    <!-- Table View Mode -->
+                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Category</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Company Name</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">CIN / LLPIN</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Class &amp; Type</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">NIC Activity</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Reg. Date</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($companies_list['data'] as $comp): ?>
+                                        <?php
+                                        $badgeClass = 'company-badge-indian';
+                                        if ($comp['category'] === 'LLP') $badgeClass = 'company-badge-llp';
+                                        if ($comp['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+
+                                        $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
+                                        $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
+                                        ?>
+                                        <tr>
+                                            <td class="px-4 py-3 align-middle">
+                                                <span class="badge <?php echo $badgeClass; ?> px-2 py-1 text-uppercase" style="font-size: 10.5px;">
+                                                    <?php echo htmlspecialchars($comp['category']); ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle font-weight-bold">
+                                                <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="text-dark text-decoration-none">
+                                                    <?php echo htmlspecialchars($comp['company_name']); ?>
+                                                </a>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle">
+                                                <code class="font-weight-bold text-primary"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle small text-muted">
+                                                <?php echo htmlspecialchars($comp['class'] ?: '-'); ?>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle small">
+                                                <?php if (!empty($comp['activity_code'])): ?>
+                                                    <span class="badge badge-light border text-dark" title="<?php echo htmlspecialchars($act_title); ?>">
+                                                        NIC <?php echo htmlspecialchars($comp['activity_code']); ?>
+                                                        <?php if ($act_title): ?>
+                                                            &bull; <?php echo htmlspecialchars(mb_strimwidth($act_title, 0, 20, '...')); ?>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    -
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle small text-muted">
+                                                <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle text-right">
+                                                <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                                    View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <!-- Grid View Mode -->
+                    <div class="row">
+                        <?php foreach ($companies_list['data'] as $comp): ?>
+                            <?php
+                            $badgeClass = 'company-badge-indian';
+                            if ($comp['category'] === 'LLP') $badgeClass = 'company-badge-llp';
+                            if ($comp['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+
+                            $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
+                            $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
+                            ?>
+                            <div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
+                                <div class="company-card-elevated p-4 w-100">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase" style="font-size: 11px;">
+                                                <?php echo htmlspecialchars($comp['category']); ?>
+                                            </span>
+                                            <span class="small text-muted font-weight-medium">
+                                                <i class="far fa-calendar-alt mr-1"></i>
+                                                <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
+                                            </span>
+                                        </div>
+                                        
+                                        <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px; font-family: var(--font-heading);">
+                                            <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='#0f172a';">
+                                                <?php echo htmlspecialchars($comp['company_name']); ?>
+                                            </a>
+                                        </h5>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="text-muted font-weight-bold">CIN / ID:</small>
+                                            <code class="font-weight-bold text-primary" style="font-size: 12.5px;"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                        </div>
+
+                                        <div class="small text-muted mb-2">
+                                            <?php if (!empty($comp['class'])): ?>
+                                                <span class="mr-2"><i class="fas fa-tag text-primary mr-1"></i> <?php echo htmlspecialchars($comp['class']); ?></span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($comp['activity_code'])): ?>
+                                                <div class="mt-1" title="<?php echo htmlspecialchars($act_title); ?>">
+                                                    <i class="fas fa-industry text-warning mr-1"></i> 
+                                                    <strong>NIC <?php echo htmlspecialchars($comp['activity_code']); ?>:</strong> 
+                                                    <span class="text-dark"><?php echo htmlspecialchars(mb_strimwidth($act_title ?: 'Industrial Classification', 0, 28, '...')); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
+                                        <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                            View Details &rarr;
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($comp['cin']); ?>'); alert('CIN copied: <?php echo htmlspecialchars($comp['cin']); ?>');" title="Copy CIN">
+                                            <i class="far fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination" style="gap: 4px;">
+                            <?php
+                            $queryParams = $_GET;
+                            // Prev
+                            if ($page > 1) {
+                                $queryParams['p'] = $page - 1;
+                                echo '<li class="page-item"><a class="page-link rounded-pill px-3" href="?' . http_build_query($queryParams) . '">&laquo; Prev</a></li>';
+                            } else {
+                                echo '<li class="page-item disabled"><span class="page-link rounded-pill px-3">&laquo; Prev</span></li>';
+                            }
+
+                            $startPage = max(1, $page - 2);
+                            $endPage = min($total_pages, $page + 2);
+
+                            for ($i = $startPage; $i <= $endPage; $i++) {
+                                $queryParams['p'] = $i;
+                                $active = ($i == $page) ? 'active' : '';
+                                echo '<li class="page-item ' . $active . '"><a class="page-link rounded-pill px-3" href="?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                            }
+
+                            // Next
+                            if ($page < $total_pages) {
+                                $queryParams['p'] = $page + 1;
+                                echo '<li class="page-item"><a class="page-link rounded-pill px-3" href="?' . http_build_query($queryParams) . '">Next &raquo;</a></li>';
+                            } else {
+                                echo '<li class="page-item disabled"><span class="page-link rounded-pill px-3">Next &raquo;</span></li>';
+                            }
+                            ?>
+                        </ul>
+                    </nav>
+                </div>
+                <?php endif; ?>
+
+            <?php else: ?>
+                <div class="bg-white rounded-xl shadow-sm border py-5 text-center">
+                    <div class="card-body">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f1f5f9; color: #64748b;">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                        <h4 class="font-weight-bold text-dark mb-2">No Registered Companies Found</h4>
+                        <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">No companies matched your query "<strong><?php echo htmlspecialchars($q_param); ?></strong>". Try searching with a different keyword, CIN, or category.</p>
+                        <a href="company-incorporation.php" class="btn btn-primary font-weight-bold px-4">Reset Search</a>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+        <?php else: ?>
+
+            <!-- ================================================================= -->
+            <!-- DEFAULT INFOGRAPHICS & VISUAL GUIDE (WHEN NO SEARCH IS PERFORMED) -->
+            <!-- ================================================================= -->
+
+            <!-- Infographic 1: Visual CIN Anatomy Breakdown Diagram -->
+            <div class="cin-anatomy-diagram mb-5 shadow-xl">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <div>
+                        <span class="badge badge-warning text-dark font-weight-bold px-3 py-1 rounded-pill text-uppercase mb-1" style="font-size: 11px;">
+                            INFOGRAPHIC ARCHITECTURE
+                        </span>
+                        <h3 class="font-weight-bold text-white mb-1" style="font-family: var(--font-heading); font-size: clamp(20px, 3vw, 26px);">
+                            How Indian Corporate Identification Numbers (CIN) Work
+                        </h3>
+                        <p class="text-white-50 small mb-0">Every registered company in India carries a distinct 21-digit alphanumeric identification code containing 6 vital regulatory parameters.</p>
+                    </div>
+                    <div class="mt-2 mt-md-0">
+                        <span class="badge badge-primary px-3 py-2 rounded-pill font-weight-bold" style="background: rgba(37, 99, 235, 0.4); border: 1px solid rgba(96, 165, 250, 0.5);">
+                            21 ALPHANUMERIC CHARACTERS
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Animated Visual CIN Example Banner -->
+                <div class="text-center py-3 px-2 rounded-lg mb-4" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);">
+                    <div class="d-flex flex-wrap justify-content-center align-items-center" style="gap: 8px;">
+                        <span class="cin-segment-pill" style="background: #2563eb; color: #fff;" title="Listing Status">U</span>
+                        <span class="cin-segment-pill" style="background: #059669; color: #fff;" title="NIC Activity Code">47713</span>
+                        <span class="cin-segment-pill" style="background: #d97706; color: #fff;" title="State ROC Jurisdiction">DC</span>
+                        <span class="cin-segment-pill" style="background: #0284c7; color: #fff;" title="Incorporation Year">2026</span>
+                        <span class="cin-segment-pill" style="background: #dc2626; color: #fff;" title="Company Classification">PTC</span>
+                        <span class="cin-segment-pill" style="background: #7c3aed; color: #fff;" title="ROC Sequential Registration Number">474566</span>
+                    </div>
+                    <div class="text-white-50 small mt-2">Example: <code>U47713DC2026PTC474566</code> (Unlisted Specialized Retail Company incorporated in Delhi, 2026)</div>
+                </div>
+
+                <!-- 6 Explanatory Infographic Rows -->
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background: #2563eb; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">1</span>
+                            <div>
+                                <h6 class="text-white font-weight-bold mb-1">Listing Status (1 Char)</h6>
+                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;"><strong>U</strong> for Unlisted Company or <strong>L</strong> for Companies listed on stock exchanges (NSE/BSE).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background: #059669; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">2</span>
+                            <div>
+                                <h6 class="text-white font-weight-bold mb-1">NIC Activity Code (5 Digits)</h6>
+                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">National Industrial Classification code categorizing the primary business sector &amp; economic operations.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background: #d97706; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">3</span>
+                            <div>
+                                <h6 class="text-white font-weight-bold mb-1">State / ROC Code (2 Chars)</h6>
+                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">Two-letter state jurisdiction code of the registered office (e.g. DL/DC for Delhi, MH for Maharashtra, KA for Karnataka).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background: #0284c7; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">4</span>
+                            <div>
+                                <h6 class="text-white font-weight-bold mb-1">Incorporation Year (4 Digits)</h6>
+                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">The 4-digit calendar year in which the legal Certificate of Incorporation was issued by the Registrar.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background: #dc2626; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">5</span>
+                            <div>
+                                <h6 class="text-white font-weight-bold mb-1">Ownership Class (3 Chars)</h6>
+                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;"><strong>PTC</strong> (Private Limited), <strong>PLC</strong> (Public Limited), <strong>FTC</strong> (Foreign Subsidiary), <strong>GAP</strong> (Sec 8 Non-profit).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background: #7c3aed; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">6</span>
+                            <div>
+                                <h6 class="text-white font-weight-bold mb-1">Registration Serial (6 Digits)</h6>
+                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">Unique sequential registration number allotted by the respective regional Registrar of Companies (ROC).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infographic 2: Statistical Live Overview Metrics -->
+            <div class="row mb-5">
+                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
+                    <div class="infographic-card text-center">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #eff6ff; color: #2563eb;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="h3 font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['TOTAL']); ?>+</div>
+                        <div class="text-muted small font-weight-bold text-uppercase">Total Incorporated</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
+                    <div class="infographic-card text-center">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f0fdf4; color: #15803d;">
+                            <i class="fas fa-city"></i>
+                        </div>
+                        <div class="h3 font-weight-bold text-success mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['INDIAN']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase">Indian Companies (CIN)</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
+                    <div class="infographic-card text-center">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #ecfdf5; color: #047857;">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="h3 font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['LLP']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase">LLPs (LLPIN)</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
+                    <div class="infographic-card text-center">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #fffbeb; color: #b45309;">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="h3 font-weight-bold text-warning mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['FOREIGN']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase">Foreign Entities (FCIN)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infographic 3: NIC 2025 Industry Sectors & Activity Code Explorer -->
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge badge-primary px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #eff6ff; color: #1d4ed8; font-size: 11px;">
+                                <i class="fas fa-database mr-1"></i> NIC 2025 NATIONAL CLASSIFICATION
+                            </span>
+                            <span class="badge badge-success px-2.5 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857; font-size: 11px;">
+                                2,715 Official Codes
+                            </span>
+                        </div>
+                        <h3 class="font-weight-bold text-dark mb-1" style="font-size: 22px; font-family: var(--font-heading);">
+                            Browse Incorporations by NIC 2025 Industry Sectors
+                        </h3>
+                        <p class="text-muted small mb-0">Explore registered companies classified according to Ministry of Statistics &amp; Programme Implementation (MoSPI) standards.</p>
+                    </div>
+                </div>
+
+                <!-- 8 Featured High-Volume Industry Sectors -->
+                <div class="row mb-4">
+                    <?php
+                    $sector_cards = [
+                        ['code' => '62', 'title' => 'Software & Computer Services', 'icon' => 'fa-laptop-code', 'color' => '#2563eb', 'bg' => '#eff6ff', 'count' => '3,830+'],
+                        ['code' => '46', 'title' => 'Wholesale Trade & B2B', 'icon' => 'fa-boxes', 'color' => '#059669', 'bg' => '#ecfdf5', 'count' => '3,150+'],
+                        ['code' => '68', 'title' => 'Real Estate Activities', 'icon' => 'fa-city', 'color' => '#d97706', 'bg' => '#fffbeb', 'count' => '1,950+'],
+                        ['code' => '47', 'title' => 'Retail Trade & Commerce', 'icon' => 'fa-shopping-cart', 'color' => '#dc2626', 'bg' => '#fef2f2', 'count' => '1,740+'],
+                        ['code' => '85', 'title' => 'Education & Skill Training', 'icon' => 'fa-graduation-cap', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'count' => '1,260+'],
+                        ['code' => '70', 'title' => 'Management Consulting', 'icon' => 'fa-briefcase', 'color' => '#0284c7', 'bg' => '#f0f9ff', 'count' => '1,030+'],
+                        ['code' => '86', 'title' => 'Human Health & Hospitals', 'icon' => 'fa-heartbeat', 'color' => '#e11d48', 'bg' => '#fff1f2', 'count' => '740+'],
+                        ['code' => '35', 'title' => 'Solar, Gas & Renewable Power', 'icon' => 'fa-bolt', 'color' => '#ca8a04', 'bg' => '#fefce8', 'count' => '670+'],
+                    ];
+                    foreach ($sector_cards as $sc): ?>
+                    <div class="col-lg-3 col-md-6 col-12 mb-3 d-flex">
+                        <a href="company-incorporation.php?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.2s; border-color: #e2e8f0;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)';">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-lg" style="width: 36px; height: 36px; background: <?php echo $sc['bg']; ?>; color: <?php echo $sc['color']; ?>; font-size: 16px;">
+                                    <i class="fas <?php echo $sc['icon']; ?>"></i>
+                                </span>
+                                <div>
+                                    <span class="badge badge-light border text-muted" style="font-size: 10px;">Division <?php echo $sc['code']; ?></span>
+                                    <div class="font-weight-bold text-dark" style="font-size: 13.5px; line-height: 1.3;"><?php echo $sc['title']; ?></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                <span class="small font-weight-bold text-primary"><?php echo $sc['count']; ?> Companies</span>
+                                <span class="small text-muted font-weight-bold">View &rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- Instant NIC 2025 Activity Code Finder Widget -->
+                <div class="p-4 rounded-xl" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-lg-7 col-md-12 mb-2 mb-lg-0">
+                            <h5 class="font-weight-bold text-dark mb-1" style="font-size: 16px;">
+                                <i class="fas fa-search text-primary mr-1"></i> Instant NIC 2025 Activity Code Finder
+                            </h5>
+                            <p class="text-muted small mb-0">Type any business activity (e.g. <em>Artificial Intelligence, Electric Vehicle, Solar, Hospital, Dairy</em>) to find official 2-digit to 6-digit codes.</p>
+                        </div>
+                        <div class="col-lg-5 col-md-12">
+                            <div class="input-group">
+                                <input type="text" id="nicLiveSearchInput" class="form-control" placeholder="Search 2,715 NIC activities..." style="height: 44px;">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary px-3 font-weight-bold" type="button" onclick="runNicLiveSearch();">
+                                        <i class="fas fa-search"></i> Find
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="nicSearchResultsBox" style="display: none;" class="mt-3 bg-white rounded-lg border p-3 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <span class="small font-weight-bold text-dark"><i class="fas fa-list mr-1 text-primary"></i> Matching NIC 2025 Codes:</span>
+                            <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="document.getElementById('nicSearchResultsBox').style.display='none';"><i class="fas fa-times"></i> Close</button>
+                        </div>
+                        <div id="nicSearchResultsList" class="small" style="max-height: 240px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infographic 4: Comparative Corporate Classification Matrix -->
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="brand-icon-badge" style="width: 32px; height: 32px; font-size: 14px;">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px; font-family: var(--font-heading);">
+                        Comparison of Registered Business Structures in India
+                    </h3>
+                </div>
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered mb-0" style="border-color: #e2e8f0;">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="text-dark font-weight-bold">Feature</th>
+                                <th class="text-primary font-weight-bold">Private Limited Company</th>
+                                <th class="text-success font-weight-bold">Limited Liability Partnership</th>
+                                <th class="text-warning font-weight-bold">Foreign Company Branch/Subsidiary</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small text-muted">
+                            <tr>
+                                <td class="font-weight-bold text-dark">Identifier Format</td>
+                                <td>21-digit CIN (e.g. <code>U47713DC2026PTC474566</code>)</td>
+                                <td>Alphanumeric LLPIN (e.g. <code>AAA-1234</code>)</td>
+                                <td>FCIN (Foreign Company ID)</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-dark">Governing Law</td>
+                                <td>Companies Act, 2013</td>
+                                <td>LLP Act, 2008</td>
+                                <td>Companies Act &amp; RBI FEMA Guidelines</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-dark">Minimum Members</td>
+                                <td>2 Shareholders &amp; 2 Directors</td>
+                                <td>2 Designated Partners</td>
+                                <td>1 Authorized Indian Representative</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-dark">Liability Protection</td>
+                                <td>Limited to unpaid share capital</td>
+                                <td>Limited to agreed contribution</td>
+                                <td>Limited / Foreign Parent Liability</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-dark">Annual MCA Filings</td>
+                                <td>AOC-4 (Accounts), MGT-7 (Return), DIR-3 KYC</td>
+                                <td>Form 8 (Statement of Accounts), Form 11 (Return)</td>
+                                <td>Form FC-3 &amp; Annual Financials</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Infographic 4: How to Verify Company Status (3 Steps) -->
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5">
+                <div class="row text-center mb-4 justify-content-center">
+                    <div class="col-lg-8 col-12">
+                        <span class="badge badge-primary px-3 py-1 rounded-pill text-uppercase font-weight-bold mb-2" style="background: var(--primary-light); color: var(--primary-color);">CITIZEN VERIFICATION</span>
+                        <h4 class="font-weight-bold text-dark mb-1" style="font-size: 22px; font-family: var(--font-heading);">How to Verify Any Indian Business Entity</h4>
+                        <p class="text-muted small mb-0">Follow these 3 simple steps to conduct legal due diligence on contractors, vendors, and companies.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="p-3.5 rounded border bg-light h-100">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge badge-primary rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                                <h6 class="font-weight-bold text-dark mb-0">Locate Identification No.</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Check invoices, official letterheads, or company websites for the mandatory 21-digit CIN or LLPIN.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="p-3.5 rounded border bg-light h-100">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge badge-success rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                                <h6 class="font-weight-bold text-dark mb-0">Search on OnlineLaw</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Enter the CIN, company name, or LLPIN in the search box above to instantly fetch official registration data.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="p-3.5 rounded border bg-light h-100">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge badge-info rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                                <h6 class="font-weight-bold text-dark mb-0">Verify Compliance Status</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Confirm the entity's status is ACTIVE and cross-reference the registered ROC state and authorized class.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <?php endif; ?>
+
+	</div>
+</div>
+
+<script>
+function runNicLiveSearch() {
+    const input = document.getElementById('nicLiveSearchInput');
+    const box = document.getElementById('nicSearchResultsBox');
+    const list = document.getElementById('nicSearchResultsList');
+    if (!input || !box || !list) return;
+
+    const query = input.value.trim();
+    if (!query) {
+        alert('Please enter a business keyword or NIC code to search.');
+        return;
+    }
+
+    box.style.display = 'block';
+    list.innerHTML = '<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin mr-1"></i> Searching official NIC 2025 records...</div>';
+
+    fetch('api.php?action=nic&q=' + encodeURIComponent(query))
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.data) {
+                const results = Array.isArray(data.data) ? data.data : (data.data.subclass ? [data.data.subclass] : (data.data.class ? [data.data.class] : [data.data.division]));
+                if (!results || results.length === 0) {
+                    list.innerHTML = '<div class="text-muted p-2">No matching NIC 2025 activity codes found for "<strong>' + encodeURIComponent(query) + '</strong>".</div>';
+                    return;
+                }
+
+                let html = '<div class="list-group list-group-flush">';
+                results.slice(0, 15).forEach(item => {
+                    if (!item) return;
+                    const code = item.code || '';
+                    const level = item.level || '';
+                    const title = item.title || '';
+                    const divCode = item.division_code || (code.length >= 2 ? code.substring(0, 2) : code);
+
+                    html += '<div class="list-group-item px-2 py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">' +
+                        '<div>' +
+                            '<span class="badge badge-primary mr-2" style="font-size: 11px;">' + level + ' ' + code + '</span>' +
+                            '<strong class="text-dark">' + title + '</strong>' +
+                        '</div>' +
+                        '<a href="company-incorporation.php?activity=' + divCode + '" class="btn btn-xs btn-outline-primary font-weight-bold" style="font-size: 11px; padding: 2px 8px;">' +
+                            'View Companies (Div ' + divCode + ') &rarr;' +
+                        '</a>' +
+                    '</div>';
+                });
+                html += '</div>';
+                list.innerHTML = html;
+            } else {
+                list.innerHTML = '<div class="text-muted p-2">No matching NIC 2025 activity codes found.</div>';
+            }
+        })
+        .catch(err => {
+            list.innerHTML = '<div class="text-danger p-2"><i class="fas fa-exclamation-triangle mr-1"></i> Error querying NIC database.</div>';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('nicLiveSearchInput');
+    if (input) {
+        input.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                runNicLiveSearch();
+            }
+        });
+    }
+});
+</script>
+
+<?php require_once('includes/footer.php'); ?>

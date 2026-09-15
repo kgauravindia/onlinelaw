@@ -1,5 +1,7 @@
 <?php
-session_start(); 
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    session_start();
+}
 $token = session_id();
 ini_set('max_execution_time', 300);
 set_time_limit(300);

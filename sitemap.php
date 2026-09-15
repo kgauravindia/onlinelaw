@@ -15,7 +15,11 @@ $sitemaps = [
     'sitemap-pincode.xml',
     'sitemap-passport.xml',
     'sitemap-ifsc.xml',
-    'sitemap-gst.xml'
+    'sitemap-micr.xml',
+    'sitemap-gst.xml',
+    'sitemap-acts.xml',
+    'sitemap-nic.xml',
+    'sitemap-company.xml'
 ];
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";

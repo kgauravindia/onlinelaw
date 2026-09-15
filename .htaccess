@@ -3,16 +3,24 @@
     ErrorDocument 404 /404.php
     
     # 1. Search tool detail URLs
+    RewriteRule ^company-incorporation/([a-zA-Z0-9_\-]+)/?$ company-incorporation.php?cin=$1 [L,QSA]
     RewriteRule ^pincode/([0-9]+)/?$ pincode.php?pincode=$1 [L,QSA]
     RewriteRule ^bank-ifsc/([a-zA-Z0-9]+)/?$ bank-ifsc.php?ifsc=$1 [L,QSA]
-    RewriteRule ^bank-ifsc-by-branch-name/([a-zA-Z0-9\s_-]+)/?$ bank-ifsc-by-branch-name.php?branch=$1 [L,QSA]
-    RewriteRule ^pincode-by-locality/([a-zA-Z0-9\s_-]+)/?$ pincode-by-locality.php?locality=$1 [L,QSA]
-    RewriteRule ^gst-hsn-sac/([a-zA-Z0-9\s_%20-]+)/?$ gst-hsn-sac.php?q=$1 [L,QSA]
-    RewriteRule ^passport/([a-zA-Z0-9\s_%20-]+)/?$ passport.php?q=$1 [L,QSA]
-    RewriteRule ^acts/([a-zA-Z0-9\s_%20-]+)/?$ acts.php?q=$1 [L,QSA]
+    RewriteRule ^bank-ifsc-by-branch-name/([^/]+)/?$ bank-ifsc-by-branch-name.php?branch=$1 [L,QSA]
+    RewriteRule ^pincode-by-locality/([^/]+)/?$ pincode-by-locality.php?locality=$1 [L,QSA]
+    RewriteRule ^gst-hsn-sac/([^/]+)/?$ gst-hsn-sac.php?q=$1 [L,QSA]
+    RewriteRule ^nic/([a-zA-Z0-9_\-]+)/?$ nic.php?code=$1 [L,QSA]
+    RewriteRule ^passport/([^/]+)/?$ passport.php?q=$1 [L,QSA]
+    RewriteRule ^acts/([^/]+)/?$ acts.php?q=$1 [L,QSA]
     
     # 2. Map extensionless urls to .php
+    # 2a. Redirect trailing slashes for non-directories for SEO & clean URL mapping
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} ^(.*)/$
+    RewriteRule ^(.*)/$ %1 [R=301,L]
+
+    # 2b. Map extensionless urls to .php
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}\.php -f
-    RewriteRule ^([a-zA-Z0-9_\-]+)/?$ $1.php [L,QSA]
+    RewriteRule ^([a-zA-Z0-9_\-/]+)$ $1.php [L,QSA]
 </IfModule>
