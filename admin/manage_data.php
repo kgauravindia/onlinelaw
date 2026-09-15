@@ -6,7 +6,7 @@ $companies_count = direct_sql("SELECT count(*) as total FROM companies_incorpora
 $ifsc_count = direct_sql("SELECT count(*) as total FROM bank_ifsc");
 $pincode_count = direct_sql("SELECT count(*) as total FROM pincode");
 $acts_count = direct_sql("SELECT count(*) as total FROM acts");
-$users_count = direct_sql("SELECT count(*) as total FROM users");
+$users_count = direct_sql("SELECT count(*) as total FROM op_user");
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">

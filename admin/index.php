@@ -6,7 +6,7 @@ $companies_count = direct_sql("SELECT count(*) as total FROM companies_incorpora
 $ifsc_count = direct_sql("SELECT count(*) as total FROM bank_ifsc");
 $pincode_count = direct_sql("SELECT count(*) as total FROM pincode");
 $acts_count = direct_sql("SELECT count(*) as total FROM acts");
-$users_count = direct_sql("SELECT count(*) as total FROM users");
+$users_count = direct_sql("SELECT count(*) as total FROM op_user");
 
 // Fetch recent 8 companies
 $recent_companies = direct_sql("SELECT * FROM companies_incorporated ORDER BY registration_date DESC, id DESC LIMIT 8");

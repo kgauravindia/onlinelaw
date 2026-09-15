@@ -7,13 +7,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
     
-    // Check credentials against users table or fallback
-    $check = direct_sql("SELECT * FROM users WHERE username = '" . mysqli_real_escape_string($con, $username) . "'");
+    // Check credentials against op_user table or fallback
+    $check = direct_sql("SELECT * FROM op_user WHERE user_name = '" . mysqli_real_escape_string($con, $username) . "'");
     if (isset($check['data'][0])) {
         $u = $check['data'][0];
-        if (password_verify($password, $u['password']) || ($password === $u['password'])) {
+        $stored_pass = $u['user_pass'] ?? '';
+        if (password_verify($password, $stored_pass) || md5($password) === $stored_pass || $password === $stored_pass) {
             $_SESSION['admin_logged_in'] = true;
-            $_SESSION['username'] = $u['username'];
+            $_SESSION['username'] = $u['user_name'] ?? $username;
+            $_SESSION['full_name'] = $u['full_name'] ?? $username;
+            $_SESSION['user_type'] = $u['user_type'] ?? 'ADMIN';
             header("Location: index.php");
             exit();
         }
@@ -23,6 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($username === 'admin' && $password === 'admin123') {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['username'] = 'admin';
+        $_SESSION['full_name'] = 'Administrator';
+        $_SESSION['user_type'] = 'ADMIN';
         header("Location: index.php");
         exit();
     } else {
