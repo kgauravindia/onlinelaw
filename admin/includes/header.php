@@ -23,8 +23,8 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- CSS Dependencies -->
-    <link rel="stylesheet" href="<?php echo $base_url; ?>css/bootstrap-4.1.3.min.css">
-    <link rel="stylesheet" href="<?php echo $base_url; ?>css/fontawesome-all-5.5.0.min.css">
+    <link rel="stylesheet" href="../css/bootstrap-4.1.3.min.css">
+    <link rel="stylesheet" href="../css/fontawesome-all-5.5.0.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="css/admin.css">
@@ -109,7 +109,7 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
             </div>
             
             <div class="top-bar-right">
-                <a href="<?php echo $base_url; ?>index" class="top-bar-link" title="Visit Public Website" target="_blank">
+                <a href="../index.php" class="top-bar-link" title="Visit Public Website" target="_blank">
                     <i class="fas fa-globe"></i>
                 </a>
                 
