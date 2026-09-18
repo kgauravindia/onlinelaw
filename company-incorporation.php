@@ -3,7 +3,7 @@
     require_once('includes/function.php');
 
     $cin_param = isset($_GET['cin']) ? trim($_GET['cin']) : '';
-    $q_param = isset($_GET['q']) ? trim($_GET['q']) : $cin_param;
+    $q_param = isset($_GET['q']) ? trim($_GET['q']) : '';
     $category_param = isset($_GET['category']) ? strtoupper(trim($_GET['category'])) : '';
     $activity_param = isset($_GET['activity']) ? trim($_GET['activity']) : '';
     $date_param = isset($_GET['date']) ? trim($_GET['date']) : '';
@@ -28,7 +28,22 @@
         }
     }
 
-    $has_search = (!empty($q_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param) || !empty($cin_param) || $single_company !== null);
+    $has_search = (!empty($q_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param));
+
+    // Fetch related companies when viewing a single company without separate search filters
+    $related_companies = ['count' => 0, 'data' => []];
+    if ($single_company && !$has_search) {
+        $r_where = [$is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')", "id != " . intval($single_company['id'])];
+        if (!empty($single_company['activity_code'])) {
+            $r_act = mysqli_real_escape_string($con, $single_company['activity_code']);
+            $r_where[] = "activity_code = '$r_act'";
+        } else {
+            $r_cat = mysqli_real_escape_string($con, $single_company['category']);
+            $r_where[] = "category = '$r_cat'";
+        }
+        $r_where_sql = implode(' AND ', $r_where);
+        $related_companies = direct_sql("SELECT * FROM companies_incorporated WHERE $r_where_sql ORDER BY registration_date DESC, id DESC LIMIT 6");
+    }
 
     $companies_list = ['count' => 0, 'data' => []];
     $total_companies = 0;
@@ -414,7 +429,20 @@ $company_schema = [
             </div>
         </div>
 
-        <?php if ($has_search): ?>
+        <?php if ($has_search || $single_company !== null || (!empty($cin_param) && !$single_company)): ?>
+
+            <?php if (!empty($cin_param) && !$single_company): ?>
+            <div class="bg-white rounded-xl shadow-sm border py-5 text-center mb-5">
+                <div class="card-body">
+                    <div class="tool-icon-squircle mx-auto mb-3" style="background: #fef2f2; color: #ef4444;">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                    <h4 class="font-weight-bold text-dark mb-2">Company Record Not Found</h4>
+                    <p class="text-muted mb-4" style="max-width: 520px; margin: 0 auto;">We could not locate any incorporation record matching "<strong><?php echo htmlspecialchars($cin_param); ?></strong>". The company may not be registered yet, or the CIN/slug may be incorrect.</p>
+                    <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4">Browse All Companies</a>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- Single Company Detail View (if selected) -->
             <?php if ($single_company): ?>
@@ -476,9 +504,6 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $single_company['id']; ?>" target="_blank" class="btn btn-warning font-weight-bold shadow-sm text-dark" style="border-radius: var(--radius-md); background: #f59e0b; border: none;">
-                            <i class="fas fa-edit mr-1"></i> Edit in Admin
-                        </a>
                         <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: var(--radius-md);">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
@@ -598,8 +623,23 @@ $company_schema = [
                     </p>
                 </div>
                 <?php endif; ?>
+
+                <!-- MCA Disclaimer Note -->
+                <div class="mt-4 pt-3 border-top">
+                    <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: var(--radius-md);">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fas fa-shield-alt text-secondary mt-1 mr-2" style="font-size: 1.1rem;"></i>
+                            <div class="small text-muted" style="line-height: 1.6;">
+                                <strong class="text-dark">Disclaimer: Regarding MCA (Ministry of Corporate Affairs)</strong> &mdash; 
+                                The corporate data shown above is compiled from periodic incorporation reports published by the Ministry of Corporate Affairs (MCA), Government of India. Online Law is an independent informational directory and is not affiliated, associated, or endorsed by the MCA, Registrar of Companies (ROC), or any government body. Company status, capital, and director filings are subject to subsequent updates. For official compliance and certified records, please verify directly on <a href="https://www.mca.gov.in" target="_blank" rel="noopener noreferrer" class="text-primary font-weight-bold">www.mca.gov.in</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <?php endif; ?>
+
+            <?php if ($has_search): ?>
 
             <!-- Category Nav Pills Filter & View Switcher -->
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
@@ -628,6 +668,7 @@ $company_schema = [
 
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-none d-md-flex align-items-center gap-1">
+                        <span class="small text-muted mr-2">Layout:</span>
                         <?php 
                             $gridQuery = $_GET; $gridQuery['view'] = 'grid';
                             $tableQuery = $_GET; $tableQuery['view'] = 'table';
@@ -796,7 +837,7 @@ $company_schema = [
                 <?php if ($total_pages > 1): ?>
                 <div class="d-flex justify-content-center mt-4">
                     <nav aria-label="Page navigation">
-                        <ul class="pagination" style="gap: 4px;">
+                        <ul class="pagination pagination-modern">
                             <?php
                             $queryParams = $_GET;
                             // Prev
@@ -840,6 +881,93 @@ $company_schema = [
                         <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4">Reset Search</a>
                     </div>
                 </div>
+            <?php endif; ?>
+
+            <?php endif; // End of has_search ?>
+
+            <?php if ($single_company && !$has_search && $related_companies['count'] > 0): ?>
+            <!-- Related Companies in Same Industry / Activity -->
+            <div class="mt-5 mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);">
+                            <i class="fas fa-layer-group text-primary mr-2"></i> Other Recent Incorporations <?php echo !empty($single_company['activity_code']) ? '(NIC '.$single_company['activity_code'].')' : 'in '.$single_company['category']; ?>
+                        </h4>
+                        <p class="text-muted small mb-0">Newly registered companies and entities in similar activity and sector.</p>
+                    </div>
+                    <a href="<?php echo $base_url; ?>company-incorporation?category=<?php echo urlencode($single_company['category']); ?><?php echo !empty($single_company['activity_code']) ? '&activity='.urlencode($single_company['activity_code']) : ''; ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                        Browse All &rarr;
+                    </a>
+                </div>
+                <div class="row">
+                    <?php foreach ($related_companies['data'] as $comp): ?>
+                        <?php
+                        $badgeClass = 'company-badge-indian';
+                        if ($comp['category'] === 'LLP') $badgeClass = 'company-badge-llp';
+                        if ($comp['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+
+                        $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
+                        $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
+                        $comp_href = company_url($comp);
+                        ?>
+                        <div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
+                            <div class="company-card-elevated p-4 w-100">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase" style="font-size: 11px;">
+                                            <?php echo htmlspecialchars($comp['category']); ?>
+                                        </span>
+                                        <span class="small text-muted font-weight-medium">
+                                            <i class="far fa-calendar-alt mr-1"></i>
+                                            <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
+                                        </span>
+                                    </div>
+                                    
+                                    <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px; font-family: var(--font-heading);">
+                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='#0f172a';">
+                                            <?php echo htmlspecialchars($comp['company_name']); ?>
+                                        </a>
+                                    </h5>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted font-weight-bold">CIN / ID:</small>
+                                        <code class="font-weight-bold text-primary" style="font-size: 12.5px;"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                    </div>
+
+                                    <div class="small text-muted mb-2">
+                                        <?php if (!empty($comp['class'])): ?>
+                                            <span class="mr-2"><i class="fas fa-tag text-primary mr-1"></i> <?php echo htmlspecialchars($comp['class']); ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($comp['activity_code'])): ?>
+                                            <div class="mt-1" title="<?php echo htmlspecialchars($act_title); ?>">
+                                                <i class="fas fa-industry text-warning mr-1"></i> 
+                                                <strong>NIC <?php echo htmlspecialchars($comp['activity_code']); ?>:</strong> 
+                                                <span class="text-dark"><?php echo htmlspecialchars(mb_strimwidth($act_title ?: 'Industrial Classification', 0, 28, '...')); ?></span>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="d-flex align-items-center" style="gap: 6px;">
+                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                            View Details &rarr;
+                                        </a>
+                                        <?php if ($is_admin): ?>
+                                            <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none;" title="Edit in Admin">
+                                                <i class="fas fa-edit mr-1"></i> Edit
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($comp['cin']); ?>'); alert('CIN copied: <?php echo htmlspecialchars($comp['cin']); ?>');" title="Copy CIN">
+                                        <i class="far fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
             <?php endif; ?>
 
         <?php else: ?>
@@ -1160,6 +1288,32 @@ $company_schema = [
             </div>
 
         <?php endif; ?>
+
+        <!-- Disclaimer: Regarding MCA (Ministry of Corporate Affairs) -->
+        <div class="p-4 rounded-xl border bg-white shadow-sm mt-5 mb-4" style="border-radius: var(--radius-lg); border-left: 4px solid var(--primary-color) !important;">
+            <div class="d-flex align-items-start">
+                <div class="p-2 rounded-circle bg-light text-primary mr-3 d-none d-sm-inline-flex" style="width: 44px; height: 44px; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-balance-scale fa-lg"></i>
+                </div>
+                <div>
+                    <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading);">
+                        <i class="fas fa-shield-alt text-primary mr-1 d-inline d-sm-none"></i> Disclaimer: Regarding Ministry of Corporate Affairs (MCA)
+                    </h5>
+                    <p class="text-muted small mb-2" style="line-height: 1.7;">
+                        <strong>Public Data Source:</strong> The corporate database, company incorporation records, Limited Liability Partnership (LLP) details, and Foreign Company listings available on <strong>Online Law</strong> are compiled from official reports publicly disseminated by the <strong>Ministry of Corporate Affairs (MCA), Government of India</strong> under public data standards.
+                    </p>
+                    <p class="text-muted small mb-2" style="line-height: 1.7;">
+                        <strong>Independent Platform &amp; Non-Affiliation:</strong> <strong>Online Law</strong> (an initiative of <em>OfferPlant Technologies Private Limited</em>) is an independent private legal and regulatory information portal. We are <u>not affiliated, associated, authorized, endorsed by, or in any way officially connected with</u> the Ministry of Corporate Affairs (MCA), the Registrar of Companies (ROC), the Insolvency and Bankruptcy Board of India (IBBI), or any statutory department of the Government of India. Official government logos, trademarks, and statutory terminology remain the property of their respective owners.
+                    </p>
+                    <p class="text-muted small mb-2" style="line-height: 1.7;">
+                        <strong>Verification &amp; Accuracy:</strong> While we endeavor to maintain up-to-date and accurate data, corporate statuses (including active, dormant, struck-off, amalgamated, or under liquidation), authorized/paid-up capital, registered office addresses, charges, and director appointments are subject to subsequent statutory filings and regulatory revisions on the MCA portal. We strongly advise users, investors, financial institutions, and legal professionals to independently verify real-time statutory filings and certified documents on the official government website: <a href="https://www.mca.gov.in" target="_blank" rel="noopener noreferrer" class="text-primary font-weight-bold">https://www.mca.gov.in</a>.
+                    </p>
+                    <p class="text-muted small mb-0" style="line-height: 1.7;">
+                        <strong>No Legal or Corporate Advice:</strong> The contents and search tools provided on this portal are for general informational and educational purposes only and do not constitute formal legal, corporate governance, financial, or tax advice. For specific matters, please consult a qualified legal professional, Company Secretary (CS), or Chartered Accountant (CA).
+                    </p>
+                </div>
+            </div>
+        </div>
 
 	</div>
 </div>
