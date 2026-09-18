@@ -436,29 +436,16 @@
         </nav>
 
         <div class="row align-items-center">
-            <div class="col-lg-8 col-md-10">
+            <div class="col-lg-10 col-xl-8">
                 <div class="contact-badge-pill mb-3" style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(96, 165, 250, 0.45); color: #93c5fd;">
                     <i class="fas fa-headset" style="color: #38bdf8;"></i> Helpdesk &amp; Inquiries
                 </div>
                 <h1 class="font-weight-bold mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; letter-spacing: -0.02em;">
                     <span style="color: #38bdf8;">Let's Connect &amp;</span> <span class="text-white">Assist You</span>
                 </h1>
-                <p class="lead mb-0" style="font-size: 16.5px; max-width: 640px; line-height: 1.7; color: #cbd5e1;">
+                <p class="lead mb-0" style="font-size: 16.5px; max-width: 680px; line-height: 1.7; color: #cbd5e1;">
                     Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #38bdf8; font-weight: 600;">priority 3-day resolution</span>.
                 </p>
-            </div>
-            <div class="col-lg-4 text-lg-right mt-4 mt-lg-0 d-none d-lg-block">
-                <div class="d-inline-flex align-items-center p-3 rounded-xl shadow-lg text-left" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 16px;">
-                    <div class="mr-3">
-                        <div class="font-weight-bold" style="font-size: 14.5px; line-height: 1.5;">
-                            <a href="tel:+919431426600" class="text-white text-decoration-none d-block">+91 9431 42 6600</a>
-                            <a href="tel:+919430552117" class="text-white text-decoration-none d-block mt-1">+91 9430 55 2117</a>
-                        </div>
-                    </div>
-                    <div class="p-2 rounded-circle shadow-sm" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #ffffff; font-size: 15px;">
-                        <i class="fas fa-phone-alt"></i>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
