@@ -430,30 +430,32 @@
     <div class="container position-relative" style="z-index: 2;">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent p-0 mb-3" style="font-size: 13.5px;">
-                <li class="breadcrumb-item"><a href="<?php echo $base_url; ?>" class="text-white-50 text-decoration-none"><i class="fas fa-home mr-1"></i> Home</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">Contact Us</li>
+                <li class="breadcrumb-item"><a href="<?php echo $base_url; ?>" class="text-white-50 text-decoration-none"><i class="fas fa-home mr-1" style="color: #38bdf8;"></i> Home</a></li>
+                <li class="breadcrumb-item active" style="color: #93c5fd;" aria-current="page">Contact Us</li>
             </ol>
         </nav>
 
         <div class="row align-items-center">
             <div class="col-lg-8 col-md-10">
-                <div class="contact-badge-pill mb-3">
-                    <i class="fas fa-headset text-primary"></i> Helpdesk &amp; Inquiries
+                <div class="contact-badge-pill mb-3" style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(96, 165, 250, 0.45); color: #93c5fd;">
+                    <i class="fas fa-headset" style="color: #38bdf8;"></i> Helpdesk &amp; Inquiries
                 </div>
                 <h1 class="font-weight-bold text-white mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; letter-spacing: -0.02em;">
-                    Let's Connect &amp; <span class="hero-gradient-text">Assist You</span>
+                    Let's Connect &amp; <span class="hero-gradient-text" style="background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 45%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Assist You</span>
                 </h1>
-                <p class="text-light lead mb-0" style="font-size: 17px; max-width: 640px; line-height: 1.7; color: #cbd5e1;">
-                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for priority 3-day resolution.
+                <p class="lead mb-0" style="font-size: 16.5px; max-width: 640px; line-height: 1.7; color: #cbd5e1;">
+                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #38bdf8; font-weight: 600;">priority 3-day resolution</span>.
                 </p>
             </div>
             <div class="col-lg-4 text-lg-right mt-4 mt-lg-0 d-none d-lg-block">
-                <div class="d-inline-flex align-items-center p-3 rounded-xl" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);">
-                    <div class="mr-3 text-left">
-                        <div class="small text-white-50">Support Hours</div>
-                        <div class="text-white font-weight-bold">10:00 AM &ndash; 4:00 PM &bull; Mon to Fri</div>
+                <div class="d-inline-flex align-items-center p-3 rounded-xl shadow-lg text-left" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(245, 158, 11, 0.35); backdrop-filter: blur(10px); border-radius: 16px;">
+                    <div class="mr-3">
+                        <div class="small font-weight-bold text-uppercase" style="color: #94a3b8; font-size: 10.5px; letter-spacing: 0.8px;">Calling Desk Hours</div>
+                        <div class="font-weight-bold" style="color: #fbbf24; font-size: 14px;">
+                            10:00 AM &ndash; 4:00 PM <span class="text-white-50 small">&bull; Mon&ndash;Fri</span>
+                        </div>
                     </div>
-                    <div class="p-2 rounded-circle bg-warning text-dark font-weight-bold" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <div class="p-2 rounded-circle shadow-sm" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-size: 15px;">
                         <i class="fas fa-clock"></i>
                     </div>
                 </div>
