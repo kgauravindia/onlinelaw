@@ -448,15 +448,16 @@
                 </p>
             </div>
             <div class="col-lg-4 text-lg-right mt-4 mt-lg-0 d-none d-lg-block">
-                <div class="d-inline-flex align-items-center p-3 rounded-xl shadow-lg text-left" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(245, 158, 11, 0.35); backdrop-filter: blur(10px); border-radius: 16px;">
+                <div class="d-inline-flex align-items-center p-3 rounded-xl shadow-lg text-left" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 16px;">
                     <div class="mr-3">
-                        <div class="small font-weight-bold text-uppercase" style="color: #94a3b8; font-size: 10.5px; letter-spacing: 0.8px;">Calling Desk Hours</div>
-                        <div class="font-weight-bold" style="color: #fbbf24; font-size: 14px;">
-                            10:00 AM &ndash; 4:00 PM <span class="text-white-50 small">&bull; Mon&ndash;Fri</span>
+                        <div class="small font-weight-bold text-uppercase" style="color: #94a3b8; font-size: 10.5px; letter-spacing: 0.8px;">Helpline Numbers</div>
+                        <div class="font-weight-bold" style="font-size: 13.5px; line-height: 1.4;">
+                            <a href="tel:+919431426600" class="text-white text-decoration-none d-block">+91 9431 42 6600</a>
+                            <a href="tel:+919430552117" class="text-white-50 text-decoration-none d-block small mt-0.5">+91 9430 55 2117</a>
                         </div>
                     </div>
-                    <div class="p-2 rounded-circle shadow-sm" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-size: 15px;">
-                        <i class="fas fa-clock"></i>
+                    <div class="p-2 rounded-circle shadow-sm" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #ffffff; font-size: 15px;">
+                        <i class="fas fa-phone-alt"></i>
                     </div>
                 </div>
             </div>
