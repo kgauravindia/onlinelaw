@@ -31,8 +31,17 @@
         $mobile = mysqli_real_escape_string($con, trim($_POST['mobile'] ?? ''));
         $area = mysqli_real_escape_string($con, trim($_POST['area'] ?? 'General Inquiry'));
         $message = mysqli_real_escape_string($con, trim($_POST['message'] ?? ''));
-        
-        if (!empty($name) && !empty($mobile) && !empty($message)) {
+        $user_captcha = isset($_POST['captcha_answer']) ? intval(trim($_POST['captcha_answer'])) : null;
+        $posted_token = trim($_POST['captcha_token'] ?? '');
+        $expected_token = ($user_captcha !== null) ? hash_hmac('sha256', (string)$user_captcha, 'olaw_secret_captcha_key') : '';
+        $session_captcha = isset($_SESSION['olaw_contact_captcha']) ? intval($_SESSION['olaw_contact_captcha']) : null;
+
+        $is_captcha_valid = ($posted_token !== '' && $posted_token === $expected_token) || ($session_captcha !== null && $user_captcha === $session_captcha);
+
+        if (!$is_captcha_valid) {
+            $msg_status = "error";
+            $msg_text = "Security check failed: Incorrect captcha answer. Please calculate the addition problem.";
+        } elseif (!empty($name) && !empty($mobile) && !empty($message)) {
             $created_by_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
             $sql = "INSERT INTO contact (name, email, mobile, area, message, status, created_by, updated_by) VALUES ('$name', '$email', '$mobile', '$area', '$message', 'NEW', $created_by_id, $created_by_id)";
             try {
@@ -683,6 +692,13 @@
                                 . "Details / Grounds: \n"
                                 . "Requester's Designation (Director / Authorized Agent): \n";
                         }
+
+                        // Generate Simple Math Addition Captcha
+                        $captcha_n1 = rand(3, 9);
+                        $captcha_n2 = rand(1, 9);
+                        $captcha_sum = $captcha_n1 + $captcha_n2;
+                        $captcha_token = hash_hmac('sha256', (string)$captcha_sum, 'olaw_secret_captcha_key');
+                        $_SESSION['olaw_contact_captcha'] = $captcha_sum;
                     ?>
 
                     <form id="contact-form" action="<?php echo $base_url; ?>contact<?php echo $is_removal_request ? '?type=removal&cin='.urlencode($req_cin).'&name='.urlencode($req_name) : ''; ?>#contact-form-section" method="post">
@@ -742,6 +758,20 @@
                                     <label class="form-label-modern">Your Message <span class="text-danger ml-1">*</span></label>
                                     <textarea class="form-control-modern" name="message" rows="5" placeholder="Please describe your inquiry, complaint, or grounds for deletion in detail..." required><?php echo htmlspecialchars($default_msg_content); ?></textarea>
                                     <i class="fas fa-comment-alt form-icon-wrap"></i>
+                                </div>
+                            </div>
+
+                            <!-- Simple Math Addition Captcha -->
+                            <div class="col-md-7 col-lg-6 mb-3">
+                                <div class="form-group-modern mb-0">
+                                    <label class="form-label-modern">Security Verification <span class="text-danger ml-1">*</span></label>
+                                    <div class="d-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center px-3 py-2 bg-light border text-dark font-weight-bold mr-2" style="border-radius: 10px; font-size: 15.5px; min-width: 120px; border-color: #cbd5e1 !important; height: 48px;">
+                                            <i class="fas fa-calculator text-primary mr-2"></i> <?php echo $captcha_n1; ?> + <?php echo $captcha_n2; ?> =
+                                        </span>
+                                        <input type="number" class="form-control-modern" name="captcha_answer" placeholder="Answer?" required style="height: 48px; font-weight: 600; font-size: 15px;" autocomplete="off">
+                                        <input type="hidden" name="captcha_token" value="<?php echo $captcha_token; ?>">
+                                    </div>
                                 </div>
                             </div>
 
