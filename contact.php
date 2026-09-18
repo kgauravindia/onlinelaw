@@ -463,8 +463,8 @@
                 <div class="contact-badge-pill mb-3" style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(96, 165, 250, 0.45); color: #93c5fd;">
                     <i class="fas fa-headset" style="color: #38bdf8;"></i> Helpdesk &amp; Inquiries
                 </div>
-                <h1 class="font-weight-bold text-white mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; letter-spacing: -0.02em;">
-                    Let's Connect &amp; Assist You
+                <h1 class="font-weight-bold mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; letter-spacing: -0.02em;">
+                    <span class="hero-gradient-text">Let's Connect &amp; Assist You</span>
                 </h1>
                 <p class="lead mb-0" style="font-size: 16.5px; max-width: 680px; line-height: 1.7; color: #cbd5e1;">
                     Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #38bdf8; font-weight: 600;">priority 3-day resolution</span>.
