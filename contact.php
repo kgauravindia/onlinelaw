@@ -850,7 +850,7 @@
                         <i class="fas fa-question-circle text-primary mr-2"></i> How fast will I receive a reply?
                     </h6>
                     <p class="text-muted small mb-0" style="line-height: 1.6;">
-                        Our dedicated helpdesk reviews submissions throughout the business week. You will generally receive an email or telephone response within 12 to 24 business hours.
+                        Our dedicated helpdesk reviews submissions throughout the business week. You will generally receive an email or telephone response within 3 to 7 business days.
                     </p>
                 </div>
             </div>
