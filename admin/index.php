@@ -290,6 +290,98 @@ if (isset($monthly_trends['data']) && count($monthly_trends['data']) > 0) {
     </div>
 </div>
 
+<!-- Recent Inquiries & Data Complaints Desk Widget -->
+<?php
+$recent_inquiries = direct_sql("SELECT * FROM contact ORDER BY id DESC LIMIT 5")['data'] ?? [];
+?>
+<div class="card border-0 shadow-sm mb-4" style="border-radius: var(--radius-md);">
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="font-weight-bold mb-0 text-dark" style="font-family: 'Outfit', sans-serif;">
+                <i class="fas fa-envelope-open-text text-primary mr-2"></i> Recent Contact Inquiries &amp; Complaints
+            </h5>
+            <span class="text-muted small">Latest inquiries and data removal requests submitted through the portal</span>
+        </div>
+        <a href="manage_contact.php" class="btn btn-sm btn-primary px-3 font-weight-bold shadow-sm" style="border-radius: 20px;">
+            View All Desk &rarr;
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <?php if (!empty($recent_inquiries)): ?>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="py-3 px-3"># Ticket</th>
+                            <th class="py-3 px-3">Sender Details</th>
+                            <th class="py-3 px-3">Area / Subject</th>
+                            <th class="py-3 px-3">Message Snippet</th>
+                            <th class="py-3 px-3 text-center">Status</th>
+                            <th class="py-3 px-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($recent_inquiries as $inq): 
+                            $is_comp = (stripos($inq['area'] ?? '', 'Complain') !== false || stripos($inq['area'] ?? '', 'Delete') !== false || stripos($inq['message'] ?? '', 'CIN') !== false || stripos($inq['message'] ?? '', 'DELIST') !== false);
+                            $st = strtoupper($inq['status'] ?? 'NEW');
+                        ?>
+                        <tr>
+                            <td class="px-3 font-weight-bold text-muted" style="font-size: 0.85rem;">
+                                #<?php echo $inq['id']; ?>
+                            </td>
+                            <td class="px-3">
+                                <strong class="text-dark d-block" style="font-size: 0.9rem;"><?php echo htmlspecialchars($inq['name'] ?? 'Anonymous'); ?></strong>
+                                <div class="small text-muted">
+                                    <?php if (!empty($inq['mobile'])): ?>
+                                        <a href="tel:<?php echo htmlspecialchars($inq['mobile']); ?>" class="text-decoration-none text-muted mr-2"><i class="fas fa-phone-alt text-primary mr-1"></i><?php echo htmlspecialchars($inq['mobile']); ?></a>
+                                    <?php endif; ?>
+                                    <?php if (!empty($inq['email'])): ?>
+                                        <a href="mailto:<?php echo htmlspecialchars($inq['email']); ?>" class="text-decoration-none text-muted"><i class="fas fa-envelope text-info mr-1"></i><?php echo htmlspecialchars($inq['email']); ?></a>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                            <td class="px-3">
+                                <?php if ($is_comp): ?>
+                                    <span class="badge bg-danger text-white px-2.5 py-1" style="border-radius: 6px; font-size: 0.78rem;">
+                                        <i class="fas fa-shield-alt mr-1"></i> Data Removal
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-light text-dark border px-2.5 py-1" style="border-radius: 6px; font-size: 0.78rem;">
+                                        <?php echo htmlspecialchars($inq['area'] ?? 'General Inquiry'); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-3" style="max-width: 320px;">
+                                <p class="text-muted small mb-0 text-truncate" title="<?php echo htmlspecialchars($inq['message'] ?? ''); ?>">
+                                    <?php echo htmlspecialchars($inq['message'] ?? ''); ?>
+                                </p>
+                            </td>
+                            <td class="px-3 text-center">
+                                <?php if ($st === 'RESOLVED'): ?>
+                                    <span class="badge bg-success text-white px-2.5 py-1" style="border-radius: 20px; font-size: 0.75rem;">Resolved</span>
+                                <?php else: ?>
+                                    <span class="badge bg-warning text-dark px-2.5 py-1 font-weight-bold" style="border-radius: 20px; font-size: 0.75rem;">NEW</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-3 text-right">
+                                <a href="manage_contact.php?q=<?php echo urlencode($inq['name'] ?? ''); ?>" class="btn btn-sm btn-outline-primary px-2.5 py-1" title="View in Manage Desk">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="p-4 text-center text-muted small">
+                <i class="fas fa-inbox fa-2x mb-2 text-muted-light"></i>
+                <div>No inquiries received yet. Submissions from the public contact page will appear here.</div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Monthly Trend Bar Chart

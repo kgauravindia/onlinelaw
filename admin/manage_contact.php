@@ -8,6 +8,22 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
+// Auto-create contact table if not available
+mysqli_query($con, "CREATE TABLE IF NOT EXISTS `contact` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `mobile` varchar(20) NOT NULL,
+  `area` varchar(100) DEFAULT 'General Inquiry',
+  `message` text NOT NULL,
+  `status` varchar(50) DEFAULT 'NEW',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_by` int DEFAULT 0,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_by` int DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
 // Handle Status Update
 if (isset($_GET['update_status']) && isset($_GET['id'])) {
     $c_id = intval($_GET['id']);

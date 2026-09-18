@@ -79,8 +79,15 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
             </a>
 
             <div class="sidebar-nav-section mt-3">Helpdesk &amp; Inquiries</div>
-            <a href="manage_contact.php" class="nav-link-custom <?php echo ($current_page == 'manage_contact.php') ? 'active' : ''; ?>" title="User Inquiries & Delisting Complaints">
+            <?php
+                $unread_contact_res = direct_sql("SELECT COUNT(*) as total FROM contact WHERE status = 'NEW' OR status = '' OR status IS NULL");
+                $unread_contact_count = isset($unread_contact_res['data'][0]['total']) ? (int)$unread_contact_res['data'][0]['total'] : 0;
+            ?>
+            <a href="manage_contact.php" class="nav-link-custom <?php echo ($current_page == 'manage_contact.php') ? 'active' : ''; ?>" title="User Inquiries &amp; Delisting Complaints">
                 <i class="fas fa-envelope-open-text"></i> <span>Inquiries &amp; Complaints</span>
+                <?php if ($unread_contact_count > 0): ?>
+                <span class="badge bg-danger text-white ml-auto" style="font-size: 10px; border-radius: 10px; padding: 2px 7px;"><?php echo $unread_contact_count; ?></span>
+                <?php endif; ?>
             </a>
 
             <div class="sidebar-nav-section mt-3">Administration &amp; SEO</div>
