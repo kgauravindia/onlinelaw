@@ -78,6 +78,11 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
                 <i class="fas fa-database"></i> <span>Master Data Hub</span>
             </a>
 
+            <div class="sidebar-nav-section mt-3">Helpdesk &amp; Inquiries</div>
+            <a href="manage_contact.php" class="nav-link-custom <?php echo ($current_page == 'manage_contact.php') ? 'active' : ''; ?>" title="User Inquiries & Delisting Complaints">
+                <i class="fas fa-envelope-open-text"></i> <span>Inquiries &amp; Complaints</span>
+            </a>
+
             <div class="sidebar-nav-section mt-3">Administration &amp; SEO</div>
             <a href="manage_sitemap.php" class="nav-link-custom <?php echo ($current_page == 'manage_sitemap.php') ? 'active' : ''; ?>" title="Sitemap & SEO Engine">
                 <i class="fas fa-sitemap"></i> <span>Sitemap Manager</span>

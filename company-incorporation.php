@@ -504,6 +504,9 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
+                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold" style="border-radius: var(--radius-md);" title="File a complaint to request deletion or removal of this company data">
+                            <i class="fas fa-flag mr-1"></i> Complain (Delete Data)
+                        </a>
                         <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: var(--radius-md);">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
@@ -629,9 +632,15 @@ $company_schema = [
                     <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: var(--radius-md);">
                         <div class="d-flex align-items-start gap-2">
                             <i class="fas fa-shield-alt text-secondary mt-1 mr-2" style="font-size: 1.1rem;"></i>
-                            <div class="small text-muted" style="line-height: 1.6;">
+                            <div class="small text-muted" style="line-height: 1.6; width: 100%;">
                                 <strong class="text-dark">Disclaimer: Regarding MCA (Ministry of Corporate Affairs)</strong> &mdash; 
                                 The corporate data shown above is compiled from periodic incorporation reports published by the Ministry of Corporate Affairs (MCA), Government of India. Online Law is an independent informational directory and is not affiliated, associated, or endorsed by the MCA, Registrar of Companies (ROC), or any government body. Company status, capital, and director filings are subject to subsequent updates. For official compliance and certified records, please verify directly on <a href="https://www.mca.gov.in" target="_blank" rel="noopener noreferrer" class="text-primary font-weight-bold">www.mca.gov.in</a>.
+                                <div class="mt-2.5 pt-2 border-top d-flex flex-wrap align-items-center justify-content-between gap-2" style="border-color: #e2e8f0 !important;">
+                                    <span class="text-dark">Are you an authorized representative of <strong><?php echo htmlspecialchars($single_company['company_name']); ?></strong> wishing to request record deletion or report an issue?</span>
+                                    <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-sm btn-outline-danger font-weight-bold px-3 py-1 text-nowrap" style="border-radius: 20px;">
+                                        <i class="fas fa-flag mr-1"></i> Complain (Delete Data)
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
