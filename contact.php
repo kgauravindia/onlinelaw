@@ -444,16 +444,16 @@
                     Let's Connect &amp; <span class="hero-gradient-text">Assist You</span>
                 </h1>
                 <p class="text-light lead mb-0" style="font-size: 17px; max-width: 640px; line-height: 1.7; color: #cbd5e1;">
-                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, or Bare Acts? Reach out to our team anytime.
+                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for priority 3-day resolution.
                 </p>
             </div>
             <div class="col-lg-4 text-lg-right mt-4 mt-lg-0 d-none d-lg-block">
                 <div class="d-inline-flex align-items-center p-3 rounded-xl" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px);">
                     <div class="mr-3 text-left">
-                        <div class="small text-white-50">Support Availability</div>
-                        <div class="text-white font-weight-bold">Mon &ndash; Sat &bull; 9:30 AM &ndash; 6:30 PM</div>
+                        <div class="small text-white-50">Support Hours</div>
+                        <div class="text-white font-weight-bold">10:00 AM &ndash; 4:00 PM &bull; Mon to Fri</div>
                     </div>
-                    <div class="p-2 rounded-circle bg-primary text-white" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <div class="p-2 rounded-circle bg-warning text-dark font-weight-bold" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-clock"></i>
                     </div>
                 </div>
