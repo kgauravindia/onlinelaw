@@ -470,7 +470,10 @@
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2" style="gap: 10px;">
                 <span class="badge badge-success px-3 py-2 font-weight-bold" style="font-size: 12px; border-radius: 20px;">
-                    <i class="fas fa-bolt mr-1"></i> Online Form &amp; Email: 3 Days
+                    <i class="fas fa-bolt mr-1"></i> Online Form: 3 Days
+                </span>
+                <span class="badge badge-info text-white px-3 py-2 font-weight-bold" style="font-size: 12px; border-radius: 20px;">
+                    <i class="fas fa-envelope mr-1"></i> Email: 7 Working Days
                 </span>
                 <span class="badge badge-warning text-dark px-3 py-2 font-weight-bold" style="font-size: 12px; border-radius: 20px;">
                     <i class="fas fa-phone-volume mr-1"></i> Call / WhatsApp: 10 Working Days
@@ -523,8 +526,8 @@
                         <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 18px;">
                             Email Support
                         </h5>
-                        <div class="badge badge-success px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
-                            <i class="fas fa-clock mr-1"></i> 3-Day Turnaround
+                        <div class="badge badge-info text-white px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
+                            <i class="fas fa-clock mr-1"></i> 7 Working Days
                         </div>
                         <p class="text-muted small mb-2" style="line-height: 1.6;">
                             Send official letters, API partnership proposals, or supporting documentation directly to our support inbox.
@@ -923,7 +926,8 @@
                             <div class="small" style="line-height: 1.6;">
                                 <strong class="d-block mb-1">Turnaround Time &amp; Resolution SLA:</strong>
                                 <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">10 working days</span> (Subject to manual phone queue) +91 9431 42 6600, +91 9430 55 2117.</div>
-                                <div>&bull; <strong>Email / Online Contact Form:</strong> <span class="text-success font-weight-bold">3 days only</span> (Fast automated ticket creation &amp; priority legal desk).</div>
+                                <div>&bull; <strong>Email Support:</strong> <span class="text-warning font-weight-bold">7 working days</span> (Standard mailbox queue).</div>
+                                <div>&bull; <strong>Online Contact Form:</strong> <span class="text-success font-weight-bold">3 days only</span> (Fast automated ticket creation &amp; priority legal desk).</div>
                                 <div class="mt-2 text-dark font-weight-semibold">
                                     <i class="fas fa-arrow-circle-up text-primary mr-1"></i> To save time and get your request processed faster, please fill the online form above.
                                 </div>
@@ -936,7 +940,7 @@
                             <i class="fas fa-bolt mr-1"></i> Fill Quick Online Form (3 Days) &uarr;
                         </a>
                         <a href="mailto:<?php echo $inst_email; ?>" class="btn btn-outline-secondary font-weight-bold px-3 py-2" style="border-radius: 20px;">
-                            <i class="fas fa-envelope mr-1"></i> Email Support (3 Days)
+                            <i class="fas fa-envelope mr-1"></i> Email Support (7 Days)
                         </a>
                     </div>
                 </div>
