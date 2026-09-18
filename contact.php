@@ -648,16 +648,16 @@
                     <?php endif; ?>
 
                     <?php
-                        $selected_area = isset($_POST['area']) ? $_POST['area'] : ($is_removal_request ? 'Complain (Delete Company Data)' : '');
+                        $selected_area = isset($_POST['area']) ? $_POST['area'] : ($is_removal_request ? 'Record Correction' : '');
                         
                         $default_msg_content = '';
                         if (isset($_POST['message'])) {
                             $default_msg_content = $_POST['message'];
                         } elseif ($is_removal_request) {
-                            $default_msg_content = "REQUEST: DELETE / DELIST COMPANY RECORD\n"
+                            $default_msg_content = "REQUEST: RECORD CORRECTION / REMOVAL\n"
                                 . ($req_name ? "Company Name: " . $req_name . "\n" : "")
                                 . ($req_cin ? "CIN / LLPIN: " . $req_cin . "\n" : "")
-                                . "Grounds for Removal: \n"
+                                . "Details / Grounds: \n"
                                 . "Requester's Designation (Director / Authorized Agent): \n";
                         }
                     ?>
@@ -702,9 +702,6 @@
                                         <option value="Bank IFSC & Branches" <?php echo ($selected_area === 'Bank IFSC & Branches') ? 'selected' : ''; ?>>Bank IFSC &amp; Branch Verification</option>
                                         <option value="Legal Acts & Law" <?php echo ($selected_area === 'Legal Acts & Law') ? 'selected' : ''; ?>>Bare Acts &amp; Legal Tools</option>
                                         <option value="Company Incorporation" <?php echo ($selected_area === 'Company Incorporation') ? 'selected' : ''; ?>>Company Incorporation &amp; CIN</option>
-                                        <option value="Complain (Delete Company Data)" <?php echo ($selected_area === 'Complain (Delete Company Data)') ? 'selected' : ''; ?> style="color: #dc2626; font-weight: bold;">
-                                            🚨 Complain (Delete Data of Company)
-                                        </option>
                                         <option value="General Inquiry" <?php echo ($selected_area === 'General Inquiry') ? 'selected' : ''; ?>>General Legal Inquiry</option>
                                         <option value="NIC 2025 Codes" <?php echo ($selected_area === 'NIC 2025 Codes') ? 'selected' : ''; ?>>NIC 2025 Activity Classification</option>
                                         <option value="PIN Code Directory" <?php echo ($selected_area === 'PIN Code Directory') ? 'selected' : ''; ?>>PIN Code &amp; Postal Directory</option>
