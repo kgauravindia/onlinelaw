@@ -901,8 +901,7 @@
         
         <div class="p-4 p-md-5 rounded-xl border shadow-sm" style="border-radius: var(--radius-xl); background: #fdfefe; border-color: #e2e8f0 !important;">
             <div class="row align-items-center">
-                
-                <div class="col-lg-7 mb-4 mb-lg-0">
+                <div class="col-12">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="badge badge-warning text-dark font-weight-bold px-3 py-1 rounded-pill" style="font-size: 11px;">
                             <i class="fas fa-phone-volume mr-1"></i> Telephonic &amp; WhatsApp Support Desk
@@ -941,39 +940,8 @@
                         </a>
                     </div>
                 </div>
-
-                <div class="col-lg-5">
-                    <div class="p-4 rounded-xl shadow-sm border" style="background: #f8fafc; border-radius: var(--radius-lg);">
-                        
-                        <!-- Number 1 -->
-                        <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border mb-2.5">
-                            <div>
-                                <a href="tel:+919431426600" class="text-dark font-weight-bold" style="font-size: 17px; text-decoration: none;">
-                                    +91 9431 42 6600
-                                </a>
-                            </div>
-                            <a href="tel:+919431426600" class="btn btn-sm btn-light border rounded-circle text-primary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" title="Call +91 9431 42 6600">
-                                <i class="fas fa-phone"></i>
-                            </a>
-                        </div>
-
-                        <!-- Number 2 -->
-                        <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border">
-                            <div>
-                                <a href="tel:+919430552117" class="text-dark font-weight-bold" style="font-size: 17px; text-decoration: none;">
-                                    +91 9430 55 2117
-                                </a>
-                            </div>
-                            <a href="tel:+919430552117" class="btn btn-sm btn-light border rounded-circle text-primary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" title="Call +91 9430 55 2117">
-                                <i class="fas fa-phone"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
-
     </div>
 </section>
 
