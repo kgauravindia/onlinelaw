@@ -34,21 +34,24 @@
 <meta name="twitter:description" content="<?php echo $meta_desc; ?>">
 
 <!-- Structured Data for SEO -->
+<?php
+$acts_schema = [
+  "@context" => "https://schema.org",
+  "@type" => "LegalAct",
+  "name" => !empty($q) ? $q : 'Indian Central Acts Directory',
+  "description" => $meta_desc,
+  "url" => $base_url . 'acts' . (!empty($q) ? '/' . urlencode($q) : ''),
+  "legislationType" => "Central Act",
+  "jurisdiction" => "India",
+  "publisher" => [
+    "@type" => "GovernmentOrganization",
+    "name" => "Ministry of Law & Justice, Legislative Department",
+    "url" => "https://www.legislative.gov.in/"
+  ]
+];
+?>
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "LegalAct",
-  "name": "<?php echo !empty($q) ? htmlentities($q) : 'Indian Central Acts Directory'; ?>",
-  "description": "<?php echo $meta_desc; ?>",
-  "url": "<?php echo $base_url . 'acts'; ?>",
-  "legislationType": "Central Act",
-  "jurisdiction": "India",
-  "publisher": {
-    "@type": "GovernmentOrganization",
-    "name": "Ministry of Law & Justice, Legislative Department",
-    "url": "https://www.legislative.gov.in/"
-  }
-}
+<?php echo json_encode($acts_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); ?>
 </script>
 
 <style>

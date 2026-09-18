@@ -1,3 +1,19 @@
+<?php 
+    require_once('includes/function.php');
+
+    // Automatic Smart Routing: Check if 404 request matches a company name/CIN slug
+    $req_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $req_path = parse_url($req_uri, PHP_URL_PATH);
+    $req_slug = basename(rtrim($req_path, '/'));
+
+    if (!empty($req_slug)) {
+        $matched_comp = resolve_company_incorporation($req_slug);
+        if ($matched_comp) {
+            header("Location: " . company_url($matched_comp), true, 301);
+            exit;
+        }
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +25,6 @@
 <title>404 - Page Not Found | Online Law</title>
 
 <?php 
-    require_once ('includes/function.php');
     require_once ('includes/header.php'); 
 ?>
 

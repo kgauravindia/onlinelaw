@@ -13,21 +13,21 @@
     $limit = 30;
     $offset = ($page - 1) * $limit;
 
-    $has_search = (!empty($q_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param) || !empty($cin_param));
-
     $single_company = null;
+    $canonical_url = $base_url . "company-incorporation";
     $page_title = "New Company Incorporations in India | Indian Companies, LLPs & Foreign Companies - Online Law";
     $meta_desc = "Search newly registered companies and LLPs in India. Browse daily and monthly company incorporations (Indian Companies, LLP, Foreign Companies) from official MCA records.";
 
     if (!empty($cin_param)) {
-        $safe_cin = mysqli_real_escape_string($con, $cin_param);
-        $res_single = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe_cin' LIMIT 1");
-        if ($res_single['count'] > 0) {
-            $single_company = $res_single['data'][0];
+        $single_company = resolve_company_incorporation($cin_param);
+        if ($single_company) {
+            $canonical_url = company_url($single_company);
             $page_title = htmlspecialchars($single_company['company_name']) . " (" . $single_company['cin'] . ") - Registration & Incorporation Details";
             $meta_desc = "Registration details for " . $single_company['company_name'] . " (" . $single_company['cin'] . "). Category: " . $single_company['category'] . ", Class: " . $single_company['class'] . ", Type: " . $single_company['company_type'] . ", Registered on " . ($single_company['registration_date'] ? date('d F Y', strtotime($single_company['registration_date'])) : 'N/A') . ".";
         }
     }
+
+    $has_search = (!empty($q_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param) || !empty($cin_param) || $single_company !== null);
 
     $companies_list = ['count' => 0, 'data' => []];
     $total_companies = 0;
@@ -179,19 +179,22 @@
 <meta name="keywords" content="Company Incorporation India, New Company Registration, MCA Registered Companies, Search CIN, LLP Registration, Foreign Company FCIN, Daily Registered Companies">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
+<link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
 
 <!-- Schema.org Structured Data -->
-<?php if ($single_company): ?>
+<?php if ($single_company): 
+$company_schema = [
+  "@context" => "https://schema.org",
+  "@type" => "Organization",
+  "name" => $single_company['company_name'],
+  "identifier" => $single_company['cin'],
+  "foundingDate" => $single_company['registration_date'],
+  "additionalType" => $single_company['company_type'],
+  "description" => "Incorporated under MCA Ministry of Corporate Affairs, India. Class: " . $single_company['class']
+];
+?>
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "<?php echo addslashes($single_company['company_name']); ?>",
-  "identifier": "<?php echo addslashes($single_company['cin']); ?>",
-  "foundingDate": "<?php echo $single_company['registration_date']; ?>",
-  "additionalType": "<?php echo addslashes($single_company['company_type']); ?>",
-  "description": "Incorporated under MCA Ministry of Corporate Affairs, India. Class: <?php echo addslashes($single_company['class']); ?>"
-}
+<?php echo json_encode($company_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); ?>
 </script>
 <?php endif; ?>
 
@@ -325,7 +328,7 @@
 
         <!-- Search Form Console -->
         <div class="bg-white rounded-xl shadow-md border p-4 mb-4">
-            <form action="company-incorporation.php" method="GET">
+            <form action="<?php echo $base_url; ?>company-incorporation" method="GET">
                 <div class="row align-items-end">
                     <div class="col-lg-4 col-md-12 mb-3 mb-lg-0">
                         <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-search mr-1 text-primary"></i> Company Name, CIN, or Keyword</label>
@@ -395,15 +398,15 @@
             <!-- Quick Filter Tags -->
             <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
                 <span class="small text-muted font-weight-bold mr-1"><i class="fas fa-bolt text-warning mr-1"></i> Quick Industry Lookups:</span>
-                <a href="company-incorporation.php?activity=62" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Software &amp; IT (62)</a>
-                <a href="company-incorporation.php?activity=47" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Retail &amp; E-Com (47)</a>
-                <a href="company-incorporation.php?activity=86" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Healthcare (86)</a>
-                <a href="company-incorporation.php?activity=68" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Real Estate (68)</a>
-                <a href="company-incorporation.php?activity=35" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Solar &amp; Power (35)</a>
-                <a href="company-incorporation.php?activity=85" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Education (85)</a>
-                <a href="company-incorporation.php?category=LLP" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">LLPs</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=62" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Software &amp; IT (62)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=47" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Retail &amp; E-Com (47)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=86" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Healthcare (86)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=68" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Real Estate (68)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=35" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Solar &amp; Power (35)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=85" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Education (85)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?category=LLP" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">LLPs</a>
                 <?php if ($has_search): ?>
-                <a href="company-incorporation.php" class="badge badge-danger px-2.5 py-1 text-white font-weight-semibold ml-auto">
+                <a href="<?php echo $base_url; ?>company-incorporation" class="badge badge-danger px-2.5 py-1 text-white font-weight-semibold ml-auto">
                     <i class="fas fa-times mr-1"></i> Clear Search
                 </a>
                 <?php endif; ?>
@@ -449,7 +452,7 @@
                         <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
-                        <a href="company-incorporation.php" class="btn btn-secondary font-weight-bold">
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold">
                             <i class="fas fa-arrow-left mr-1"></i> Back to All
                         </a>
                     </div>
@@ -572,22 +575,22 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
                 <ul class="nav nav-pills nav-pills-modern m-0 p-0">
                     <li class="nav-item">
-                        <a class="nav-link <?php echo empty($category_param) ? 'active' : ''; ?>" href="company-incorporation.php?q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                        <a class="nav-link <?php echo empty($category_param) ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
                             <i class="fas fa-th-large"></i> All Search Results <span class="badge badge-light ml-1"><?php echo number_format($total_companies); ?></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($category_param === 'INDIAN') ? 'active' : ''; ?>" href="company-incorporation.php?category=INDIAN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                        <a class="nav-link <?php echo ($category_param === 'INDIAN') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?category=INDIAN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
                             <i class="fas fa-building"></i> Indian Companies
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($category_param === 'LLP') ? 'active' : ''; ?>" href="company-incorporation.php?category=LLP&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                        <a class="nav-link <?php echo ($category_param === 'LLP') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?category=LLP&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
                             <i class="fas fa-handshake"></i> LLPs
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($category_param === 'FOREIGN') ? 'active' : ''; ?>" href="company-incorporation.php?category=FOREIGN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                        <a class="nav-link <?php echo ($category_param === 'FOREIGN') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?category=FOREIGN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
                             <i class="fas fa-globe"></i> Foreign Companies
                         </a>
                     </li>
@@ -637,6 +640,7 @@
 
                                         $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                                         $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
+                                        $comp_href = company_url($comp);
                                         ?>
                                         <tr>
                                             <td class="px-4 py-3 align-middle">
@@ -645,7 +649,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 align-middle font-weight-bold">
-                                                <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="text-dark text-decoration-none">
+                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none">
                                                     <?php echo htmlspecialchars($comp['company_name']); ?>
                                                 </a>
                                             </td>
@@ -660,7 +664,7 @@
                                                     <span class="badge badge-light border text-dark" title="<?php echo htmlspecialchars($act_title); ?>">
                                                         NIC <?php echo htmlspecialchars($comp['activity_code']); ?>
                                                         <?php if ($act_title): ?>
-                                                            &bull; <?php echo htmlspecialchars(mb_strimwidth($act_title, 0, 20, '...')); ?>
+                                                             &bull; <?php echo htmlspecialchars(mb_strimwidth($act_title, 0, 20, '...')); ?>
                                                         <?php endif; ?>
                                                     </span>
                                                 <?php else: ?>
@@ -671,7 +675,7 @@
                                                 <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
                                             </td>
                                             <td class="px-4 py-3 align-middle text-right">
-                                                <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
                                                     View
                                                 </a>
                                             </td>
@@ -692,6 +696,7 @@
 
                             $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                             $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
+                            $comp_href = company_url($comp);
                             ?>
                             <div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
                                 <div class="company-card-elevated p-4 w-100">
@@ -707,7 +712,7 @@
                                         </div>
                                         
                                         <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px; font-family: var(--font-heading);">
-                                            <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='#0f172a';">
+                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='#0f172a';">
                                                 <?php echo htmlspecialchars($comp['company_name']); ?>
                                             </a>
                                         </h5>
@@ -732,7 +737,7 @@
                                     </div>
 
                                     <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
-                                        <a href="company-incorporation.php?cin=<?php echo urlencode($comp['cin']); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
                                             View Details &rarr;
                                         </a>
                                         <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($comp['cin']); ?>'); alert('CIN copied: <?php echo htmlspecialchars($comp['cin']); ?>');" title="Copy CIN">
@@ -790,7 +795,7 @@
                         </div>
                         <h4 class="font-weight-bold text-dark mb-2">No Registered Companies Found</h4>
                         <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">No companies matched your query "<strong><?php echo htmlspecialchars($q_param); ?></strong>". Try searching with a different keyword, CIN, or category.</p>
-                        <a href="company-incorporation.php" class="btn btn-primary font-weight-bold px-4">Reset Search</a>
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4">Reset Search</a>
                     </div>
                 </div>
             <?php endif; ?>
@@ -966,7 +971,7 @@
                     ];
                     foreach ($sector_cards as $sc): ?>
                     <div class="col-lg-3 col-md-6 col-12 mb-3 d-flex">
-                        <a href="company-incorporation.php?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.2s; border-color: #e2e8f0;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)';">
+                        <a href="<?php echo $base_url; ?>company-incorporation?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.2s; border-color: #e2e8f0;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)';">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="d-inline-flex align-items-center justify-content-center rounded-lg" style="width: 36px; height: 36px; background: <?php echo $sc['bg']; ?>; color: <?php echo $sc['color']; ?>; font-size: 16px;">
                                     <i class="fas <?php echo $sc['icon']; ?>"></i>
@@ -1156,7 +1161,7 @@ function runNicLiveSearch() {
                             '<span class="badge badge-primary mr-2" style="font-size: 11px;">' + level + ' ' + code + '</span>' +
                             '<strong class="text-dark">' + title + '</strong>' +
                         '</div>' +
-                        '<a href="company-incorporation.php?activity=' + divCode + '" class="btn btn-xs btn-outline-primary font-weight-bold" style="font-size: 11px; padding: 2px 8px;">' +
+                        '<a href="<?php echo $base_url; ?>company-incorporation?activity=' + divCode + '" class="btn btn-xs btn-outline-primary font-weight-bold" style="font-size: 11px; padding: 2px 8px;">' +
                             'View Companies (Div ' + divCode + ') &rarr;' +
                         '</a>' +
                     '</div>';

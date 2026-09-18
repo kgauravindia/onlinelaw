@@ -278,6 +278,12 @@ if (isset($monthly_trends['data']) && count($monthly_trends['data']) > 0) {
                         <span class="text-muted"><i class="fas fa-database text-warning mr-2"></i> Total Indexed Entities:</span>
                         <strong class="text-primary font-weight-bold"><?php echo number_format($total_companies + $total_ifsc + $total_pincodes + $total_acts); ?></strong>
                     </li>
+                    <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-sitemap text-primary mr-2"></i> Search Sitemaps:</span>
+                        <a href="manage_sitemap.php" class="badge-premium badge-premium-primary text-decoration-none">
+                            <i class="fas fa-cog mr-1"></i> Manage Sitemaps &rarr;
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

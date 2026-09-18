@@ -1,6 +1,6 @@
 <?php require_once ('includes/config.php'); ?> 
 <link rel="icon" type="image/png" href="<?php echo $base_url; ?>images/favicon.png">
-<link rel="canonical" href="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+<link rel="canonical" href="<?php echo !empty($canonical_url) ? htmlspecialchars($canonical_url) : ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>">
 <meta name="robots" content="index, follow">
 <!-- Google Fonts: Plus Jakarta Sans & Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">

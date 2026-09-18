@@ -1,6 +1,6 @@
 <?php
-require_once('../includes/config.php');
-require_once('../includes/function.php');
+require_once(__DIR__ . '/../../includes/config.php');
+require_once(__DIR__ . '/../../includes/function.php');
 
 // Admin Auth Check
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -78,7 +78,10 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
                 <i class="fas fa-database"></i> <span>Master Data Hub</span>
             </a>
 
-            <div class="sidebar-nav-section mt-3">Administration</div>
+            <div class="sidebar-nav-section mt-3">Administration &amp; SEO</div>
+            <a href="manage_sitemap.php" class="nav-link-custom <?php echo ($current_page == 'manage_sitemap.php') ? 'active' : ''; ?>" title="Sitemap & SEO Engine">
+                <i class="fas fa-sitemap"></i> <span>Sitemap Manager</span>
+            </a>
             <a href="manage_users.php" class="nav-link-custom <?php echo in_array($current_page, ['manage_users.php', 'edit_user.php']) ? 'active' : ''; ?>" title="Platform Users">
                 <i class="fas fa-users"></i> <span>Users</span>
             </a>

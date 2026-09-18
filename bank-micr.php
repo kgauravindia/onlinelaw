@@ -42,23 +42,41 @@
                 ],
                 "identifier" => $row_seo['micr']
             ];
-            $seo_schema = '<script type="application/ld+json">' . json_encode($schema_json) . '</script>';
-            
+            $seo_schema = '<script type="application/ld+json">' . "\n" . json_encode($schema_json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
+            $canonical_url = $base_url . "bank-micr?ifsc=" . $micrcode;
         } else {
             $page_title = "MICR Code: $micrcode Details - Online Law";
             $meta_desc = "Find details for MICR Code $micrcode on Online Law. Fully updated RBI database.";
             $seo_schema = "";
+            $canonical_url = $base_url . "bank-micr";
         }
     } else {
         $page_title = "Bank MICR Search Tool | Find Any Bank Branch in India - Online Law";
         $meta_desc = "Quickly search for any Bank MICR code across India. Get instant details for NEFT, RTGS, and IMPS transactions. 100% accurate RBI database.";
         $seo_schema = "";
+        $canonical_url = $base_url . "bank-micr";
     }
 ?>
-<meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="MICR Code Search, Find Bank MICR, RBI MICR List, NEFT RTGS Codes, Bank Branch Finder India, MICR Code Search, Net Banking Codes, <?php echo $micrcode; ?>">
+<meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+<meta name="keywords" content="MICR Code Search, Find Bank MICR, RBI MICR List, NEFT RTGS Codes, Bank Branch Finder India, MICR Code Search, Net Banking Codes, <?php echo htmlspecialchars($micrcode); ?>">
 <meta name="author" content="OfferPlant">
-<title><?php echo $page_title; ?></title>
+<title><?php echo htmlspecialchars($page_title); ?></title>
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Online Law">
+<meta property="og:url" content="<?php echo htmlspecialchars($canonical_url); ?>">
+<meta property="og:title" content="<?php echo htmlspecialchars($page_title); ?>">
+<meta property="og:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+<meta property="og:image" content="<?php echo $base_url; ?>images/favicon.png">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<?php echo htmlspecialchars($page_title); ?>">
+<meta name="twitter:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+<meta name="twitter:image" content="<?php echo $base_url; ?>images/favicon.png">
+
+<!-- Schema.org JSON-LD -->
 <?php echo $seo_schema; ?>
 <style>
     @media (max-width: 767px) {

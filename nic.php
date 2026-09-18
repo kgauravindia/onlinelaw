@@ -124,30 +124,33 @@ if ($all_sections_res) {
 <title><?php echo $page_title; ?></title>
 
 <!-- Schema.org JSON-LD -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "<?php echo addslashes($page_title); ?>",
-  "description": "<?php echo addslashes($meta_desc); ?>",
-  "breadcrumb": {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "<?php echo $base_url; ?>"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "NIC Code Directory",
-        "item": "<?php echo $base_url; ?>nic"
-      }
+<?php
+$nic_schema = [
+  "@context" => "https://schema.org",
+  "@type" => "WebPage",
+  "name" => $page_title,
+  "description" => $meta_desc,
+  "breadcrumb" => [
+    "@type" => "BreadcrumbList",
+    "itemListElement" => [
+      [
+        "@type" => "ListItem",
+        "position" => 1,
+        "name" => "Home",
+        "item" => $base_url
+      ],
+      [
+        "@type" => "ListItem",
+        "position" => 2,
+        "name" => "NIC Code Directory",
+        "item" => $base_url . "nic"
+      ]
     ]
-  }
-}
+  ]
+];
+?>
+<script type="application/ld+json">
+<?php echo json_encode($nic_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); ?>
 </script>
 
 <style>
