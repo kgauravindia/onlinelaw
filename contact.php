@@ -17,71 +17,27 @@
         $message = mysqli_real_escape_string($con, trim($_POST['message'] ?? ''));
         
         if (!empty($name) && !empty($mobile) && !empty($message)) {
-            $sql = "INSERT INTO contact (name, email, mobile, area, message, status) VALUES ('$name', '$email', '$mobile', '$area', '$message', 'NEW')";
-            if (mysqli_query($con, $sql)) {
-                $msg_status = "success";
-                $msg_text = ($area === 'Complain (Delete Company Data)') 
-                    ? "Thank you! Your Company Data Removal / Delisting complaint has been logged with highest priority (Ticket ID: #" . mysqli_insert_id($con) . "). Our legal compliance desk will review and take appropriate action within 24 business hours."
-                    : "Thank you! Your message has been received successfully. Our team will get back to you shortly.";
-                
-                // --- Common Headers for HTML Mail ---
-                $headers = "MIME-Version: 1.0" . "\r\n";
-                $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-                $headers .= 'From: Online Law Support <noreply@olaw.in>' . "\r\n";
+            $created_by_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+            $sql = "INSERT INTO contact (name, email, mobile, area, message, status, created_by, updated_by) VALUES ('$name', '$email', '$mobile', '$area', '$message', 'NEW', $created_by_id, $created_by_id)";
+            try {
+                if (mysqli_query($con, $sql)) {
+                    $insert_id = mysqli_insert_id($con);
+                    $msg_status = "success";
+                    $msg_text = ($is_removal_request || stripos($area, 'Complain') !== false || stripos($area, 'Correction') !== false) 
+                        ? "Thank you! Your request / inquiry has been logged with priority (Ticket ID: #" . $insert_id . "). Our team will review and take action within standard turnaround time."
+                        : "Thank you! Your message has been received successfully. Our team will get back to you shortly.";
+                    
+                    // --- Common Headers for HTML Mail ---
+                    $headers = "MIME-Version: 1.0\r\n";
+                    $headers .= "Content-type:text/html;charset=UTF-8\r\n";
+                    $headers .= "From: Online Law Support <noreply@olaw.in>\r\n";
 
-                // --- 1. Admin Email (care@olaw.in) ---
-                $admin_email_to = !empty($inst_email) ? $inst_email : 'care@olaw.in';
-                $admin_subject = ($area === 'Complain (Delete Company Data)')
-                    ? "🚨 [URGENT DATA REMOVAL COMPLAINT] Company: " . ($req_name ?: $name) . " (" . ($req_cin ?: $mobile) . ")"
-                    : "New Inquiry: [" . $area . "] from " . $name;
-                $admin_body = "
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset='utf-8'>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #1e293b; background: #f8fafc; margin: 0; padding: 20px; }
-                        .card { max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-                        .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 24px; text-align: center; }
-                        .content { padding: 24px; }
-                        .field-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                        .field-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-                        .label { color: #64748b; font-weight: 600; width: 30%; }
-                        .value { color: #0f172a; font-weight: 500; }
-                        .msg-box { background: #f8fafc; border-left: 4px solid #2563eb; padding: 14px; border-radius: 6px; margin-top: 15px; font-size: 14px; color: #334155; }
-                        .footer { background: #f8fafc; padding: 14px 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-                    </style>
-                </head>
-                <body>
-                    <div class='card'>
-                        <div class='header'>
-                            <h2 style='margin: 0; font-size: 20px;'>New Contact Form Inquiry</h2>
-                            <p style='margin: 4px 0 0; color: #94a3b8; font-size: 13px;'>Online Law Portal &bull; olaw.in</p>
-                        </div>
-                        <div class='content'>
-                            <table class='field-table'>
-                                <tr><td class='label'>Sender Name:</td><td class='value'><strong>" . htmlspecialchars($name) . "</strong></td></tr>
-                                <tr><td class='label'>Email Address:</td><td class='value'><a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></td></tr>
-                                <tr><td class='label'>Phone Number:</td><td class='value'><a href='tel:" . htmlspecialchars($mobile) . "'>" . htmlspecialchars($mobile) . "</a></td></tr>
-                                <tr><td class='label'>Area of Inquiry:</td><td class='value'><span style='background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: 600;'>" . htmlspecialchars($area) . "</span></td></tr>
-                            </table>
-                            <div style='margin-top: 20px;'>
-                                <strong style='font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;'>Message:</strong>
-                                <div class='msg-box'>" . nl2br(htmlspecialchars($message)) . "</div>
-                            </div>
-                        </div>
-                        <div class='footer'>
-                            This is an automated notification from the Online Law web portal.
-                        </div>
-                    </div>
-                </body>
-                </html>";
-                @mail($admin_email_to, $admin_subject, $admin_body, $headers);
-
-                // --- 2. Visitor Confirmation Email ---
-                if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $visitor_subject = "We have received your message - Online Law";
-                    $visitor_body = "
+                    // --- 1. Admin Email (care@olaw.in) ---
+                    $admin_email_to = !empty($inst_email) ? $inst_email : 'care@olaw.in';
+                    $admin_subject = ($is_removal_request)
+                        ? "🚨 [URGENT DATA REMOVAL COMPLAINT] Company: " . ($req_name ?: $name) . " (" . ($req_cin ?: $mobile) . ")"
+                        : "New Inquiry: [" . $area . "] from " . $name;
+                    $admin_body = "
                     <!DOCTYPE html>
                     <html>
                     <head>
@@ -89,41 +45,92 @@
                         <style>
                             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #1e293b; background: #f8fafc; margin: 0; padding: 20px; }
                             .card { max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-                            .header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; padding: 28px; text-align: center; }
-                            .content { padding: 28px; font-size: 15px; color: #334155; }
-                            .quote-box { background: #f8fafc; border-left: 3px solid #2563eb; padding: 12px 16px; font-style: italic; color: #475569; margin: 16px 0; border-radius: 4px; font-size: 14px; }
-                            .footer { background: #f8fafc; padding: 18px 28px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #f1f5f9; }
+                            .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 24px; text-align: center; }
+                            .content { padding: 24px; }
+                            .field-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                            .field-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+                            .label { color: #64748b; font-weight: 600; width: 30%; }
+                            .value { color: #0f172a; font-weight: 500; }
+                            .msg-box { background: #f8fafc; border-left: 4px solid #2563eb; padding: 14px; border-radius: 6px; margin-top: 15px; font-size: 14px; color: #334155; }
+                            .footer { background: #f8fafc; padding: 14px 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
                         </style>
                     </head>
                     <body>
                         <div class='card'>
                             <div class='header'>
-                                <h2 style='margin: 0; font-size: 22px;'>Thank You for Reaching Out</h2>
-                                <p style='margin: 6px 0 0; color: #bfdbfe; font-size: 14px;'>Team Online Law &bull; India</p>
+                                <h2 style='margin: 0; font-size: 20px;'>New Contact Form Inquiry</h2>
+                                <p style='margin: 4px 0 0; color: #94a3b8; font-size: 13px;'>Online Law Portal &bull; olaw.in</p>
                             </div>
                             <div class='content'>
-                                <p>Dear <strong>" . htmlspecialchars($name) . "</strong>,</p>
-                                <p>Thank you for contacting <strong>Online Law</strong>. We have received your inquiry regarding <strong>" . htmlspecialchars($area) . "</strong>.</p>
-                                <p>Our support team is reviewing your message and will get back to you shortly via email or phone (" . htmlspecialchars($mobile) . ").</p>
-                                <div class='quote-box'>
-                                    \"" . nl2br(htmlspecialchars($message)) . "\"
+                                <table class='field-table'>
+                                    <tr><td class='label'>Sender Name:</td><td class='value'><strong>" . htmlspecialchars($name) . "</strong></td></tr>
+                                    <tr><td class='label'>Email Address:</td><td class='value'><a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></td></tr>
+                                    <tr><td class='label'>Phone Number:</td><td class='value'><a href='tel:" . htmlspecialchars($mobile) . "'>" . htmlspecialchars($mobile) . "</a></td></tr>
+                                    <tr><td class='label'>Area of Inquiry:</td><td class='value'><span style='background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: 600;'>" . htmlspecialchars($area) . "</span></td></tr>
+                                </table>
+                                <div style='margin-top: 20px;'>
+                                    <strong style='font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;'>Message:</strong>
+                                    <div class='msg-box'>" . nl2br(htmlspecialchars($message)) . "</div>
                                 </div>
-                                <p style='margin-bottom: 0;'>If you need immediate assistance with our public tools (Company Search, NIC Codes, IFSC, or PIN Codes), feel free to explore them on our portal.</p>
                             </div>
                             <div class='footer'>
-                                Best Regards,<br>
-                                <strong>Team Online Law</strong><br>
-                                <span style='font-size: 12px; color: #94a3b8;'>An initiative of OfferPlant Technologies Private Limited</span><br>
-                                <a href='https://olaw.in' style='color: #2563eb; text-decoration: none; font-weight: 600;'>www.olaw.in</a>
+                                This is an automated notification from the Online Law web portal.
                             </div>
                         </div>
                     </body>
                     </html>";
-                    @mail($email, $visitor_subject, $visitor_body, $headers);
+                    @mail($admin_email_to, $admin_subject, $admin_body, $headers);
+
+                    // --- 2. Visitor Confirmation Email ---
+                    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $visitor_subject = "We have received your message - Online Law";
+                        $visitor_body = "
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset='utf-8'>
+                            <style>
+                                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #1e293b; background: #f8fafc; margin: 0; padding: 20px; }
+                                .card { max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+                                .header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; padding: 28px; text-align: center; }
+                                .content { padding: 28px; font-size: 15px; color: #334155; }
+                                .quote-box { background: #f8fafc; border-left: 3px solid #2563eb; padding: 12px 16px; font-style: italic; color: #475569; margin: 16px 0; border-radius: 4px; font-size: 14px; }
+                                .footer { background: #f8fafc; padding: 18px 28px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #f1f5f9; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='card'>
+                                <div class='header'>
+                                    <h2 style='margin: 0; font-size: 22px;'>Thank You for Reaching Out</h2>
+                                    <p style='margin: 6px 0 0; color: #bfdbfe; font-size: 14px;'>Team Online Law &bull; India</p>
+                                </div>
+                                <div class='content'>
+                                    <p>Dear <strong>" . htmlspecialchars($name) . "</strong>,</p>
+                                    <p>Thank you for contacting <strong>Online Law</strong>. We have received your inquiry regarding <strong>" . htmlspecialchars($area) . "</strong>.</p>
+                                    <p>Our support team is reviewing your message and will get back to you shortly via email or phone (" . htmlspecialchars($mobile) . ").</p>
+                                    <div class='quote-box'>
+                                        \"" . nl2br(htmlspecialchars($message)) . "\"
+                                    </div>
+                                    <p style='margin-bottom: 0;'>If you need immediate assistance with our public tools (Company Search, NIC Codes, IFSC, or PIN Codes), feel free to explore them on our portal.</p>
+                                </div>
+                                <div class='footer'>
+                                    Best Regards,<br>
+                                    <strong>Team Online Law</strong><br>
+                                    <span style='font-size: 12px; color: #94a3b8;'>An initiative of OfferPlant Technologies Private Limited</span><br>
+                                    <a href='https://olaw.in' style='color: #2563eb; text-decoration: none; font-weight: 600;'>www.olaw.in</a>
+                                </div>
+                            </div>
+                        </body>
+                        </html>";
+                        @mail($email, $visitor_subject, $visitor_body, $headers);
+                    }
+                } else {
+                    $msg_status = "error";
+                    $msg_text = "Database error: Could not save your message. Please try again or email us directly.";
                 }
-            } else {
+            } catch (Exception $e) {
                 $msg_status = "error";
-                $msg_text = "Database error: Could not save your message. Please try again or email us directly.";
+                $msg_text = "An error occurred while submitting: " . $e->getMessage();
             }
         } else {
             $msg_status = "error";
