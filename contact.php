@@ -486,7 +486,7 @@
                     <i class="fas fa-bolt mr-1"></i> Online Form &amp; Email: 3 Days
                 </span>
                 <span class="badge badge-warning text-dark px-3 py-2 font-weight-bold" style="font-size: 12px; border-radius: 20px;">
-                    <i class="fas fa-phone-volume mr-1"></i> Call / WhatsApp: 7 Working Days
+                    <i class="fas fa-phone-volume mr-1"></i> Call / WhatsApp: 10 Working Days
                 </span>
             </div>
         </div>
@@ -939,7 +939,7 @@
                             <i class="fas fa-exclamation-triangle mt-1 mr-2.5 text-warning" style="font-size: 16px;"></i>
                             <div class="small" style="line-height: 1.6;">
                                 <strong class="d-block mb-1">Turnaround Time &amp; Resolution SLA:</strong>
-                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">7 working days</span> (Subject to manual phone queue).</div>
+                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">10 working days</span> (Subject to manual phone queue).</div>
                                 <div>&bull; <strong>Email / Online Contact Form:</strong> <span class="text-success font-weight-bold">3 days only</span> (Fast automated ticket creation &amp; priority legal desk).</div>
                                 <div class="mt-2 text-dark font-weight-semibold">
                                     <i class="fas fa-arrow-circle-up text-primary mr-1"></i> To save time and get your request processed faster, please fill the online form above.
