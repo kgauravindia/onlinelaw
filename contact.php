@@ -463,23 +463,106 @@
 </section>
 
 <!-- ================================================================= -->
-<!-- CONTACT CHANNELS QUICK-CARDS ROW -->
+<!-- CONTACT CHANNELS QUICK-CARDS ROW (PRIORITIZING FAST ONLINE TICKETS) -->
 <!-- ================================================================= -->
 <section class="py-5" style="background: #f8fafc;">
     <div class="container">
+        
+        <!-- Resolution SLA Banner -->
+        <div class="p-3 mb-4 rounded-xl shadow-sm border d-flex flex-wrap align-items-center justify-content-between" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; border-color: rgba(255,255,255,0.1) !important;">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <div class="p-2 rounded-circle bg-primary text-white mr-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div>
+                    <strong class="d-block" style="font-size: 14.5px;">Resolution Speed &amp; Processing Comparison:</strong>
+                    <span class="small text-white-50">Choose the fastest channel for your inquiry or data correction request.</span>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2" style="gap: 10px;">
+                <span class="badge badge-success px-3 py-2 font-weight-bold" style="font-size: 12px; border-radius: 20px;">
+                    <i class="fas fa-bolt mr-1"></i> Online Form &amp; Email: 3 Days
+                </span>
+                <span class="badge badge-warning text-dark px-3 py-2 font-weight-bold" style="font-size: 12px; border-radius: 20px;">
+                    <i class="fas fa-phone-volume mr-1"></i> Call / WhatsApp: 7 Working Days
+                </span>
+            </div>
+        </div>
+
         <div class="row">
             
-            <!-- Card 1: Registered Office -->
+            <!-- Card 1: Online Ticket & Contact Form (Recommended) -->
             <div class="col-lg-3 col-md-6 mb-4 d-flex">
-                <div class="contact-card-premium w-100">
+                <div class="contact-card-premium w-100" style="border-top: 3px solid var(--primary-color);">
                     <div>
-                        <div class="channel-icon-squircle bg-primary text-white shadow-sm" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="channel-icon-squircle bg-primary text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <span class="badge badge-primary px-2.5 py-1 text-uppercase font-weight-bold" style="font-size: 10px; border-radius: 20px;">
+                                RECOMMENDED
+                            </span>
+                        </div>
+                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 17px;">
+                            Online Ticket Form
+                        </h5>
+                        <div class="badge badge-success px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
+                            <i class="fas fa-bolt mr-1"></i> Fast 3-Day SLA
+                        </div>
+                        <p class="text-muted small mb-3" style="line-height: 1.5;">
+                            Direct queue with automated ticket generation. Best for company delisting, NIC, and IFSC queries.
+                        </p>
+                    </div>
+                    <a href="#contact-form-section" class="btn btn-sm btn-primary font-weight-bold py-2 shadow-sm" style="border-radius: 8px;">
+                        <i class="fas fa-paper-plane mr-1"></i> Fill Quick Form &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 2: Email Desk -->
+            <div class="col-lg-3 col-md-6 mb-4 d-flex">
+                <div class="contact-card-premium w-100" style="border-top: 3px solid #10b981;">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="channel-icon-squircle text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #059669, #10b981) !important;">
+                                <i class="fas fa-envelope-open-text"></i>
+                            </div>
+                            <span class="badge badge-success px-2.5 py-1 text-uppercase font-weight-bold" style="font-size: 10px; border-radius: 20px;">
+                                DIRECT DESK
+                            </span>
+                        </div>
+                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 17px;">
+                            Email Support
+                        </h5>
+                        <div class="badge badge-success px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
+                            <i class="fas fa-clock mr-1"></i> 3-Day Turnaround
+                        </div>
+                        <p class="text-muted small mb-2" style="line-height: 1.5;">
+                            Send official letters, API partnership proposals, or supporting documentation.
+                        </p>
+                        <div class="mb-3">
+                            <a href="mailto:<?php echo $inst_email; ?>" class="text-dark font-weight-bold text-decoration-none small">
+                                <?php echo htmlspecialchars($inst_email); ?>
+                            </a>
+                        </div>
+                    </div>
+                    <a href="mailto:<?php echo $inst_email; ?>" class="btn btn-sm btn-light border font-weight-bold text-success py-2">
+                        <i class="fas fa-envelope mr-1"></i> Send Email
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 3: Registered Office -->
+            <div class="col-lg-3 col-md-6 mb-4 d-flex">
+                <div class="contact-card-premium w-100" style="border-top: 3px solid #6366f1;">
+                    <div>
+                        <div class="channel-icon-squircle text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1) !important;">
                             <i class="fas fa-building"></i>
                         </div>
                         <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: 17px;">
                             Registered Office
                         </h5>
-                        <p class="text-muted small mb-3" style="line-height: 1.6;">
+                        <p class="text-muted small mb-3" style="line-height: 1.5;">
                             <strong class="text-dark font-weight-semibold">OfferPlant Technologies Pvt Ltd</strong><br>
                             <?php echo !empty($inst_address1) ? htmlspecialchars($inst_address1) : 'Corporate Headquarters'; ?><br>
                             <?php echo !empty($inst_address2) ? htmlspecialchars($inst_address2) : 'India'; ?>
@@ -491,80 +574,30 @@
                 </div>
             </div>
 
-            <!-- Card 2: Email Desk -->
+            <!-- Card 4: Support Helpline (Down the page notice) -->
             <div class="col-lg-3 col-md-6 mb-4 d-flex">
-                <div class="contact-card-premium w-100">
+                <div class="contact-card-premium w-100" style="border-top: 3px solid #f59e0b; background: #fffdfa;">
                     <div>
-                        <div class="channel-icon-squircle text-white shadow-sm" style="background: linear-gradient(135deg, #059669, #10b981) !important;">
-                            <i class="fas fa-envelope-open-text"></i>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="channel-icon-squircle text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #d97706, #f59e0b) !important;">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <span class="badge badge-warning text-dark px-2.5 py-1 text-uppercase font-weight-bold" style="font-size: 10px; border-radius: 20px;">
+                                CALL DESK
+                            </span>
                         </div>
-                        <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: 17px;">
-                            Direct Email
-                        </h5>
-                        <p class="text-muted small mb-3" style="line-height: 1.6;">
-                            Drop us an email for legal tools, API queries, or general suggestions.
-                        </p>
-                        <div class="mb-3">
-                            <a href="mailto:<?php echo $inst_email; ?>" class="text-dark font-weight-bold text-decoration-none" style="font-size: 14.5px;">
-                                <?php echo htmlspecialchars($inst_email); ?>
-                            </a>
-                        </div>
-                    </div>
-                    <a href="mailto:<?php echo $inst_email; ?>" class="btn btn-sm btn-light border font-weight-bold text-success mt-2">
-                        <i class="fas fa-paper-plane mr-1"></i> Send Email
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 3: Phone / Helpline -->
-            <div class="col-lg-3 col-md-6 mb-4 d-flex">
-                <div class="contact-card-premium w-100">
-                    <div>
-                        <div class="channel-icon-squircle text-white shadow-sm" style="background: linear-gradient(135deg, #d97706, #f59e0b) !important;">
-                            <i class="fas fa-phone-alt"></i>
-                        </div>
-                        <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: 17px;">
+                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 17px;">
                             Support Helpline
                         </h5>
-                        <p class="text-muted small mb-3" style="line-height: 1.6;">
-                            Speak to our support team during standard operational hours.
+                        <div class="badge badge-warning text-dark px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
+                            <i class="fas fa-hourglass-half mr-1"></i> 7 Working Days
+                        </div>
+                        <p class="text-muted small mb-2" style="line-height: 1.5;">
+                            Operating strictly <strong class="text-dark">10 AM to 4 PM (Mon&ndash;Fri)</strong>. High call queues apply.
                         </p>
-                        <div class="mb-3">
-                            <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $inst_contact); ?>" class="text-dark font-weight-bold text-decoration-none d-block">
-                                <?php echo htmlspecialchars($inst_contact); ?>
-                            </a>
-                            <?php if (!empty($inst_contact2)): ?>
-                            <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $inst_contact2); ?>" class="text-muted small text-decoration-none d-block mt-1">
-                                <?php echo htmlspecialchars($inst_contact2); ?>
-                            </a>
-                            <?php endif; ?>
-                        </div>
                     </div>
-                    <a href="tel:<?php echo preg_replace('/[^0-9+]/', '', $inst_contact); ?>" class="btn btn-sm btn-light border font-weight-bold text-warning mt-2">
-                        <i class="fas fa-phone mr-1"></i> Call Desk
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 4: Response SLA -->
-            <div class="col-lg-3 col-md-6 mb-4 d-flex">
-                <div class="contact-card-premium w-100">
-                    <div>
-                        <div class="channel-icon-squircle text-white shadow-sm" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6) !important;">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: 17px;">
-                            Fast Response SLA
-                        </h5>
-                        <p class="text-muted small mb-3" style="line-height: 1.6;">
-                            All public queries and API requests are reviewed within <strong>24 business hours</strong>.
-                        </p>
-                        <div class="badge badge-light border text-primary px-3 py-1.5 font-weight-bold" style="font-size: 12px; border-radius: 6px;">
-                            <i class="fas fa-check-circle mr-1"></i> 100% Response Rate
-                        </div>
-                    </div>
-                    <a href="#contact-form-section" class="btn btn-sm btn-light border font-weight-bold text-purple mt-2" style="color: #7c3aed;">
-                        <i class="fas fa-comment-dots mr-1"></i> Write Message
+                    <a href="#support-helpline" class="btn btn-sm btn-light border font-weight-bold text-warning mt-2">
+                        <i class="fas fa-phone mr-1"></i> View Helpline Numbers &darr;
                     </a>
                 </div>
             </div>
@@ -698,18 +731,19 @@
                                     <label class="form-label-modern">Area of Inquiry <span class="text-danger ml-1">*</span></label>
                                     <select class="form-control-modern" name="area" required style="cursor: pointer;">
                                         <option value="" disabled <?php echo empty($selected_area) ? 'selected' : ''; ?>>Select Category...</option>
-                                        <option value="Complain (Delete Company Data)" <?php echo ($selected_area === 'Complain (Delete Company Data)') ? 'selected' : ''; ?> style="color: #dc2626; font-weight: bold;">
-                                            🚨 Complain: Delete / Remove Company Data
-                                        </option>
-                                        <option value="Company Incorporation" <?php echo ($selected_area === 'Company Incorporation') ? 'selected' : ''; ?>>Company Incorporation &amp; CIN</option>
-                                        <option value="NIC 2025 Codes" <?php echo ($selected_area === 'NIC 2025 Codes') ? 'selected' : ''; ?>>NIC 2025 Activity Classification</option>
-                                        <option value="Bank IFSC & Branches" <?php echo ($selected_area === 'Bank IFSC & Branches') ? 'selected' : ''; ?>>Bank IFSC &amp; Branch Verification</option>
-                                        <option value="PIN Code Directory" <?php echo ($selected_area === 'PIN Code Directory') ? 'selected' : ''; ?>>PIN Code &amp; Postal Directory</option>
-                                        <option value="Legal Acts & Law" <?php echo ($selected_area === 'Legal Acts & Law') ? 'selected' : ''; ?>>Bare Acts &amp; Legal Tools</option>
                                         <option value="API & Data Partnership" <?php echo ($selected_area === 'API & Data Partnership') ? 'selected' : ''; ?>>API &amp; Data Integration</option>
-                                        <option value="Record Correction" <?php echo ($selected_area === 'Record Correction') ? 'selected' : ''; ?>>Record Correction / Grievance</option>
-                                        <option value="Suggestion" <?php echo ($selected_area === 'Suggestion') ? 'selected' : ''; ?>>Portal Suggestion &amp; Feedback</option>
+                                        <option value="Bank IFSC & Branches" <?php echo ($selected_area === 'Bank IFSC & Branches') ? 'selected' : ''; ?>>Bank IFSC &amp; Branch Verification</option>
+                                        <option value="Legal Acts & Law" <?php echo ($selected_area === 'Legal Acts & Law') ? 'selected' : ''; ?>>Bare Acts &amp; Legal Tools</option>
+                                        <option value="Company Incorporation" <?php echo ($selected_area === 'Company Incorporation') ? 'selected' : ''; ?>>Company Incorporation &amp; CIN</option>
+                                        <option value="Complain (Delete Company Data)" <?php echo ($selected_area === 'Complain (Delete Company Data)') ? 'selected' : ''; ?> style="color: #dc2626; font-weight: bold;">
+                                            🚨 Complain (Delete Data of Company)
+                                        </option>
                                         <option value="General Inquiry" <?php echo ($selected_area === 'General Inquiry') ? 'selected' : ''; ?>>General Legal Inquiry</option>
+                                        <option value="NIC 2025 Codes" <?php echo ($selected_area === 'NIC 2025 Codes') ? 'selected' : ''; ?>>NIC 2025 Activity Classification</option>
+                                        <option value="PIN Code Directory" <?php echo ($selected_area === 'PIN Code Directory') ? 'selected' : ''; ?>>PIN Code &amp; Postal Directory</option>
+                                        <option value="Record Correction" <?php echo ($selected_area === 'Record Correction') ? 'selected' : ''; ?>>Record Correction / Grievance</option>
+                                        <option value="Suggestion" <?php echo ($selected_area === 'Suggestion') ? 'selected' : ''; ?>>Suggestions &amp; Portal Feedback</option>
+                                        <option value="Other" <?php echo ($selected_area === 'Other') ? 'selected' : ''; ?>>Other Inquiries</option>
                                     </select>
                                     <i class="fas fa-tags form-icon-wrap"></i>
                                 </div>
@@ -890,6 +924,103 @@
                 </div>
             </div>
 
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SUPPORT HELPLINE & CALLING DESK (DOWN THE PAGE) -->
+<!-- ================================================================= -->
+<section class="py-5" style="background: #ffffff; border-bottom: 1px solid #e2e8f0;" id="support-helpline">
+    <div class="container">
+        
+        <div class="p-4 p-md-5 rounded-xl border shadow-sm" style="border-radius: var(--radius-xl); background: #fdfefe; border-color: #e2e8f0 !important;">
+            <div class="row align-items-center">
+                
+                <div class="col-lg-7 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge badge-warning text-dark font-weight-bold px-3 py-1 rounded-pill" style="font-size: 11px;">
+                            <i class="fas fa-phone-volume mr-1"></i> Telephonic &amp; WhatsApp Support Desk
+                        </span>
+                        <span class="badge badge-light border text-muted font-weight-bold px-2.5 py-1 rounded-pill" style="font-size: 11px;">
+                            10 AM to 4 PM Only &bull; Mon to Fri
+                        </span>
+                    </div>
+
+                    <h3 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: clamp(20px, 3vw, 26px);">
+                        Support Helpline &amp; Calling Hours
+                    </h3>
+                    
+                    <p class="text-muted small mb-3" style="line-height: 1.7;">
+                        Speak to our support team during standard operational hours. <strong class="text-dark">(10 AM to 4 PM Only ) Mon to Fri</strong>.
+                    </p>
+
+                    <!-- Important Notice & Comparative Turnaround -->
+                    <div class="p-3 rounded-lg border mb-3" style="background: #fffbeb; border-color: #fde68a !important; color: #92400e;">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-triangle mt-1 mr-2.5 text-warning" style="font-size: 16px;"></i>
+                            <div class="small" style="line-height: 1.6;">
+                                <strong class="d-block mb-1">Turnaround Time &amp; Resolution SLA:</strong>
+                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">7 working days</span> (Subject to manual phone queue &amp; working hours).</div>
+                                <div>&bull; <strong>Email / Online Contact Form:</strong> <span class="text-success font-weight-bold">3 days only</span> (Fast automated ticket creation &amp; priority legal desk).</div>
+                                <div class="mt-2 text-dark font-weight-semibold">
+                                    <i class="fas fa-arrow-circle-up text-primary mr-1"></i> To save time and get your request processed faster, please fill the online form above.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 mt-3" style="gap: 12px;">
+                        <a href="#contact-form-section" class="btn btn-primary font-weight-bold px-4 py-2" style="border-radius: 20px;">
+                            <i class="fas fa-bolt mr-1"></i> Fill Quick Online Form (3 Days) &uarr;
+                        </a>
+                        <a href="mailto:<?php echo $inst_email; ?>" class="btn btn-outline-secondary font-weight-bold px-3 py-2" style="border-radius: 20px;">
+                            <i class="fas fa-envelope mr-1"></i> Email Support (3 Days)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="p-4 rounded-xl shadow-sm border" style="background: #f8fafc; border-radius: var(--radius-lg);">
+                        <div class="small text-muted font-weight-bold text-uppercase mb-3" style="letter-spacing: 0.5px;">
+                            <i class="fas fa-headset text-primary mr-1"></i> Direct Calling Helpline Numbers
+                        </div>
+                        
+                        <!-- Number 1 -->
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border mb-2.5">
+                            <div>
+                                <div class="small text-muted font-weight-semibold">Support Desk 1:</div>
+                                <a href="tel:+919431426600" class="text-dark font-weight-bold" style="font-size: 17px; text-decoration: none;">
+                                    +91 9431 42 6600
+                                </a>
+                            </div>
+                            <a href="tel:+919431426600" class="btn btn-sm btn-light border rounded-circle text-primary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" title="Call +91 9431 42 6600">
+                                <i class="fas fa-phone"></i>
+                            </a>
+                        </div>
+
+                        <!-- Number 2 -->
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border mb-3">
+                            <div>
+                                <div class="small text-muted font-weight-semibold">Support Desk 2:</div>
+                                <a href="tel:+919430552117" class="text-dark font-weight-bold" style="font-size: 17px; text-decoration: none;">
+                                    +91 9430 55 2117
+                                </a>
+                            </div>
+                            <a href="tel:+919430552117" class="btn btn-sm btn-light border rounded-circle text-primary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" title="Call +91 9430 55 2117">
+                                <i class="fas fa-phone"></i>
+                            </a>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between small text-muted pt-2 border-top">
+                            <span><i class="far fa-clock text-warning mr-1"></i> 10:00 AM &ndash; 4:00 PM Only</span>
+                            <span><i class="far fa-calendar-alt text-primary mr-1"></i> Mon to Fri</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
     </div>
