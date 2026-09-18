@@ -274,7 +274,7 @@ function generate_nic_sitemap_xml($base = null) {
 
 function generate_company_sitemap_xml($base = null) {
     if (!$base) $base = get_sitemap_base_url();
-    $sql = "SELECT DISTINCT cin, company_name FROM companies_incorporated WHERE cin IS NOT NULL AND cin != '' ORDER BY cin ASC";
+    $sql = "SELECT DISTINCT cin, company_name FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND cin IS NOT NULL AND cin != '' ORDER BY cin ASC";
     $res = direct_sql($sql);
     $total = 0;
     if ($res['count'] > 0) {

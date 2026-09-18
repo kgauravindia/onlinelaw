@@ -95,7 +95,7 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
             $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : $cin;
             if (!empty($q)) {
                 $safe_q = addslashes($q);
-                $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe_q' OR cin LIKE '%$safe_q%' OR company_name LIKE '%$safe_q%' LIMIT 50");
+                $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (cin = '$safe_q' OR cin LIKE '%$safe_q%' OR company_name LIKE '%$safe_q%') LIMIT 50");
                 if ($res['count'] > 0) {
                     // Enrich with NIC info
                     foreach ($res['data'] as &$row) {

@@ -1,5 +1,57 @@
 <?php
-require_once('includes/header.php');
+require_once(__DIR__ . '/../includes/config.php');
+require_once(__DIR__ . '/../includes/function.php');
+
+// Admin Auth Check
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    if (isset($_REQUEST['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized access']);
+        exit();
+    }
+    header("Location: login.php");
+    exit();
+}
+
+// Handle Status Toggle (ACTIVE <-> BLOCK) via AJAX or direct GET/POST
+if (isset($_REQUEST['toggle_status_id'])) {
+    $toggle_id = intval($_REQUEST['toggle_status_id']);
+    $to_status = isset($_REQUEST['to_status']) ? strtoupper(trim($_REQUEST['to_status'])) : '';
+    
+    if (!in_array($to_status, ['ACTIVE', 'BLOCK'])) {
+        // Auto toggle if not explicitly specified
+        $curr = direct_sql("SELECT status FROM companies_incorporated WHERE id = $toggle_id LIMIT 1");
+        $curr_status = ($curr['count'] > 0 && strtoupper($curr['data'][0]['status'] ?? '') === 'BLOCK') ? 'BLOCK' : 'ACTIVE';
+        $to_status = ($curr_status === 'ACTIVE') ? 'BLOCK' : 'ACTIVE';
+    }
+
+    $update_res = update_data('companies_incorporated', ['status' => $to_status], $toggle_id);
+    $is_ajax = isset($_REQUEST['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+
+    if ($is_ajax) {
+        header('Content-Type: application/json');
+        if ($update_res['status'] === 'success') {
+            echo json_encode([
+                'status' => 'success',
+                'id' => $toggle_id,
+                'new_status' => $to_status,
+                'message' => "Company status updated to " . ($to_status === 'ACTIVE' ? "ACTIVE (Visible on Website)" : "BLOCKED (Hidden from Website)")
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Failed to update company status: ' . ($update_res['msg'] ?? 'Database error')
+            ]);
+        }
+        exit();
+    } else {
+        $params = $_GET;
+        unset($params['toggle_status_id'], $params['to_status'], $params['ajax']);
+        $redirect_qs = !empty($params) ? '?' . http_build_query($params) : '';
+        header("Location: manage_companies.php$redirect_qs");
+        exit();
+    }
+}
 
 // Handle Deletion
 if (isset($_GET['del'])) {
@@ -10,11 +62,16 @@ if (isset($_GET['del'])) {
     } else {
         echo "<script>alert('Failed to delete company record'); window.location.href='manage_companies.php';</script>";
     }
+    exit();
 }
+
+// Include standard admin header for HTML rendering
+require_once('includes/header.php');
 
 // Search & Filter parameters
 $search_q = isset($_GET['q']) ? trim($_GET['q']) : '';
 $filter_category = isset($_GET['category']) ? trim($_GET['category']) : '';
+$filter_status = isset($_GET['status']) ? strtoupper(trim($_GET['status'])) : '';
 $filter_month = isset($_GET['month']) ? trim($_GET['month']) : '';
 $filter_date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $filter_date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
@@ -31,6 +88,14 @@ if (!empty($search_q)) {
 if (!empty($filter_category) && in_array($filter_category, ['INDIAN', 'LLP', 'FOREIGN'])) {
     $fc = mysqli_real_escape_string($con, $filter_category);
     $where_clauses[] = "category = '$fc'";
+}
+if (!empty($filter_status) && in_array($filter_status, ['ACTIVE', 'BLOCK'])) {
+    $fs = mysqli_real_escape_string($con, $filter_status);
+    if ($fs === 'BLOCK') {
+        $where_clauses[] = "status = 'BLOCK'";
+    } else {
+        $where_clauses[] = "(status = 'ACTIVE' OR status IS NULL OR status = '')";
+    }
 }
 if (!empty($filter_month)) {
     $fm = mysqli_real_escape_string($con, $filter_month);
@@ -58,7 +123,7 @@ $companies = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql O
 // Get distinct months for filter dropdown
 $months_res = direct_sql("SELECT DISTINCT report_month FROM companies_incorporated WHERE report_month IS NOT NULL AND report_month != '' ORDER BY report_month DESC");
 
-// Overall stats
+// Overall category stats
 $stats_query = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
 $stats = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0, 'TOTAL' => 0];
 if ($stats_query['count'] > 0) {
@@ -70,12 +135,53 @@ if ($stats_query['count'] > 0) {
         $stats['TOTAL'] += (int)$s['cnt'];
     }
 }
+
+// Overall status stats (Active vs Blocked)
+$status_stats_query = direct_sql("SELECT status, COUNT(*) as cnt FROM companies_incorporated GROUP BY status");
+$stats_status = ['ACTIVE' => 0, 'BLOCK' => 0];
+if ($status_stats_query['count'] > 0) {
+    foreach ($status_stats_query['data'] as $st) {
+        if (strtoupper($st['status'] ?? '') === 'BLOCK') {
+            $stats_status['BLOCK'] += (int)$st['cnt'];
+        } else {
+            $stats_status['ACTIVE'] += (int)$st['cnt'];
+        }
+    }
+}
 ?>
+
+<!-- Floating Toast Container for instant AJAX updates -->
+<div id="statusToastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: none;">
+    <div id="statusToast" class="alert alert-success shadow-lg border-0 d-flex align-items-center py-2 px-3" style="border-radius: var(--radius-md); font-size: 0.9rem;">
+        <i id="statusToastIcon" class="fas fa-check-circle mr-2 fa-lg"></i>
+        <span id="statusToastMsg" class="font-weight-semibold">Status updated successfully</span>
+    </div>
+</div>
 
 <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
     <div>
         <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">Manage Companies Incorporated</h1>
-        <p class="text-muted mb-0" style="font-size: 0.9rem;">Browse, search, edit, or filter registered Indian Companies, LLPs, and Foreign entities.</p>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Browse, search, edit, or toggle ACTIVE / BLOCK visibility for registered companies on the website.</p>
+        
+        <!-- Quick Status Pills -->
+        <div class="d-flex align-items-center flex-wrap gap-2 mt-2" style="gap: 8px;">
+            <span class="small font-weight-bold text-muted mr-1">Website Visibility:</span>
+            <a href="manage_companies.php?status=ACTIVE<?php echo !empty($filter_category) ? '&category='.$filter_category : ''; ?>" 
+               class="badge <?php echo $filter_status === 'ACTIVE' ? 'badge-success shadow-sm' : 'badge-light border text-success'; ?> px-3 py-1 font-weight-bold" 
+               style="border-radius: 20px; font-size: 0.8rem; text-decoration: none;">
+                <i class="fas fa-check-circle mr-1"></i> Active on Web: <span id="hdr-active-count"><?php echo number_format($stats_status['ACTIVE']); ?></span>
+            </a>
+            <a href="manage_companies.php?status=BLOCK<?php echo !empty($filter_category) ? '&category='.$filter_category : ''; ?>" 
+               class="badge <?php echo $filter_status === 'BLOCK' ? 'badge-danger shadow-sm' : 'badge-light border text-danger'; ?> px-3 py-1 font-weight-bold" 
+               style="border-radius: 20px; font-size: 0.8rem; text-decoration: none;">
+                <i class="fas fa-ban mr-1"></i> Blocked from Web: <span id="hdr-block-count"><?php echo number_format($stats_status['BLOCK']); ?></span>
+            </a>
+            <?php if (!empty($filter_status)): ?>
+                <a href="manage_companies.php<?php echo !empty($filter_category) ? '?category='.$filter_category : ''; ?>" class="small text-primary font-weight-bold ml-1 text-decoration-none" title="Show All Status">
+                    <i class="fas fa-times-circle mr-1"></i> Reset Status Filter
+                </a>
+            <?php endif; ?>
+        </div>
     </div>
     <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2" style="gap: 8px;">
         <a href="https://www.mca.gov.in/content/mca/global/en/data-and-reports/company-llp-info/incorporated-closed-month.html" target="_blank" class="btn btn-outline-secondary font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
@@ -93,7 +199,7 @@ if ($stats_query['count'] > 0) {
 <!-- Category Stat Filters -->
 <div class="row mb-4">
     <div class="col-md-3 col-6 mb-3 mb-md-0">
-        <a href="manage_companies.php" class="stat-card-v2 text-decoration-none d-block <?php echo empty($filter_category) ? 'border-primary' : ''; ?>" style="<?php echo empty($filter_category) ? 'background: #eff6ff; border-top: 4px solid var(--primary);' : ''; ?>">
+        <a href="manage_companies.php<?php echo !empty($filter_status) ? '?status='.$filter_status : ''; ?>" class="stat-card-v2 text-decoration-none d-block <?php echo empty($filter_category) ? 'border-primary' : ''; ?>" style="<?php echo empty($filter_category) ? 'background: #eff6ff; border-top: 4px solid var(--primary);' : ''; ?>">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <div class="stat-label mb-1">All Companies</div>
@@ -106,7 +212,7 @@ if ($stats_query['count'] > 0) {
         </a>
     </div>
     <div class="col-md-3 col-6 mb-3 mb-md-0">
-        <a href="manage_companies.php?category=INDIAN" class="stat-card-v2 text-decoration-none d-block <?php echo $filter_category === 'INDIAN' ? 'border-info' : ''; ?>" style="<?php echo $filter_category === 'INDIAN' ? 'background: #e0f2fe; border-top: 4px solid #0284c7;' : ''; ?>">
+        <a href="manage_companies.php?category=INDIAN<?php echo !empty($filter_status) ? '&status='.$filter_status : ''; ?>" class="stat-card-v2 text-decoration-none d-block <?php echo $filter_category === 'INDIAN' ? 'border-info' : ''; ?>" style="<?php echo $filter_category === 'INDIAN' ? 'background: #e0f2fe; border-top: 4px solid #0284c7;' : ''; ?>">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <div class="stat-label mb-1">Indian Companies</div>
@@ -119,7 +225,7 @@ if ($stats_query['count'] > 0) {
         </a>
     </div>
     <div class="col-md-3 col-6 mb-3 mb-md-0">
-        <a href="manage_companies.php?category=LLP" class="stat-card-v2 text-decoration-none d-block <?php echo $filter_category === 'LLP' ? 'border-success' : ''; ?>" style="<?php echo $filter_category === 'LLP' ? 'background: #dcfce7; border-top: 4px solid #10b981;' : ''; ?>">
+        <a href="manage_companies.php?category=LLP<?php echo !empty($filter_status) ? '&status='.$filter_status : ''; ?>" class="stat-card-v2 text-decoration-none d-block <?php echo $filter_category === 'LLP' ? 'border-success' : ''; ?>" style="<?php echo $filter_category === 'LLP' ? 'background: #dcfce7; border-top: 4px solid #10b981;' : ''; ?>">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <div class="stat-label mb-1">LLPs</div>
@@ -132,7 +238,7 @@ if ($stats_query['count'] > 0) {
         </a>
     </div>
     <div class="col-md-3 col-6 mb-3 mb-md-0">
-        <a href="manage_companies.php?category=FOREIGN" class="stat-card-v2 text-decoration-none d-block <?php echo $filter_category === 'FOREIGN' ? 'border-warning' : ''; ?>" style="<?php echo $filter_category === 'FOREIGN' ? 'background: #fef3c7; border-top: 4px solid #f59e0b;' : ''; ?>">
+        <a href="manage_companies.php?category=FOREIGN<?php echo !empty($filter_status) ? '&status='.$filter_status : ''; ?>" class="stat-card-v2 text-decoration-none d-block <?php echo $filter_category === 'FOREIGN' ? 'border-warning' : ''; ?>" style="<?php echo $filter_category === 'FOREIGN' ? 'background: #fef3c7; border-top: 4px solid #f59e0b;' : ''; ?>">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <div class="stat-label mb-1">Foreign Companies</div>
@@ -149,7 +255,7 @@ if ($stats_query['count'] > 0) {
 <!-- Search & Filter Console -->
 <div class="section-card p-4 mb-4">
     <form action="manage_companies.php" method="GET" class="row align-items-end">
-        <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+        <div class="col-xl-3 col-lg-3 col-md-6 mb-3">
             <label class="small font-weight-bold text-muted mb-1">Search CIN / Name / Code</label>
             <div class="input-group">
                 <div class="input-group-prepend">
@@ -158,7 +264,7 @@ if ($stats_query['count'] > 0) {
                 <input type="text" name="q" class="form-control" placeholder="Search CIN or Name..." value="<?php echo htmlspecialchars($search_q); ?>">
             </div>
         </div>
-        <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+        <div class="col-xl-2 col-lg-3 col-md-6 mb-3">
             <label class="small font-weight-bold text-muted mb-1">Category</label>
             <select name="category" class="form-control">
                 <option value="">All Categories</option>
@@ -167,7 +273,15 @@ if ($stats_query['count'] > 0) {
                 <option value="FOREIGN" <?php echo ($filter_category === 'FOREIGN') ? 'selected' : ''; ?>>Foreign Company</option>
             </select>
         </div>
-        <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+        <div class="col-xl-2 col-lg-2 col-md-6 mb-3">
+            <label class="small font-weight-bold text-muted mb-1">Website Status</label>
+            <select name="status" class="form-control">
+                <option value="">All Status</option>
+                <option value="ACTIVE" <?php echo ($filter_status === 'ACTIVE') ? 'selected' : ''; ?>>ACTIVE (Show on Web)</option>
+                <option value="BLOCK" <?php echo ($filter_status === 'BLOCK') ? 'selected' : ''; ?>>BLOCK (Hidden)</option>
+            </select>
+        </div>
+        <div class="col-xl-2 col-lg-2 col-md-6 mb-3">
             <label class="small font-weight-bold text-muted mb-1">Report Month</label>
             <select name="month" class="form-control">
                 <option value="">All Months</option>
@@ -181,20 +295,13 @@ if ($stats_query['count'] > 0) {
                 ?>
             </select>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
-            <label class="small font-weight-bold text-muted mb-1">Registration Date</label>
-            <div class="d-flex" style="gap: 6px;">
-                <input type="date" name="date_from" class="form-control" value="<?php echo htmlspecialchars($filter_date_from); ?>">
-                <input type="date" name="date_to" class="form-control" value="<?php echo htmlspecialchars($filter_date_to); ?>">
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-12">
+        <div class="col-xl-3 col-lg-2 col-md-12 mb-3">
             <div class="d-flex gap-2" style="gap: 6px;">
                 <button type="submit" class="btn btn-primary flex-grow-1 font-weight-bold">
                     <i class="fas fa-filter mr-1"></i> Filter
                 </button>
-                <?php if (!empty($search_q) || !empty($filter_category) || !empty($filter_month) || !empty($filter_date_from) || !empty($filter_date_to)): ?>
-                    <a href="manage_companies.php" class="btn btn-light text-muted" title="Reset Filters"><i class="fas fa-undo"></i></a>
+                <?php if (!empty($search_q) || !empty($filter_category) || !empty($filter_status) || !empty($filter_month) || !empty($filter_date_from) || !empty($filter_date_to)): ?>
+                    <a href="manage_companies.php" class="btn btn-light text-muted" title="Reset All Filters"><i class="fas fa-undo"></i></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -203,11 +310,16 @@ if ($stats_query['count'] > 0) {
 
 <!-- Records Table -->
 <div class="section-card">
-    <div class="p-3 px-4 d-flex justify-content-between align-items-center border-bottom bg-white">
+    <div class="p-3 px-4 d-flex justify-content-between align-items-center border-bottom bg-white flex-wrap gap-2">
         <div class="font-weight-bold text-dark" style="font-size: 0.95rem;">
             Showing <?php echo number_format($total_records); ?> Records (Page <?php echo $page; ?> of <?php echo max(1, $total_pages); ?>)
+            <?php if (!empty($filter_status)): ?>
+                <span class="badge <?php echo $filter_status === 'BLOCK' ? 'badge-danger' : 'badge-success'; ?> ml-1">
+                    Filtered: <?php echo $filter_status; ?>
+                </span>
+            <?php endif; ?>
         </div>
-        <div>
+        <div class="d-flex align-items-center gap-2" style="gap: 8px;">
             <a href="upload_companies.php" class="btn btn-sm btn-outline-success font-weight-bold rounded-pill px-3">
                 <i class="fas fa-upload mr-1"></i> Upload Excel
             </a>
@@ -219,19 +331,25 @@ if ($stats_query['count'] > 0) {
             <thead>
                 <tr>
                     <th style="width: 70px;">ID</th>
-                    <th style="width: 120px;">Category</th>
-                    <th style="width: 230px;">CIN / LLPIN / FCIN</th>
+                    <th style="width: 110px;">Category</th>
+                    <th style="width: 220px;">CIN / LLPIN / FCIN</th>
                     <th>Company Name</th>
                     <th>Class / Type</th>
-                    <th style="width: 90px;">Activity</th>
-                    <th style="width: 130px;">Reg Date</th>
-                    <th style="width: 110px;" class="text-right">Actions</th>
+                    <th style="width: 85px;">Activity</th>
+                    <th style="width: 115px;">Reg Date</th>
+                    <th style="width: 135px;" class="text-center">Status</th>
+                    <th style="width: 115px;" class="text-right">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($companies['count'] > 0): ?>
                     <?php foreach ($companies['data'] as $c): ?>
-                        <tr>
+                        <?php 
+                        $is_blocked = (strtoupper($c['status'] ?? '') === 'BLOCK');
+                        $current_status = $is_blocked ? 'BLOCK' : 'ACTIVE';
+                        $next_status = $is_blocked ? 'ACTIVE' : 'BLOCK';
+                        ?>
+                        <tr id="company-row-<?php echo $c['id']; ?>">
                             <td class="text-muted small">#<?php echo $c['id']; ?></td>
                             <td>
                                 <?php 
@@ -251,7 +369,9 @@ if ($stats_query['count'] > 0) {
                                 </span>
                             </td>
                             <td>
-                                <strong class="text-dark d-block" style="font-size: 0.9rem;"><?php echo htmlspecialchars($c['company_name']); ?></strong>
+                                <a href="edit_company.php?id=<?php echo $c['id']; ?>" class="text-dark d-block text-decoration-none" style="font-size: 0.9rem;" title="Click to Edit this Company">
+                                    <strong class="text-dark"><?php echo htmlspecialchars($c['company_name']); ?></strong>
+                                </a>
                                 <small class="text-muted"><i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo htmlspecialchars($c['roc_state'] ?? $c['state'] ?? 'N/A'); ?></small>
                             </td>
                             <td>
@@ -266,9 +386,45 @@ if ($stats_query['count'] > 0) {
                                     <i class="far fa-calendar text-muted mr-1"></i> <?php echo !empty($c['registration_date']) ? date('d-M-Y', strtotime($c['registration_date'])) : '-'; ?>
                                 </span>
                             </td>
+                            <!-- Interactive Status Button -->
+                            <td class="text-center" id="status-cell-<?php echo $c['id']; ?>">
+                                <button type="button" 
+                                        class="btn btn-sm btn-status-toggle w-100 <?php echo $is_blocked ? 'btn-outline-danger' : 'btn-outline-success'; ?> font-weight-bold"
+                                        style="border-radius: 20px; font-size: 0.78rem; padding: 4px 10px; transition: all 0.2s;"
+                                        data-id="<?php echo $c['id']; ?>"
+                                        data-name="<?php echo htmlspecialchars($c['company_name']); ?>"
+                                        data-current="<?php echo $current_status; ?>"
+                                        data-next="<?php echo $next_status; ?>"
+                                        title="<?php echo $is_blocked ? 'Currently HIDDEN on website. Click to set ACTIVE.' : 'Currently VISIBLE on website. Click to BLOCK.'; ?>">
+                                    <?php if ($is_blocked): ?>
+                                        <i class="fas fa-ban mr-1"></i> <span>BLOCK</span>
+                                        <span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Hidden on Web</span>
+                                    <?php else: ?>
+                                        <i class="fas fa-check-circle mr-1"></i> <span>ACTIVE</span>
+                                        <span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Visible on Web</span>
+                                    <?php endif; ?>
+                                </button>
+                            </td>
                             <td class="text-right">
                                 <div class="d-inline-flex gap-1" style="gap: 5px;">
-                                    <a href="edit_company.php?id=<?php echo $c['id']; ?>" class="btn-action-circle text-primary" title="Edit Company">
+                                    <?php 
+                                    $action_params = $_GET;
+                                    $action_params['toggle_status_id'] = $c['id'];
+                                    $action_params['to_status'] = $next_status;
+                                    $action_url = 'manage_companies.php?' . http_build_query($action_params);
+                                    ?>
+                                    <a href="../company-incorporation?cin=<?php echo urlencode($c['cin']); ?>" target="_blank" class="btn-action-circle text-info" title="View on Public Website">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                    <a href="<?php echo $action_url; ?>" 
+                                       class="btn-action-circle <?php echo $is_blocked ? 'text-success' : 'text-warning'; ?> action-status-link-<?php echo $c['id']; ?>" 
+                                       data-id="<?php echo $c['id']; ?>"
+                                       data-next="<?php echo $next_status; ?>"
+                                       title="<?php echo $is_blocked ? 'Show on website (Set ACTIVE)' : 'Hide from website (Set BLOCK)'; ?>"
+                                       onclick="return confirm('Change status of this company to <?php echo $next_status; ?> (<?php echo $next_status === 'ACTIVE' ? 'Show on website' : 'Hide from website'; ?>)?');">
+                                        <i class="fas <?php echo $is_blocked ? 'fa-eye' : 'fa-eye-slash'; ?>"></i>
+                                    </a>
+                                    <a href="edit_company.php?id=<?php echo $c['id']; ?>" class="btn-action-circle text-primary" title="Edit Company Details">
                                         <i class="fas fa-pen"></i>
                                     </a>
                                     <a href="manage_companies.php?del=<?php echo $c['id']; ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this company record?');">
@@ -280,7 +436,7 @@ if ($stats_query['count'] > 0) {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="9" class="text-center py-5 text-muted">
                             <i class="fas fa-search fa-3x mb-3 d-block text-muted opacity-50"></i>
                             <h6 class="font-weight-bold">No Company Records Found</h6>
                             <p class="small text-muted mb-0">Try adjusting your search filters or upload a new MCA Excel sheet.</p>
@@ -329,5 +485,119 @@ if ($stats_query['count'] > 0) {
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Quick AJAX Status Toggle
+    const toggleButtons = document.querySelectorAll('.btn-status-toggle');
+    const toastContainer = document.getElementById('statusToastContainer');
+    const toastBox = document.getElementById('statusToast');
+    const toastMsg = document.getElementById('statusToastMsg');
+    const toastIcon = document.getElementById('statusToastIcon');
+    let toastTimeout = null;
+
+    function showToast(message, isSuccess) {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastMsg.textContent = message;
+        if (isSuccess) {
+            toastBox.className = 'alert alert-success shadow-lg border-0 d-flex align-items-center py-2 px-3';
+            toastIcon.className = 'fas fa-check-circle mr-2 fa-lg';
+        } else {
+            toastBox.className = 'alert alert-danger shadow-lg border-0 d-flex align-items-center py-2 px-3';
+            toastIcon.className = 'fas fa-exclamation-triangle mr-2 fa-lg';
+        }
+        toastContainer.style.display = 'block';
+        toastTimeout = setTimeout(() => {
+            toastContainer.style.display = 'none';
+        }, 3500);
+    }
+
+    toggleButtons.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+            const currentStatus = this.getAttribute('data-current');
+            const nextStatus = this.getAttribute('data-next');
+
+            // Optimistic loading state
+            const origHtml = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
+            this.disabled = true;
+
+            fetch('manage_companies.php?toggle_status_id=' + encodeURIComponent(id) + '&to_status=' + encodeURIComponent(nextStatus) + '&ajax=1', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.disabled = false;
+                if (data.status === 'success') {
+                    const isNowBlocked = (data.new_status === 'BLOCK');
+                    const newNext = isNowBlocked ? 'ACTIVE' : 'BLOCK';
+
+                    // Update button styling and contents
+                    this.setAttribute('data-current', data.new_status);
+                    this.setAttribute('data-next', newNext);
+
+                    if (isNowBlocked) {
+                        this.className = 'btn btn-sm btn-status-toggle w-100 btn-outline-danger font-weight-bold';
+                        this.innerHTML = '<i class="fas fa-ban mr-1"></i> <span>BLOCK</span><span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Hidden on Web</span>';
+                        this.title = 'Currently HIDDEN on website. Click to set ACTIVE.';
+                    } else {
+                        this.className = 'btn btn-sm btn-status-toggle w-100 btn-outline-success font-weight-bold';
+                        this.innerHTML = '<i class="fas fa-check-circle mr-1"></i> <span>ACTIVE</span><span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Visible on Web</span>';
+                        this.title = 'Currently VISIBLE on website. Click to BLOCK.';
+                    }
+
+                    // Update corresponding action link icon and title in same row
+                    const actionLink = document.querySelector('.action-status-link-' + id);
+                    if (actionLink) {
+                        actionLink.setAttribute('data-next', newNext);
+                        if (isNowBlocked) {
+                            actionLink.className = 'btn-action-circle text-success action-status-link-' + id;
+                            actionLink.innerHTML = '<i class="fas fa-eye"></i>';
+                            actionLink.title = 'Show on website (Set ACTIVE)';
+                        } else {
+                            actionLink.className = 'btn-action-circle text-warning action-status-link-' + id;
+                            actionLink.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                            actionLink.title = 'Hide from website (Set BLOCK)';
+                        }
+                    }
+
+                    // Update header counters if present
+                    const activeCountEl = document.getElementById('hdr-active-count');
+                    const blockCountEl = document.getElementById('hdr-block-count');
+                    if (activeCountEl && blockCountEl) {
+                        let activeVal = parseInt(activeCountEl.textContent.replace(/,/g, '')) || 0;
+                        let blockVal = parseInt(blockCountEl.textContent.replace(/,/g, '')) || 0;
+                        if (isNowBlocked) {
+                            activeVal = Math.max(0, activeVal - 1);
+                            blockVal = blockVal + 1;
+                        } else {
+                            activeVal = activeVal + 1;
+                            blockVal = Math.max(0, blockVal - 1);
+                        }
+                        activeCountEl.textContent = activeVal.toLocaleString();
+                        blockCountEl.textContent = blockVal.toLocaleString();
+                    }
+
+                    showToast((name ? name + ': ' : '') + data.message, true);
+                } else {
+                    this.innerHTML = origHtml;
+                    showToast(data.message || 'Error updating company status', false);
+                }
+            })
+            .catch(err => {
+                this.disabled = false;
+                this.innerHTML = origHtml;
+                showToast('Network error while updating status', false);
+            });
+        });
+    });
+});
+</script>
 
 <?php require_once('includes/footer.php'); ?>

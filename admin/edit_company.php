@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $activity_code = trim($_POST['activity_code']);
     $registration_date = !empty($_POST['registration_date']) ? $_POST['registration_date'] : null;
     $report_month = !empty($_POST['report_month']) ? trim($_POST['report_month']) : ($registration_date ? date('Y-m', strtotime($registration_date)) : date('Y-m'));
-    $status = !empty($_POST['status']) ? trim($_POST['status']) : 'ACTIVE';
+    $status = (isset($_POST['status']) && strtoupper(trim($_POST['status'])) === 'BLOCK') ? 'BLOCK' : 'ACTIVE';
 
     if (empty($cin) || empty($company_name)) {
         $msg = "CIN/LLPIN and Company Name are required fields.";
@@ -148,9 +148,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="date" name="registration_date" class="form-control" value="<?php echo htmlspecialchars($company['registration_date'] ?? ''); ?>">
                     </div>
 
-                    <div class="col-md-4 form-group mb-4">
+                    <div class="col-md-4 form-group mb-3">
                         <label class="small font-weight-bold text-muted mb-1">Report Month</label>
                         <input type="text" name="report_month" class="form-control" placeholder="e.g. Sep 2026" value="<?php echo htmlspecialchars($company['report_month'] ?? ''); ?>">
+                    </div>
+
+                    <div class="col-md-6 form-group mb-4">
+                        <label class="small font-weight-bold text-muted mb-1">Status (Website Visibility) *</label>
+                        <select name="status" class="form-control font-weight-bold" required>
+                            <option value="ACTIVE" <?php echo (strtoupper($company['status'] ?? 'ACTIVE') !== 'BLOCK') ? 'selected' : ''; ?>>ACTIVE (Show in Website)</option>
+                            <option value="BLOCK" <?php echo (strtoupper($company['status'] ?? '') === 'BLOCK') ? 'selected' : ''; ?>>BLOCK (Do Not Show in Website)</option>
+                        </select>
+                        <small class="form-text text-muted">ACTIVE shows the company on search and detail pages. BLOCK hides it completely.</small>
                     </div>
                 </div>
 

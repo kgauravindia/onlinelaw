@@ -12,6 +12,7 @@
     $page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
     $limit = 30;
     $offset = ($page - 1) * $limit;
+    $is_admin = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
 
     $single_company = null;
     $canonical_url = $base_url . "company-incorporation";
@@ -35,7 +36,7 @@
 
     // Only query database for search results when a query or filter is active
     if ($has_search) {
-        $where = ["1=1"];
+        $where = [$is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')"];
         if (!empty($q_param)) {
             $sq = mysqli_real_escape_string($con, $q_param);
             $sub_clauses = ["cin LIKE '%$sq%'", "company_name LIKE '%$sq%'", "activity_code = '$sq'"];
@@ -83,8 +84,8 @@
         $companies_list = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY registration_date DESC, id DESC LIMIT $offset, $limit");
     }
 
-    // Stats breakdown
-    $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
+    // Stats breakdown (Active companies only)
+    $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') GROUP BY category");
     $stats = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0, 'TOTAL' => 0];
     if ($stats_res['count'] > 0) {
         foreach ($stats_res['data'] as $s) {
@@ -426,6 +427,26 @@ $company_schema = [
                 // Resolve full NIC 2025 classification
                 $nic_info = get_nic_details($single_company['cin'] ?: $single_company['activity_code']);
             ?>
+
+            <?php if ($is_admin): ?>
+            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2 px-3 shadow-sm border-0" style="border-radius: var(--radius-md); background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc;">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="badge badge-warning text-dark font-weight-bold px-2.5 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> Admin View</span>
+                    <span class="small text-light">Status: <strong class="<?php echo (strtoupper($single_company['status'] ?? '') === 'BLOCK') ? 'text-danger' : 'text-success'; ?>"><?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?></strong></span>
+                    <span class="small text-muted">&bull;</span>
+                    <span class="small text-muted font-monospace">ID #<?php echo $single_company['id']; ?></span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0" style="gap: 8px;">
+                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $single_company['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-3 shadow-sm" style="border-radius: 20px; background: #f59e0b; border: none;">
+                        <i class="fas fa-edit mr-1"></i> Edit Company in Admin
+                    </a>
+                    <a href="<?php echo $base_url; ?>admin/manage_companies.php?q=<?php echo urlencode($single_company['cin']); ?>" target="_blank" class="btn btn-sm btn-outline-light px-3" style="border-radius: 20px;">
+                        <i class="fas fa-list mr-1"></i> Manage in Admin
+                    </a>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3 border-bottom mb-4">
                     <div>
@@ -433,9 +454,15 @@ $company_schema = [
                             <span class="badge <?php echo $badgeClass; ?> px-3 py-1 text-uppercase rounded-pill">
                                 <?php echo htmlspecialchars($single_company['category']); ?> COMPANY
                             </span>
-                            <span class="badge badge-success px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857;">
-                                <i class="fas fa-check-circle mr-1"></i> <?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?>
-                            </span>
+                            <?php if (strtoupper($single_company['status'] ?? '') === 'BLOCK'): ?>
+                                <span class="badge badge-danger px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #fef2f2; color: #b91c1c;">
+                                    <i class="fas fa-ban mr-1"></i> BLOCKED (Hidden from Public)
+                                </span>
+                            <?php else: ?>
+                                <span class="badge badge-success px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857;">
+                                    <i class="fas fa-check-circle mr-1"></i> <?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
                         <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(20px, 3vw, 28px); font-family: var(--font-heading);">
                             <?php echo htmlspecialchars($single_company['company_name']); ?>
@@ -449,10 +476,13 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();">
+                        <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $single_company['id']; ?>" target="_blank" class="btn btn-warning font-weight-bold shadow-sm text-dark" style="border-radius: var(--radius-md); background: #f59e0b; border: none;">
+                            <i class="fas fa-edit mr-1"></i> Edit in Admin
+                        </a>
+                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: var(--radius-md);">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
-                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold">
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold" style="border-radius: var(--radius-md);">
                             <i class="fas fa-arrow-left mr-1"></i> Back to All
                         </a>
                     </div>
@@ -674,10 +704,15 @@ $company_schema = [
                                             <td class="px-4 py-3 align-middle small text-muted">
                                                 <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
                                             </td>
-                                            <td class="px-4 py-3 align-middle text-right">
+                                            <td class="px-4 py-3 align-middle text-right text-nowrap">
                                                 <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
                                                     View
                                                 </a>
+                                                <?php if ($is_admin): ?>
+                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none;" title="Edit in Admin">
+                                                        <i class="fas fa-edit mr-1"></i> Edit
+                                                    </a>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -736,10 +771,17 @@ $company_schema = [
                                         </div>
                                     </div>
 
-                                    <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
-                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
-                                            View Details &rarr;
-                                        </a>
+                                    <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="d-flex align-items-center" style="gap: 6px;">
+                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                                View Details &rarr;
+                                            </a>
+                                            <?php if ($is_admin): ?>
+                                                <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none;" title="Edit in Admin">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
                                         <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($comp['cin']); ?>'); alert('CIN copied: <?php echo htmlspecialchars($comp['cin']); ?>');" title="Copy CIN">
                                             <i class="far fa-copy"></i>
                                         </button>

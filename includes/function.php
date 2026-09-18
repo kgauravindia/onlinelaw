@@ -1406,33 +1406,35 @@ function resolve_company_incorporation($param) {
     if (empty($param)) return null;
 
     $safe = mysqli_real_escape_string($con, $param);
+    $is_admin = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
+    $active_filter = $is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')";
     
     // 1. Direct CIN match (e.g. U88100ME2026NPL476032, ADB-7416, F07073)
-    $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe' LIMIT 1");
+    $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe' AND $active_filter LIMIT 1");
     if ($res['count'] > 0) return $res['data'][0];
 
     // 2. Check 21-char Indian CIN from end of slug: e.g. u88100me2026npl476032
     if (preg_match('/([lu][0-9]{5}[a-z]{2}[0-9]{4}[a-z]{3}[0-9]{6})$/i', $param, $m)) {
         $cin_cand = mysqli_real_escape_string($con, strtoupper($m[1]));
-        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$cin_cand' LIMIT 1");
+        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$cin_cand' AND $active_filter LIMIT 1");
         if ($res['count'] > 0) return $res['data'][0];
     }
 
     // 3. Check LLPIN from end: e.g. adb-7416 or adb7416
     if (preg_match('/([a-z]{3})-?([0-9]{4,8})$/i', $param, $m)) {
         $llp_cand1 = mysqli_real_escape_string($con, strtoupper($m[1] . '-' . $m[2]));
-        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$llp_cand1' LIMIT 1");
+        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$llp_cand1' AND $active_filter LIMIT 1");
         if ($res['count'] > 0) return $res['data'][0];
 
         $llp_cand2 = mysqli_real_escape_string($con, strtoupper($m[1] . $m[2]));
-        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$llp_cand2' LIMIT 1");
+        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$llp_cand2' AND $active_filter LIMIT 1");
         if ($res['count'] > 0) return $res['data'][0];
     }
 
     // 4. Check Foreign FCRN from end: e.g. f07073
     if (preg_match('/(f[0-9]{5,8})$/i', $param, $m)) {
         $f_cand = mysqli_real_escape_string($con, strtoupper($m[1]));
-        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$f_cand' LIMIT 1");
+        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$f_cand' AND $active_filter LIMIT 1");
         if ($res['count'] > 0) return $res['data'][0];
     }
 
@@ -1440,13 +1442,13 @@ function resolve_company_incorporation($param) {
     $parts = explode('-', $param);
     if (count($parts) > 1) {
         $last_part = mysqli_real_escape_string($con, strtoupper(end($parts)));
-        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$last_part' LIMIT 1");
+        $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$last_part' AND $active_filter LIMIT 1");
         if ($res['count'] > 0) return $res['data'][0];
         
         // try last two parts for LLP e.g. ADB and 7416
         if (count($parts) >= 2) {
             $last_two = mysqli_real_escape_string($con, strtoupper($parts[count($parts)-2] . '-' . $parts[count($parts)-1]));
-            $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$last_two' LIMIT 1");
+            $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$last_two' AND $active_filter LIMIT 1");
             if ($res['count'] > 0) return $res['data'][0];
         }
     }
