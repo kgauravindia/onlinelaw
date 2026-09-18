@@ -450,10 +450,9 @@
             <div class="col-lg-4 text-lg-right mt-4 mt-lg-0 d-none d-lg-block">
                 <div class="d-inline-flex align-items-center p-3 rounded-xl shadow-lg text-left" style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 16px;">
                     <div class="mr-3">
-                        <div class="small font-weight-bold text-uppercase" style="color: #94a3b8; font-size: 10.5px; letter-spacing: 0.8px;">Helpline Numbers</div>
-                        <div class="font-weight-bold" style="font-size: 13.5px; line-height: 1.4;">
+                        <div class="font-weight-bold" style="font-size: 14.5px; line-height: 1.5;">
                             <a href="tel:+919431426600" class="text-white text-decoration-none d-block">+91 9431 42 6600</a>
-                            <a href="tel:+919430552117" class="text-white-50 text-decoration-none d-block small mt-0.5">+91 9430 55 2117</a>
+                            <a href="tel:+919430552117" class="text-white text-decoration-none d-block mt-1">+91 9430 55 2117</a>
                         </div>
                     </div>
                     <div class="p-2 rounded-circle shadow-sm" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #ffffff; font-size: 15px;">
@@ -495,7 +494,7 @@
         <div class="row">
             
             <!-- Card 1: Online Ticket & Contact Form (Recommended) -->
-            <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="col-lg-4 col-md-6 mb-4 d-flex">
                 <div class="contact-card-premium w-100" style="border-top: 3px solid var(--primary-color);">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -506,14 +505,14 @@
                                 RECOMMENDED
                             </span>
                         </div>
-                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 17px;">
+                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 18px;">
                             Online Ticket Form
                         </h5>
                         <div class="badge badge-success px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
                             <i class="fas fa-bolt mr-1"></i> Fast 3-Day SLA
                         </div>
-                        <p class="text-muted small mb-3" style="line-height: 1.5;">
-                            Direct queue with automated ticket generation. Best for company delisting, NIC, and IFSC queries.
+                        <p class="text-muted small mb-3" style="line-height: 1.6;">
+                            Direct priority queue with automated ticket tracking. Best for company delisting, NIC, IFSC, and legal directory queries.
                         </p>
                     </div>
                     <a href="#contact-form-section" class="btn btn-sm btn-primary font-weight-bold py-2 shadow-sm" style="border-radius: 8px;">
@@ -523,7 +522,7 @@
             </div>
 
             <!-- Card 2: Email Desk -->
-            <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="col-lg-4 col-md-6 mb-4 d-flex">
                 <div class="contact-card-premium w-100" style="border-top: 3px solid #10b981;">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -534,14 +533,14 @@
                                 DIRECT DESK
                             </span>
                         </div>
-                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 17px;">
+                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 18px;">
                             Email Support
                         </h5>
                         <div class="badge badge-success px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
                             <i class="fas fa-clock mr-1"></i> 3-Day Turnaround
                         </div>
-                        <p class="text-muted small mb-2" style="line-height: 1.5;">
-                            Send official letters, API partnership proposals, or supporting documentation.
+                        <p class="text-muted small mb-2" style="line-height: 1.6;">
+                            Send official letters, API partnership proposals, or supporting documentation directly to our support inbox.
                         </p>
                         <div class="mb-3">
                             <a href="mailto:<?php echo $inst_email; ?>" class="text-dark font-weight-bold text-decoration-none small">
@@ -555,52 +554,30 @@
                 </div>
             </div>
 
-            <!-- Card 3: Registered Office -->
-            <div class="col-lg-3 col-md-6 mb-4 d-flex">
-                <div class="contact-card-premium w-100" style="border-top: 3px solid #6366f1;">
-                    <div>
-                        <div class="channel-icon-squircle text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1) !important;">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: 17px;">
-                            Registered Office
-                        </h5>
-                        <p class="text-muted small mb-3" style="line-height: 1.5;">
-                            <strong class="text-dark font-weight-semibold">OfferPlant Technologies Pvt Ltd</strong><br>
-                            <?php echo !empty($inst_address1) ? htmlspecialchars($inst_address1) : 'Corporate Headquarters'; ?><br>
-                            <?php echo !empty($inst_address2) ? htmlspecialchars($inst_address2) : 'India'; ?>
-                        </p>
-                    </div>
-                    <a href="#location-map" class="btn btn-sm btn-light border font-weight-bold text-primary mt-2">
-                        <i class="fas fa-map-marker-alt mr-1"></i> View on Map
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 4: Support Helpline (Down the page notice) -->
-            <div class="col-lg-3 col-md-6 mb-4 d-flex">
-                <div class="contact-card-premium w-100" style="border-top: 3px solid #f59e0b; background: #fffdfa;">
+            <!-- Card 3: Delisting & Complaints Desk -->
+            <div class="col-lg-4 col-md-6 mb-4 d-flex">
+                <div class="contact-card-premium w-100" style="border-top: 3px solid #ef4444;">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="channel-icon-squircle text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #d97706, #f59e0b) !important;">
-                                <i class="fas fa-phone-alt"></i>
+                            <div class="channel-icon-squircle text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #dc2626, #ef4444) !important;">
+                                <i class="fas fa-shield-alt"></i>
                             </div>
-                            <span class="badge badge-warning text-dark px-2.5 py-1 text-uppercase font-weight-bold" style="font-size: 10px; border-radius: 20px;">
-                                CALL DESK
+                            <span class="badge badge-danger px-2.5 py-1 text-uppercase font-weight-bold" style="font-size: 10px; border-radius: 20px;">
+                                PRIORITY DESK
                             </span>
                         </div>
-                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 17px;">
-                            Support Helpline
+                        <h5 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading); font-size: 18px;">
+                            Delisting &amp; Complaints
                         </h5>
-                        <div class="badge badge-warning text-dark px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
-                            <i class="fas fa-hourglass-half mr-1"></i> 7 Working Days
+                        <div class="badge badge-success px-2.5 py-1 mb-2 font-weight-bold" style="font-size: 11px;">
+                            <i class="fas fa-bolt mr-1"></i> Fast 3-Day SLA
                         </div>
-                        <p class="text-muted small mb-2" style="line-height: 1.5;">
-                            Operating strictly <strong class="text-dark">10 AM to 4 PM (Mon&ndash;Fri)</strong>. High call queues apply.
+                        <p class="text-muted small mb-3" style="line-height: 1.6;">
+                            Submit requests to remove, delist, or correct company records, director information, and public directory entries.
                         </p>
                     </div>
-                    <a href="#support-helpline" class="btn btn-sm btn-light border font-weight-bold text-warning mt-2">
-                        <i class="fas fa-phone mr-1"></i> View Helpline Numbers &darr;
+                    <a href="#contact-form-section" class="btn btn-sm btn-light border font-weight-bold text-danger py-2">
+                        <i class="fas fa-flag mr-1"></i> File Delisting Request &rarr;
                     </a>
                 </div>
             </div>
@@ -946,17 +923,14 @@
                         <span class="badge badge-warning text-dark font-weight-bold px-3 py-1 rounded-pill" style="font-size: 11px;">
                             <i class="fas fa-phone-volume mr-1"></i> Telephonic &amp; WhatsApp Support Desk
                         </span>
-                        <span class="badge badge-light border text-muted font-weight-bold px-2.5 py-1 rounded-pill" style="font-size: 11px;">
-                            10 AM to 4 PM Only &bull; Mon to Fri
-                        </span>
                     </div>
 
                     <h3 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading); font-size: clamp(20px, 3vw, 26px);">
-                        Support Helpline &amp; Calling Hours
+                        Support Helpline
                     </h3>
                     
                     <p class="text-muted small mb-3" style="line-height: 1.7;">
-                        Speak to our support team during standard operational hours. <strong class="text-dark">(10 AM to 4 PM Only ) Mon to Fri</strong>.
+                        Speak to our support team for telephone inquiries and assistance.
                     </p>
 
                     <!-- Important Notice & Comparative Turnaround -->
@@ -965,7 +939,7 @@
                             <i class="fas fa-exclamation-triangle mt-1 mr-2.5 text-warning" style="font-size: 16px;"></i>
                             <div class="small" style="line-height: 1.6;">
                                 <strong class="d-block mb-1">Turnaround Time &amp; Resolution SLA:</strong>
-                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">7 working days</span> (Subject to manual phone queue &amp; working hours).</div>
+                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">7 working days</span> (Subject to manual phone queue).</div>
                                 <div>&bull; <strong>Email / Online Contact Form:</strong> <span class="text-success font-weight-bold">3 days only</span> (Fast automated ticket creation &amp; priority legal desk).</div>
                                 <div class="mt-2 text-dark font-weight-semibold">
                                     <i class="fas fa-arrow-circle-up text-primary mr-1"></i> To save time and get your request processed faster, please fill the online form above.
@@ -986,14 +960,10 @@
 
                 <div class="col-lg-5">
                     <div class="p-4 rounded-xl shadow-sm border" style="background: #f8fafc; border-radius: var(--radius-lg);">
-                        <div class="small text-muted font-weight-bold text-uppercase mb-3" style="letter-spacing: 0.5px;">
-                            <i class="fas fa-headset text-primary mr-1"></i> Direct Calling Helpline Numbers
-                        </div>
                         
                         <!-- Number 1 -->
                         <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border mb-2.5">
                             <div>
-                                <div class="small text-muted font-weight-semibold">Support Desk 1:</div>
                                 <a href="tel:+919431426600" class="text-dark font-weight-bold" style="font-size: 17px; text-decoration: none;">
                                     +91 9431 42 6600
                                 </a>
@@ -1004,9 +974,8 @@
                         </div>
 
                         <!-- Number 2 -->
-                        <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border mb-3">
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-lg bg-white border">
                             <div>
-                                <div class="small text-muted font-weight-semibold">Support Desk 2:</div>
                                 <a href="tel:+919430552117" class="text-dark font-weight-bold" style="font-size: 17px; text-decoration: none;">
                                     +91 9430 55 2117
                                 </a>
@@ -1014,11 +983,6 @@
                             <a href="tel:+919430552117" class="btn btn-sm btn-light border rounded-circle text-primary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" title="Call +91 9430 55 2117">
                                 <i class="fas fa-phone"></i>
                             </a>
-                        </div>
-
-                        <div class="d-flex align-items-center justify-content-between small text-muted pt-2 border-top">
-                            <span><i class="far fa-clock text-warning mr-1"></i> 10:00 AM &ndash; 4:00 PM Only</span>
-                            <span><i class="far fa-calendar-alt text-primary mr-1"></i> Mon to Fri</span>
                         </div>
                     </div>
                 </div>
