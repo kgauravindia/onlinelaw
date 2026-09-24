@@ -527,10 +527,6 @@ $company_schema = [
                             <span class="text-muted"><i class="fas fa-tag mr-2 text-info"></i> Company Type</span>
                             <strong class="text-dark"><?php echo htmlspecialchars($single_company['company_type'] ?: 'N/A'); ?></strong>
                         </div>
-                        <div class="d-flex justify-content-between py-2.5 border-bottom">
-                            <span class="text-muted"><i class="far fa-calendar-alt mr-2 text-success"></i> Official Registration Date</span>
-                            <strong class="text-primary"><?php echo !empty($single_company['registration_date']) ? date('d F Y', strtotime($single_company['registration_date'])) : 'N/A'; ?></strong>
-                        </div>
                     </div>
                     <div class="col-md-6 pl-md-4">
                         <div class="d-flex justify-content-between py-2.5 border-bottom">
