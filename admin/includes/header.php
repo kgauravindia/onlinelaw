@@ -90,6 +90,11 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
                 <?php endif; ?>
             </a>
 
+            <div class="sidebar-nav-section mt-3">Integrations &amp; APIs</div>
+            <a href="manage_api_keys.php" class="nav-link-custom <?php echo in_array($current_page, ['manage_api_keys.php', 'edit_api_key.php']) ? 'active' : ''; ?>" title="API Access Control &amp; Key Manager">
+                <i class="fas fa-key"></i> <span>API Access Control</span>
+            </a>
+
             <div class="sidebar-nav-section mt-3">Administration &amp; SEO</div>
             <a href="manage_sitemap.php" class="nav-link-custom <?php echo ($current_page == 'manage_sitemap.php') ? 'active' : ''; ?>" title="Sitemap & SEO Engine">
                 <i class="fas fa-sitemap"></i> <span>Sitemap Manager</span>

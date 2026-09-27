@@ -134,6 +134,32 @@ $users_count = direct_sql("SELECT count(*) as total FROM op_user");
             </div>
         </div>
     </div>
+
+    <!-- API Access Control & Developer Keys -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="section-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <?php 
+                        $api_keys_cnt = direct_sql("SELECT count(*) as total FROM api_keys");
+                    ?>
+                    <span class="badge-premium badge-premium-primary" style="background: #e0e7ff; color: #4338ca;">
+                        <?php echo isset($api_keys_cnt['data'][0]['total']) ? number_format($api_keys_cnt['data'][0]['total']) : '0'; ?> Keys
+                    </span>
+                </div>
+                <h5 class="font-weight-bold mb-2">API Access Control</h5>
+                <p class="text-muted small mb-4">Developer tokens, endpoint access policies, IP restrictions, and live traffic analytics.</p>
+            </div>
+            <div>
+                <a href="manage_api_keys.php" class="btn btn-sm btn-primary btn-block font-weight-bold py-2">
+                    <i class="fas fa-shield-alt mr-1"></i> Manage API Keys
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php require_once('includes/footer.php'); ?>

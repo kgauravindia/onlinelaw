@@ -251,7 +251,7 @@ $company_schema = [
 
 <style>
     /* ==========================================================================
-       MODERN DESIGN SYSTEM & STYLES FOR COMPANY INCORPORATION DIRECTORY
+       MODERN ULTRA-PREMIUM DESIGN SYSTEM FOR COMPANY INCORPORATIONS
        ========================================================================== */
     :root {
         --incorp-primary: #2563eb;
@@ -261,11 +261,11 @@ $company_schema = [
         --incorp-slate: #1e293b;
         --incorp-emerald: #059669;
         --incorp-amber: #d97706;
+        --incorp-rose: #e11d48;
+        --incorp-purple: #7c3aed;
         --incorp-border: #e2e8f0;
+        --incorp-border-light: #f1f5f9;
         --incorp-card-bg: #ffffff;
-        --incorp-radius-lg: 16px;
-        --incorp-radius-md: 12px;
-        --incorp-radius-sm: 8px;
     }
 
     /* Category Badges */
@@ -349,9 +349,9 @@ $company_schema = [
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.12);
         backdrop-filter: blur(8px);
-        border-radius: 12px;
-        padding: 10px 18px;
-        transition: all 0.25s ease;
+        border-radius: 14px;
+        padding: 10px 20px;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .hero-stat-pill:hover {
         background: rgba(255, 255, 255, 0.12);
@@ -374,7 +374,7 @@ $company_schema = [
 
     .form-control-custom {
         height: 48px;
-        border-radius: 10px;
+        border-radius: 12px;
         border: 1.5px solid #e2e8f0;
         font-size: 14px;
         font-weight: 500;
@@ -385,14 +385,14 @@ $company_schema = [
     .form-control-custom:focus {
         background-color: #ffffff;
         border-color: var(--incorp-primary);
-        box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     }
 
     /* Company Card Elevated (Grid View) */
     .company-card-elevated {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 16px;
+        border-radius: 18px;
         transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.02);
         display: flex;
@@ -421,7 +421,7 @@ $company_schema = [
     }
     .company-card-elevated:hover {
         transform: translateY(-5px);
-        box-shadow: 0 16px 30px -8px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(15, 23, 42, 0.04);
+        box-shadow: 0 18px 32px -8px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(15, 23, 42, 0.04);
         border-color: #cbd5e1;
     }
     .company-card-elevated:hover::before {
@@ -432,9 +432,9 @@ $company_schema = [
     .spec-tile {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 14px;
+        border-radius: 16px;
         padding: 16px 18px;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -445,7 +445,7 @@ $company_schema = [
         background: #f8fafc;
         border-color: #cbd5e1;
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
     }
 
     /* Nav Pills Modern */
@@ -500,7 +500,7 @@ $company_schema = [
     .infographic-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 18px;
+        border-radius: 20px;
         padding: 26px 22px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -510,7 +510,7 @@ $company_schema = [
     }
     .infographic-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 14px 26px -6px rgba(15, 23, 42, 0.08);
         border-color: #cbd5e1;
     }
 
@@ -518,7 +518,7 @@ $company_schema = [
     .cin-anatomy-diagram {
         background: radial-gradient(circle at 80% 20%, #1e293b 0%, #0f172a 100%);
         color: #ffffff;
-        border-radius: 20px;
+        border-radius: 22px;
         padding: 34px 28px;
         position: relative;
         overflow: hidden;
@@ -713,32 +713,32 @@ $company_schema = [
                             <option value="">All Industry Sectors</option>
                             <?php
                             $top_nic_sectors = [
-                                '62' => '62 - Software, IT & Consultancy',
-                                '46' => '46 - Wholesale Trade (B2B)',
-                                '47' => '47 - Retail Trade & E-Commerce',
-                                '68' => '68 - Real Estate Activities',
-                                '85' => '85 - Education & Training',
-                                '70' => '70 - Management Consulting & HQ',
-                                '88' => '88 - Social Work & Foundations',
-                                '43' => '43 - Specialized Construction',
-                                '10' => '10 - Food Manufacturing',
-                                '41' => '41 - Building Construction',
-                                '86' => '86 - Hospitals & Healthcare',
-                                '35' => '35 - Electricity, Solar & Power',
-                                '56' => '56 - Restaurants & Food Service',
-                                '66' => '66 - Financial Services Support',
-                                '78' => '78 - Employment & Placement',
-                                '52' => '52 - Warehousing & Logistics',
-                                '63' => '63 - Data Processing & Hosting',
-                                '55' => '55 - Hotels & Accommodation',
+                                '73' => '73 - Advertising & Market Research',
                                 '01' => '01 - Agriculture & Crop Production',
-                                '20' => '20 - Chemical Products',
-                                '21' => '21 - Pharmaceuticals & Drugs',
-                                '74' => '74 - Professional & Design Services',
-                                '73' => '73 - Advertising & Media',
-                                '42' => '42 - Civil Engineering & Infra',
-                                '79' => '79 - Travel & Tour Operations',
                                 '71' => '71 - Architecture & Engineering',
+                                '41' => '41 - Building Construction & Development',
+                                '20' => '20 - Chemical & Chemical Products',
+                                '42' => '42 - Civil Engineering & Infra',
+                                '63' => '63 - Data Processing, Hosting & Portals',
+                                '85' => '85 - Education & Skill Training',
+                                '35' => '35 - Electricity, Solar & Renewable Power',
+                                '78' => '78 - Employment & Placement Agencies',
+                                '66' => '66 - Financial Services Support',
+                                '10' => '10 - Food Manufacturing & Processing',
+                                '86' => '86 - Hospitals & Healthcare',
+                                '55' => '55 - Hotels & Accommodation',
+                                '70' => '70 - Management Consulting & HQ',
+                                '21' => '21 - Pharmaceuticals & Drugs',
+                                '74' => '74 - Professional, Scientific & Technical',
+                                '68' => '68 - Real Estate Activities',
+                                '56' => '56 - Restaurants & Food Service',
+                                '47' => '47 - Retail Trade & E-Commerce',
+                                '88' => '88 - Social Work & Foundations',
+                                '62' => '62 - Software, IT & Consultancy',
+                                '43' => '43 - Specialized Construction',
+                                '79' => '79 - Travel & Tour Operations',
+                                '52' => '52 - Warehousing & Logistics',
+                                '46' => '46 - Wholesale Trade (B2B)',
                             ];
                             foreach ($top_nic_sectors as $act_code => $act_name) {
                                 $sel = ($activity_param == $act_code || $activity_param == (int)$act_code) ? 'selected' : '';
@@ -761,7 +761,7 @@ $company_schema = [
                         <input type="date" name="date" class="form-control form-control-custom" value="<?php echo htmlspecialchars($date_param); ?>">
                     </div>
                     <div class="col-lg-1 col-md-6">
-                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0 d-flex align-items-center justify-content-center shadow-sm" style="height: 48px; border-radius: 10px;" title="Search Records">
+                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0 d-flex align-items-center justify-content-center shadow-sm" style="height: 48px; border-radius: 12px;" title="Search Records">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -791,14 +791,14 @@ $company_schema = [
 
             <!-- Not Found State -->
             <?php if (!empty($cin_param) && !$single_company): ?>
-            <div class="bg-white rounded-xl shadow-sm border py-5 text-center mb-5" style="border-radius: 18px;">
+            <div class="bg-white rounded-xl shadow-sm border py-5 text-center mb-5" style="border-radius: 20px;">
                 <div class="card-body">
                     <div class="tool-icon-squircle mx-auto mb-3" style="background: #fef2f2; color: #ef4444; width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                         <i class="fas fa-exclamation-circle fa-2x"></i>
                     </div>
                     <h4 class="font-weight-bold text-dark mb-2">Company Record Not Found</h4>
                     <p class="text-muted mb-4" style="max-width: 520px; margin: 0 auto;">We could not locate any incorporation record matching "<strong><?php echo htmlspecialchars($cin_param); ?></strong>". The company may not be registered yet, or the CIN/slug may be incorrect.</p>
-                    <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4" style="border-radius: 10px;">Browse All Companies</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4" style="border-radius: 12px;">Browse All Companies</a>
                 </div>
             </div>
             <?php endif; ?>
@@ -818,7 +818,7 @@ $company_schema = [
             ?>
 
             <?php if ($is_admin): ?>
-            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2.5 px-3.5 shadow-sm border-0" style="border-radius: 12px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc;">
+            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2.5 px-3.5 shadow-sm border-0" style="border-radius: 14px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc;">
                 <div class="d-flex align-items-center flex-wrap gap-2">
                     <span class="badge badge-warning text-dark font-weight-bold px-2.5 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> Admin View</span>
                     <span class="small text-light">Status: <strong class="<?php echo (strtoupper($single_company['status'] ?? '') === 'BLOCK') ? 'text-danger' : 'text-success'; ?>"><?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?></strong></span>
@@ -836,7 +836,7 @@ $company_schema = [
             </div>
             <?php endif; ?>
 
-            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5" style="border-radius: 20px;">
+            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5" style="border-radius: 22px;">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3.5 border-bottom mb-4">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -858,20 +858,20 @@ $company_schema = [
                         </h2>
                         <div class="text-muted small mt-1.5 d-flex align-items-center flex-wrap gap-1">
                             <span>Corporate Identification Number:</span> 
-                            <code class="font-weight-bold text-primary font-monospace fs-6 px-2.5 py-0.5 rounded ml-1" style="background: #eff6ff; font-size: 14px;"><?php echo htmlspecialchars($single_company['cin']); ?></code>
+                            <code class="font-weight-bold text-primary font-monospace fs-6 px-2.5 py-0.5 rounded ml-1" style="background: #eff6ff; font-size: 14px; border: 1px solid #dbeafe;"><?php echo htmlspecialchars($single_company['cin']); ?></code>
                             <button type="button" class="btn btn-sm btn-link p-0 text-primary ml-2 font-weight-semibold" onclick="copyToClipboard('<?php echo htmlspecialchars($single_company['cin']); ?>', 'CIN');" title="Copy CIN to Clipboard">
                                 <i class="far fa-copy"></i> Copy
                             </button>
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold" style="border-radius: 10px;" title="File a complaint or data removal request">
+                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold" style="border-radius: 12px;" title="File a complaint or data removal request">
                             <i class="fas fa-flag mr-1"></i> Complain (Delete Data)
                         </a>
-                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: 10px;">
+                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: 12px;">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
-                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold" style="border-radius: 10px;">
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold" style="border-radius: 12px;">
                             <i class="fas fa-arrow-left mr-1"></i> Back to All
                         </a>
                     </div>
@@ -950,7 +950,7 @@ $company_schema = [
                         <span class="badge badge-light border text-muted small">MoSPI NIC 2025 Standard</span>
                     </div>
 
-                    <div class="p-3.5 rounded-lg border bg-light" style="border-radius: 12px;">
+                    <div class="p-3.5 rounded-lg border bg-light" style="border-radius: 14px;">
                         <div class="row">
                             <?php if (!empty($nic_info['section'])): ?>
                             <div class="col-md-6 mb-2">
@@ -1016,7 +1016,7 @@ $company_schema = [
 
                 <!-- MCA Disclaimer Note -->
                 <div class="mt-4 pt-3 border-top">
-                    <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: 12px;">
+                    <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: 14px;">
                         <div class="d-flex align-items-start gap-2">
                             <i class="fas fa-shield-alt text-secondary mt-1 mr-2" style="font-size: 1.1rem;"></i>
                             <div class="small text-muted" style="line-height: 1.6; width: 100%;">
@@ -1087,7 +1087,7 @@ $company_schema = [
 
                 <?php if ($view_mode === 'table'): ?>
                     <!-- Table View Mode -->
-                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden" style="border-radius: 16px;">
+                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden" style="border-radius: 18px;">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead class="bg-light">
@@ -1124,7 +1124,7 @@ $company_schema = [
                                                 </a>
                                             </td>
                                             <td class="px-4 py-3 align-middle">
-                                                <code class="font-weight-bold text-primary"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                                <code class="font-weight-bold text-primary font-monospace"><?php echo htmlspecialchars($comp['cin']); ?></code>
                                             </td>
                                             <td class="px-4 py-3 align-middle small text-muted">
                                                 <?php echo htmlspecialchars($comp['class'] ?: '-'); ?>
@@ -1145,11 +1145,11 @@ $company_schema = [
                                                 <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
                                             </td>
                                             <td class="px-4 py-3 align-middle text-right text-nowrap">
-                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 6px;">
+                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
                                                     View
                                                 </a>
                                                 <?php if ($is_admin): ?>
-                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 6px;" title="Edit in Admin">
+                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 8px;" title="Edit in Admin">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
                                                 <?php endif; ?>
@@ -1222,11 +1222,11 @@ $company_schema = [
 
                                     <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                         <div class="d-flex align-items-center" style="gap: 6px;">
-                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
+                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 10px;">
                                                 View Details &rarr;
                                             </a>
                                             <?php if ($is_admin): ?>
-                                                <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 8px;" title="Edit in Admin">
+                                                <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
                                                     <i class="fas fa-edit mr-1"></i> Edit
                                                 </a>
                                             <?php endif; ?>
@@ -1279,14 +1279,14 @@ $company_schema = [
                 <?php endif; ?>
 
             <?php else: ?>
-                <div class="bg-white rounded-xl shadow-sm border py-5 text-center" style="border-radius: 18px;">
+                <div class="bg-white rounded-xl shadow-sm border py-5 text-center" style="border-radius: 20px;">
                     <div class="card-body">
                         <div class="tool-icon-squircle mx-auto mb-3" style="background: #f1f5f9; color: #64748b; width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                             <i class="fas fa-building fa-2x"></i>
                         </div>
                         <h4 class="font-weight-bold text-dark mb-2">No Registered Companies Found</h4>
                         <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">No companies matched your query "<strong><?php echo htmlspecialchars($q_param); ?></strong>". Try searching with a different keyword, CIN, or category.</p>
-                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4" style="border-radius: 10px;">Reset Search</a>
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4" style="border-radius: 12px;">Reset Search</a>
                     </div>
                 </div>
             <?php endif; ?>
@@ -1303,7 +1303,7 @@ $company_schema = [
                         </h4>
                         <p class="text-muted small mb-0">Newly registered companies and entities in similar activity and sector.</p>
                     </div>
-                    <a href="<?php echo $base_url; ?>company-incorporation?category=<?php echo urlencode($single_company['category']); ?><?php echo !empty($single_company['activity_code']) ? '&activity='.urlencode($single_company['activity_code']) : ''; ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
+                    <a href="<?php echo $base_url; ?>company-incorporation?category=<?php echo urlencode($single_company['category']); ?><?php echo !empty($single_company['activity_code']) ? '&activity='.urlencode($single_company['activity_code']) : ''; ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 10px;">
                         Browse All &rarr;
                     </a>
                 </div>
@@ -1367,11 +1367,11 @@ $company_schema = [
 
                                 <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                     <div class="d-flex align-items-center" style="gap: 6px;">
-                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
+                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 10px;">
                                             View Details &rarr;
                                         </a>
                                         <?php if ($is_admin): ?>
-                                            <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 8px;" title="Edit in Admin">
+                                            <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
                                                 <i class="fas fa-edit mr-1"></i> Edit
                                             </a>
                                         <?php endif; ?>
@@ -1428,7 +1428,7 @@ $company_schema = [
                 <!-- 6 Explanatory Infographic Rows -->
                 <div class="row">
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                             <span class="badge" style="background: #2563eb; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">1</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Listing Status (1 Char)</h6>
@@ -1437,7 +1437,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                             <span class="badge" style="background: #059669; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">2</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">NIC Activity Code (5 Digits)</h6>
@@ -1446,7 +1446,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                             <span class="badge" style="background: #d97706; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">3</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">State / ROC Code (2 Chars)</h6>
@@ -1455,7 +1455,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                             <span class="badge" style="background: #0284c7; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">4</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Incorporation Year (4 Digits)</h6>
@@ -1464,7 +1464,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                             <span class="badge" style="background: #dc2626; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">5</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Ownership Class (3 Chars)</h6>
@@ -1473,7 +1473,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                             <span class="badge" style="background: #7c3aed; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">6</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Registration Serial (6 Digits)</h6>
@@ -1488,7 +1488,7 @@ $company_schema = [
             <div class="row mb-5">
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #eff6ff; color: #2563eb; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #eff6ff; color: #2563eb; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                             <i class="fas fa-building fa-lg"></i>
                         </div>
                         <div class="h3 font-weight-bold text-dark mb-1"><?php echo number_format($stats['TOTAL']); ?>+</div>
@@ -1497,7 +1497,7 @@ $company_schema = [
                 </div>
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f0fdf4; color: #15803d; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f0fdf4; color: #15803d; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                             <i class="fas fa-city fa-lg"></i>
                         </div>
                         <div class="h3 font-weight-bold text-success mb-1"><?php echo number_format($stats['INDIAN']); ?></div>
@@ -1506,7 +1506,7 @@ $company_schema = [
                 </div>
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #ecfdf5; color: #047857; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #ecfdf5; color: #047857; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                             <i class="fas fa-handshake fa-lg"></i>
                         </div>
                         <div class="h3 font-weight-bold text-dark mb-1"><?php echo number_format($stats['LLP']); ?></div>
@@ -1515,7 +1515,7 @@ $company_schema = [
                 </div>
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #fffbeb; color: #b45309; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #fffbeb; color: #b45309; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                             <i class="fas fa-globe fa-lg"></i>
                         </div>
                         <div class="h3 font-weight-bold text-warning mb-1"><?php echo number_format($stats['FOREIGN']); ?></div>
@@ -1525,7 +1525,7 @@ $company_schema = [
             </div>
 
             <!-- Infographic 3: NIC 2025 Industry Sectors & Activity Code Explorer -->
-            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5" style="border-radius: 20px;">
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5" style="border-radius: 22px;">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -1543,22 +1543,22 @@ $company_schema = [
                     </div>
                 </div>
 
-                <!-- 8 Featured High-Volume Industry Sectors -->
+                <!-- 8 Featured High-Volume Industry Sectors (Alphabetical) -->
                 <div class="row mb-4">
                     <?php
                     $sector_cards = [
-                        ['code' => '62', 'title' => 'Software & Computer Services', 'icon' => 'fa-laptop-code', 'color' => '#2563eb', 'bg' => '#eff6ff', 'count' => '3,830+'],
-                        ['code' => '46', 'title' => 'Wholesale Trade & B2B', 'icon' => 'fa-boxes', 'color' => '#059669', 'bg' => '#ecfdf5', 'count' => '3,150+'],
+                        ['code' => '85', 'title' => 'Education & Skill Training', 'icon' => 'fa-graduation-cap', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'count' => '1,260+'],
+                        ['code' => '86', 'title' => 'Human Health & Hospitals', 'icon' => 'fa-heartbeat', 'color' => '#e11d48', 'bg' => '#fff1f2', 'count' => '740+'],
+                        ['code' => '70', 'title' => 'Management Consulting & HQ', 'icon' => 'fa-briefcase', 'color' => '#0284c7', 'bg' => '#f0f9ff', 'count' => '1,030+'],
                         ['code' => '68', 'title' => 'Real Estate Activities', 'icon' => 'fa-city', 'color' => '#d97706', 'bg' => '#fffbeb', 'count' => '1,950+'],
                         ['code' => '47', 'title' => 'Retail Trade & Commerce', 'icon' => 'fa-shopping-cart', 'color' => '#dc2626', 'bg' => '#fef2f2', 'count' => '1,740+'],
-                        ['code' => '85', 'title' => 'Education & Skill Training', 'icon' => 'fa-graduation-cap', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'count' => '1,260+'],
-                        ['code' => '70', 'title' => 'Management Consulting', 'icon' => 'fa-briefcase', 'color' => '#0284c7', 'bg' => '#f0f9ff', 'count' => '1,030+'],
-                        ['code' => '86', 'title' => 'Human Health & Hospitals', 'icon' => 'fa-heartbeat', 'color' => '#e11d48', 'bg' => '#fff1f2', 'count' => '740+'],
+                        ['code' => '62', 'title' => 'Software & Computer Services', 'icon' => 'fa-laptop-code', 'color' => '#2563eb', 'bg' => '#eff6ff', 'count' => '3,830+'],
                         ['code' => '35', 'title' => 'Solar, Gas & Renewable Power', 'icon' => 'fa-bolt', 'color' => '#ca8a04', 'bg' => '#fefce8', 'count' => '670+'],
+                        ['code' => '46', 'title' => 'Wholesale Trade & B2B', 'icon' => 'fa-boxes', 'color' => '#059669', 'bg' => '#ecfdf5', 'count' => '3,150+'],
                     ];
                     foreach ($sector_cards as $sc): ?>
                     <div class="col-lg-3 col-md-6 col-12 mb-3 d-flex">
-                        <a href="<?php echo $base_url; ?>company-incorporation?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.2s; border-color: #e2e8f0; border-radius: 14px;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 18px rgba(0,0,0,0.05)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                        <a href="<?php echo $base_url; ?>company-incorporation?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); border-color: #e2e8f0; border-radius: 16px;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.06)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="d-inline-flex align-items-center justify-content-center rounded-lg" style="width: 38px; height: 38px; background: <?php echo $sc['bg']; ?>; color: <?php echo $sc['color']; ?>; font-size: 16px; border-radius: 10px;">
                                     <i class="fas <?php echo $sc['icon']; ?>"></i>
@@ -1578,7 +1578,7 @@ $company_schema = [
                 </div>
 
                 <!-- Instant NIC 2025 Activity Code Finder Widget -->
-                <div class="p-4 rounded-xl" style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 16px;">
+                <div class="p-4 rounded-xl" style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 18px;">
                     <div class="row align-items-center mb-3">
                         <div class="col-lg-7 col-md-12 mb-2 mb-lg-0">
                             <h5 class="font-weight-bold text-dark mb-1" style="font-size: 16px;">
@@ -1590,7 +1590,7 @@ $company_schema = [
                             <div class="input-group">
                                 <input type="text" id="nicLiveSearchInput" class="form-control form-control-custom" placeholder="Search 2,715 NIC activities..." style="height: 44px;">
                                 <div class="input-group-append">
-                                    <button class="btn btn-primary px-3 font-weight-bold" style="border-radius: 0 10px 10px 0;" type="button" onclick="runNicLiveSearch();">
+                                    <button class="btn btn-primary px-3 font-weight-bold" style="border-radius: 0 12px 12px 0;" type="button" onclick="runNicLiveSearch();">
                                         <i class="fas fa-search"></i> Find
                                     </button>
                                 </div>
@@ -1598,7 +1598,7 @@ $company_schema = [
                         </div>
                     </div>
 
-                    <div id="nicSearchResultsBox" style="display: none;" class="mt-3 bg-white rounded-lg border p-3 shadow-sm" style="border-radius: 12px;">
+                    <div id="nicSearchResultsBox" style="display: none;" class="mt-3 bg-white rounded-lg border p-3 shadow-sm" style="border-radius: 14px;">
                         <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                             <span class="small font-weight-bold text-dark"><i class="fas fa-list mr-1 text-primary"></i> Matching NIC 2025 Codes:</span>
                             <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="document.getElementById('nicSearchResultsBox').style.display='none';"><i class="fas fa-times"></i> Close</button>
@@ -1609,7 +1609,7 @@ $company_schema = [
             </div>
 
             <!-- Infographic 4: Comparative Corporate Classification Matrix -->
-            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5" style="border-radius: 20px;">
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5" style="border-radius: 22px;">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <div class="brand-icon-badge" style="width: 36px; height: 36px; font-size: 16px; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;">
                         <i class="fas fa-balance-scale"></i>
@@ -1665,7 +1665,7 @@ $company_schema = [
             </div>
 
             <!-- Infographic 5: How to Verify Company Status (3 Steps) -->
-            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5" style="border-radius: 20px;">
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5" style="border-radius: 22px;">
                 <div class="row text-center mb-4 justify-content-center">
                     <div class="col-lg-8 col-12">
                         <span class="badge badge-primary px-3 py-1 rounded-pill text-uppercase font-weight-bold mb-2" style="background: #eff6ff; color: #2563eb;">CITIZEN VERIFICATION</span>
@@ -1675,7 +1675,7 @@ $company_schema = [
                 </div>
                 <div class="row">
                     <div class="col-lg-4 col-md-6 col-12 mb-3">
-                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 12px;">
+                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 14px;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge badge-primary rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
                                 <h6 class="font-weight-bold text-dark mb-0">Locate Identification No.</h6>
@@ -1684,7 +1684,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 col-12 mb-3">
-                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 12px;">
+                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 14px;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge badge-success rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
                                 <h6 class="font-weight-bold text-dark mb-0">Search on OnlineLaw</h6>
@@ -1693,7 +1693,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 col-12 mb-3">
-                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 12px;">
+                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 14px;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge badge-info rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
                                 <h6 class="font-weight-bold text-dark mb-0">Verify Compliance Status</h6>
@@ -1707,7 +1707,7 @@ $company_schema = [
         <?php endif; ?>
 
         <!-- Disclaimer: Regarding MCA (Ministry of Corporate Affairs) -->
-        <div class="p-4 rounded-xl border bg-white shadow-sm mt-5 mb-4" style="border-radius: 18px; border-left: 4px solid var(--incorp-primary) !important;">
+        <div class="p-4 rounded-xl border bg-white shadow-sm mt-5 mb-4" style="border-radius: 20px; border-left: 4px solid var(--incorp-primary) !important;">
             <div class="d-flex align-items-start">
                 <div class="p-2 rounded-circle bg-light text-primary mr-3 d-none d-sm-inline-flex" style="width: 44px; height: 44px; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i class="fas fa-balance-scale fa-lg"></i>

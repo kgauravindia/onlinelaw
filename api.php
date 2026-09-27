@@ -1,41 +1,197 @@
 <?php
 require_once ('includes/function.php');
 
-// --- API Logic ---
-if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
-    header('Content-Type: application/json');
+// --- API Logic with Access Control & Security ---
+$api_key_input = '';
+if (isset($_REQUEST['api_key'])) {
+    $api_key_input = trim($_REQUEST['api_key']);
+} elseif (isset($_SERVER['HTTP_X_API_KEY'])) {
+    $api_key_input = trim($_SERVER['HTTP_X_API_KEY']);
+} elseif (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    $auth_header = trim($_SERVER['HTTP_AUTHORIZATION']);
+    if (stripos($auth_header, 'Bearer ') === 0) {
+        $api_key_input = trim(substr($auth_header, 7));
+    }
+} elseif (function_exists('getallheaders')) {
+    $all_hdrs = getallheaders();
+    if (!empty($all_hdrs['X-API-Key'])) {
+        $api_key_input = trim($all_hdrs['X-API-Key']);
+    } elseif (!empty($all_hdrs['x-api-key'])) {
+        $api_key_input = trim($all_hdrs['x-api-key']);
+    } elseif (!empty($all_hdrs['Authorization']) && stripos($all_hdrs['Authorization'], 'Bearer ') === 0) {
+        $api_key_input = trim(substr($all_hdrs['Authorization'], 7));
+    }
+}
+
+if (!empty($api_key_input) && isset($_REQUEST['action'])) {
+    $api_start_time = microtime(true);
+    header('Content-Type: application/json; charset=utf-8');
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-    $api_key_input = trim($_REQUEST['api_key']);
-    $action = $_REQUEST['action'];
-    $response = ['status' => 'success', 'data' => []];
-    
-    // Validate API Key against Database
-    $safe_key = addslashes($api_key_input);
-    $key_res = direct_sql("SELECT * FROM api_keys WHERE api_key = '$safe_key' AND is_active = 1 LIMIT 1");
-    
-    if ($key_res['count'] == 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid or inactive API Key']);
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-Key');
+
+    // Handle preflight OPTIONS request
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
         exit;
+    }
+
+    $action = strtolower(trim($_REQUEST['action']));
+    $response = ['status' => 'success', 'data' => []];
+
+    // Helper to send API response & log
+    $send_api_response = function($status_code, $payload, $key_id = null, $key_str = '') use ($api_start_time, $action) {
+        http_response_code($status_code);
+        $latency = round((microtime(true) - $api_start_time) * 1000, 2);
+
+        // Extract client IP
+        $client_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $client_ip = trim($parts[0]);
+        } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $client_ip = $_SERVER['HTTP_CLIENT_IP'];
+        }
+
+        $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 250);
+        $ref = substr($_SERVER['HTTP_REFERER'] ?? '', 0, 250);
+        $safe_ip = addslashes($client_ip);
+        $safe_ua = addslashes($ua);
+        $safe_ref = addslashes($ref);
+        $safe_endpoint = addslashes($action);
+        $safe_key_str = addslashes($key_str);
+        $key_id_sql = $key_id ? intval($key_id) : "NULL";
+
+        // Log request
+        @direct_sql("INSERT INTO api_logs (api_key_id, api_key, endpoint, ip_address, user_agent, referer, status_code, response_time_ms) VALUES ($key_id_sql, '$safe_key_str', '$safe_endpoint', '$safe_ip', '$safe_ua', '$safe_ref', $status_code, $latency)", 'set');
+
+        echo json_encode($payload);
+        exit;
+    };
+
+    // 1. Validate API Key against Database
+    $safe_key = addslashes($api_key_input);
+    $key_res = direct_sql("SELECT * FROM api_keys WHERE api_key = '$safe_key' LIMIT 1");
+    
+    if (empty($key_res['count']) || $key_res['count'] == 0) {
+        $send_api_response(401, ['status' => 'error', 'message' => 'Invalid API Key.'], null, $api_key_input);
     }
 
     $key_data = $key_res['data'][0];
-    
-    // Check Validity (if set)
-    if ($key_data['valid_until'] && strtotime($key_data['valid_until']) < time()) {
-        echo json_encode(['status' => 'error', 'message' => 'API Key has expired']);
-        exit;
+    $key_id = intval($key_data['id']);
+
+    // 2. Check Active Status
+    if (empty($key_data['is_active']) || intval($key_data['is_active']) !== 1) {
+        $send_api_response(403, ['status' => 'error', 'message' => 'API Key is suspended or inactive.'], $key_id, $api_key_input);
     }
 
-    // Increment Usage Count
-    direct_sql("UPDATE api_keys SET usage_count = usage_count + 1 WHERE id = " . $key_data['id'], 'set');
+    // 3. Check Validity / Expiry Date (if set)
+    if (!empty($key_data['valid_until']) && strtotime($key_data['valid_until'] . ' 23:59:59') < time()) {
+        $send_api_response(403, ['status' => 'error', 'message' => 'API Key has expired on ' . date('d M Y', strtotime($key_data['valid_until'])) . '.'], $key_id, $api_key_input);
+    }
 
+    // 4. Granular Endpoint Access Control Check
+    if (!empty($key_data['allowed_endpoints']) && trim($key_data['allowed_endpoints']) !== '*' && trim($key_data['allowed_endpoints']) !== 'all') {
+        $raw_endpoints = trim($key_data['allowed_endpoints']);
+        $allowed_list = [];
+        if (strpos($raw_endpoints, '[') === 0) {
+            $decoded = json_decode($raw_endpoints, true);
+            if (is_array($decoded)) {
+                $allowed_list = array_map('strtolower', array_map('trim', $decoded));
+            }
+        }
+        if (empty($allowed_list)) {
+            $allowed_list = array_map('strtolower', array_map('trim', explode(',', $raw_endpoints)));
+        }
+
+        if (!in_array($action, $allowed_list)) {
+            $send_api_response(403, [
+                'status' => 'error', 
+                'message' => "Access denied: Endpoint '{$action}' is not permitted for this API Key."
+            ], $key_id, $api_key_input);
+        }
+    }
+
+    // 5. IP Whitelist Restriction Check
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $client_ip = trim($parts[0]);
+    }
+    if (!empty($key_data['allowed_ips'])) {
+        $allowed_ips = array_map('trim', explode(',', $key_data['allowed_ips']));
+        $ip_matched = false;
+        foreach ($allowed_ips as $allowed_ip) {
+            if ($allowed_ip === '*' || $allowed_ip === $client_ip) {
+                $ip_matched = true;
+                break;
+            }
+        }
+        if (!$ip_matched) {
+            $send_api_response(403, [
+                'status' => 'error', 
+                'message' => "Access denied: Requesting IP address '{$client_ip}' is not in the allowed IP whitelist."
+            ], $key_id, $api_key_input);
+        }
+    }
+
+    // 6. Domain / Origin Whitelist Check
+    if (!empty($key_data['allowed_domains'])) {
+        $allowed_domains = array_map('strtolower', array_map('trim', explode(',', $key_data['allowed_domains'])));
+        $request_origin = $_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? '';
+        if (!empty($request_origin)) {
+            $host = parse_url($request_origin, PHP_URL_HOST) ?: $request_origin;
+            $host = strtolower(trim($host));
+            $domain_matched = false;
+            foreach ($allowed_domains as $allowed_dom) {
+                if ($allowed_dom === '*' || $allowed_dom === $host || strpos($host, $allowed_dom) !== false) {
+                    $domain_matched = true;
+                    break;
+                }
+            }
+            if (!$domain_matched) {
+                $send_api_response(403, [
+                    'status' => 'error', 
+                    'message' => "Access denied: Origin domain '{$host}' is not authorized."
+                ], $key_id, $api_key_input);
+            }
+        }
+    }
+
+    // 7. Rate Limiting Check (Daily Quota & Per-Minute RPM)
+    $rate_limit_day = isset($key_data['rate_limit_per_day']) ? intval($key_data['rate_limit_per_day']) : 0;
+    if ($rate_limit_day > 0) {
+        $today_start = date('Y-m-d 00:00:00');
+        $day_calls = direct_sql("SELECT COUNT(*) as total FROM api_logs WHERE api_key_id = $key_id AND created_at >= '$today_start'");
+        $today_count = isset($day_calls['data'][0]['total']) ? intval($day_calls['data'][0]['total']) : 0;
+        if ($today_count >= $rate_limit_day) {
+            $send_api_response(429, [
+                'status' => 'error',
+                'message' => "Daily API quota limit exceeded ({$rate_limit_day} requests/day). Quota resets at midnight UTC."
+            ], $key_id, $api_key_input);
+        }
+    }
+
+    $rate_limit_min = isset($key_data['rate_limit_per_min']) ? intval($key_data['rate_limit_per_min']) : 0;
+    if ($rate_limit_min > 0) {
+        $min_ago = date('Y-m-d H:i:s', time() - 60);
+        $min_calls = direct_sql("SELECT COUNT(*) as total FROM api_logs WHERE api_key_id = $key_id AND created_at >= '$min_ago'");
+        $min_count = isset($min_calls['data'][0]['total']) ? intval($min_calls['data'][0]['total']) : 0;
+        if ($min_count >= $rate_limit_min) {
+            $send_api_response(429, [
+                'status' => 'error',
+                'message' => "Rate limit exceeded ({$rate_limit_min} requests/minute). Please slow down your requests."
+            ], $key_id, $api_key_input);
+        }
+    }
+
+    // Execute Requested Action
     switch ($action) {
         case 'bank-ifsc':
             $ifsc = isset($_REQUEST['ifsc']) ? strtoupper(trim($_REQUEST['ifsc'])) : '';
             if (!empty($ifsc)) {
-                $res = direct_sql("SELECT * FROM bank_ifsc WHERE ifsc = '$ifsc' LIMIT 1");
+                $safe_ifsc = addslashes($ifsc);
+                $res = direct_sql("SELECT * FROM bank_ifsc WHERE ifsc = '$safe_ifsc' LIMIT 1");
                 if ($res['count'] > 0) {
                     $response['data'] = $res['data'][0];
                 } else {
@@ -46,10 +202,26 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
             }
             break;
 
+        case 'bank-micr':
+            $micr = isset($_REQUEST['micr']) ? trim($_REQUEST['micr']) : '';
+            if (!empty($micr)) {
+                $safe_micr = addslashes($micr);
+                $res = direct_sql("SELECT * FROM bank_ifsc WHERE micr = '$safe_micr' LIMIT 10");
+                if ($res['count'] > 0) {
+                    $response['data'] = ($res['count'] == 1) ? $res['data'][0] : $res['data'];
+                } else {
+                    $response = ['status' => 'error', 'message' => 'No record found for MICR: ' . $micr];
+                }
+            } else {
+                $response = ['status' => 'error', 'message' => 'MICR parameter is required'];
+            }
+            break;
+
         case 'pincode':
             $pincode = isset($_REQUEST['pincode']) ? trim($_REQUEST['pincode']) : '';
             if (!empty($pincode)) {
-                $res = direct_sql("SELECT * FROM pincode WHERE pincode = '$pincode' LIMIT 100");
+                $safe_pin = addslashes($pincode);
+                $res = direct_sql("SELECT * FROM pincode WHERE pincode = '$safe_pin' LIMIT 100");
                 if ($res['count'] > 0) {
                     $response['data'] = $res['data'];
                 } else {
@@ -134,12 +306,15 @@ if (isset($_REQUEST['api_key']) && isset($_REQUEST['action'])) {
             break;
 
         default:
-            $response = ['status' => 'error', 'message' => 'Invalid action'];
+            $send_api_response(400, ['status' => 'error', 'message' => 'Invalid action requested.'], $key_id, $api_key_input);
             break;
     }
 
-    echo json_encode($response);
-    exit;
+    // Update Usage Count & Timestamp on Success
+    direct_sql("UPDATE api_keys SET usage_count = usage_count + 1, last_used_at = NOW() WHERE id = " . $key_id, 'set');
+
+    $status_code = ($response['status'] === 'success') ? 200 : 404;
+    $send_api_response($status_code, $response, $key_id, $api_key_input);
 }
 
 // --- Internal API Stats Handler ---
