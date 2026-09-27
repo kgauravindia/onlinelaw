@@ -91,8 +91,12 @@ if (isset($_POST['ajax_action'])) {
         $id = intval($_POST['id'] ?? 0);
         $new_status = intval($_POST['status'] ?? 0);
         if ($id > 0) {
-            direct_sql("UPDATE api_keys SET is_active = $new_status, updated_at = NOW() WHERE id = $id", 'set');
-            echo json_encode(['status' => 'success', 'message' => 'Status updated successfully.']);
+            $q = mysqli_query($con, "UPDATE api_keys SET is_active = $new_status, updated_at = NOW() WHERE id = $id");
+            if ($q) {
+                echo json_encode(['status' => 'success', 'message' => 'Status updated successfully.']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)]);
+            }
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Invalid key ID.']);
         }
@@ -104,8 +108,12 @@ if (isset($_POST['ajax_action'])) {
         if ($id > 0) {
             $new_key = 'OLAW_' . strtoupper(bin2hex(random_bytes(10)));
             $safe_key = addslashes($new_key);
-            direct_sql("UPDATE api_keys SET api_key = '$safe_key', updated_at = NOW() WHERE id = $id", 'set');
-            echo json_encode(['status' => 'success', 'new_key' => $new_key, 'message' => 'API Key regenerated successfully.']);
+            $q = mysqli_query($con, "UPDATE api_keys SET api_key = '$safe_key', updated_at = NOW() WHERE id = $id");
+            if ($q) {
+                echo json_encode(['status' => 'success', 'new_key' => $new_key, 'message' => 'API Key regenerated successfully.']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Database error: ' . mysqli_error($con)]);
+            }
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Invalid key ID.']);
         }
@@ -115,8 +123,8 @@ if (isset($_POST['ajax_action'])) {
     if ($ajax_action === 'delete_key') {
         $id = intval($_POST['id'] ?? 0);
         if ($id > 0) {
-            direct_sql("DELETE FROM api_keys WHERE id = $id", 'set');
-            direct_sql("DELETE FROM api_logs WHERE api_key_id = $id", 'set');
+            mysqli_query($con, "DELETE FROM api_keys WHERE id = $id");
+            mysqli_query($con, "DELETE FROM api_logs WHERE api_key_id = $id");
             echo json_encode(['status' => 'success', 'message' => 'API Key and associated logs deleted.']);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Invalid key ID.']);
@@ -125,7 +133,7 @@ if (isset($_POST['ajax_action'])) {
     }
 
     if ($ajax_action === 'clear_logs') {
-        direct_sql("TRUNCATE TABLE api_logs", 'set');
+        mysqli_query($con, "TRUNCATE TABLE api_logs");
         echo json_encode(['status' => 'success', 'message' => 'All API request logs cleared successfully.']);
         exit;
     }
@@ -150,12 +158,12 @@ if (isset($_POST['ajax_action'])) {
         $valid_sql = $valid_until ? "'$valid_until'" : "NULL";
 
         $sql = "INSERT INTO api_keys (website_name, contact_email, api_key, allowed_endpoints, rate_limit_per_day, valid_until, is_active, usage_count, created_at, created_by, updated_at, updated_by) VALUES ('$safe_name', '$safe_email', '$safe_key', '$safe_endpoints', $rate_limit_day, $valid_sql, 1, 0, NOW(), 1, NOW(), 1)";
-        $res = direct_sql($sql, 'set');
+        $q = mysqli_query($con, $sql);
 
-        if ($res['status'] === 'success') {
+        if ($q) {
             echo json_encode(['status' => 'success', 'key' => $new_key, 'message' => 'API Key created successfully!']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error creating key: ' . ($res['msg'] ?? '')]);
+            echo json_encode(['status' => 'error', 'message' => 'Database error creating key: ' . mysqli_error($con)]);
         }
         exit;
     }

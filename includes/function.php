@@ -359,6 +359,9 @@ function direct_sql($sql, $type='get')
 		if($type=='set')
 		{
 			$ct =mysqli_affected_rows($con);
+			$result['count']=$ct;
+			$result['status']='success';
+			$result['id']=mysqli_insert_id($con);
 		}else{
 
 
