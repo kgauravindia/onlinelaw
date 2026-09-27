@@ -1,5 +1,52 @@
 <?php
-require_once('includes/header.php');
+require_once(__DIR__ . '/../includes/config.php');
+require_once(__DIR__ . '/../includes/function.php');
+
+// Admin Auth Check
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header("Location: login.php");
+    exit();
+}
+
+// Auto Schema Migration / Table Verification
+$tbl_check = direct_sql("SHOW TABLES LIKE 'api_logs'");
+if (empty($tbl_check['count']) || $tbl_check['count'] == 0) {
+    direct_sql("CREATE TABLE IF NOT EXISTS `api_logs` (
+        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+        `api_key_id` int(11) NULL,
+        `api_key` varchar(100) NULL,
+        `endpoint` varchar(100) NULL,
+        `ip_address` varchar(45) NULL,
+        `user_agent` varchar(255) NULL,
+        `referer` varchar(255) NULL,
+        `status_code` int(11) DEFAULT 200,
+        `response_time_ms` float DEFAULT 0,
+        `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `idx_api_key_id` (`api_key_id`),
+        KEY `idx_created_at` (`created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;", 'set');
+}
+
+$cols_res = direct_sql("DESCRIBE api_keys");
+if (!empty($cols_res['data'])) {
+    $existing_fields = array_column($cols_res['data'], 'Field');
+    $needed_cols = [
+        'contact_email' => "VARCHAR(255) NULL",
+        'allowed_endpoints' => "TEXT NULL",
+        'allowed_ips' => "TEXT NULL",
+        'allowed_domains' => "TEXT NULL",
+        'rate_limit_per_day' => "INT DEFAULT 0",
+        'rate_limit_per_min' => "INT DEFAULT 0",
+        'last_used_at' => "DATETIME NULL",
+        'notes' => "TEXT NULL"
+    ];
+    foreach ($needed_cols as $col => $def) {
+        if (!in_array($col, $existing_fields)) {
+            direct_sql("ALTER TABLE api_keys ADD $col $def", 'set');
+        }
+    }
+}
 
 $error = '';
 $success = '';
@@ -25,6 +72,7 @@ $key_data = [
 if ($is_edit) {
     $res = direct_sql("SELECT * FROM api_keys WHERE id = $id LIMIT 1");
     if (empty($res['count']) || $res['count'] == 0) {
+        require_once('includes/header.php');
         echo "<div class='alert alert-danger'>API Key not found.</div>";
         require_once('includes/footer.php');
         exit;
@@ -128,6 +176,9 @@ if (!$is_all_eps) {
         $current_eps = array_map('trim', explode(',', $raw_eps));
     }
 }
+
+// Include HTML Header
+require_once('includes/header.php');
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
@@ -387,7 +438,7 @@ if (!$is_all_eps) {
 
                 <div class="form-group mb-3">
                     <div class="custom-control custom-switch">
-                        <input type="checkbox" name="is_active" class="custom-control-input" id="is_active_toggle" <?php echo (intval($key_data['is_active']) === 1) ? 'checked' : ''; ?>>
+                        <input type="checkbox" name="is_active" class="custom-control-input" id="is_active_toggle" <?php echo (isset($key_data['is_active']) && intval($key_data['is_active']) === 1) ? 'checked' : ''; ?>>
                         <label class="custom-control-label font-weight-bold text-dark" for="is_active_toggle">
                             Key Active &amp; Authorized
                         </label>
@@ -445,6 +496,8 @@ fetch('<?php echo $base_url; ?>api.php?action=pincode&pincode=110001', {
     </div>
 </form>
 
+<?php require_once('includes/footer.php'); ?>
+
 <script>
 function generateRandomKey() {
     var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -479,11 +532,11 @@ function selectAllEndpoints(val) {
     $('.ep-chk').prop('checked', val);
 }
 
-$('#api_key_input').on('input', function() {
-    var val = $(this).val();
-    $('#snippet_key').text(val);
-    $('#snippet_key_js').text(val);
+$(document).ready(function() {
+    $('#api_key_input').on('input', function() {
+        var val = $(this).val();
+        $('#snippet_key').text(val);
+        $('#snippet_key_js').text(val);
+    });
 });
 </script>
-
-<?php require_once('includes/footer.php'); ?>

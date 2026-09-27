@@ -28,6 +28,7 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="css/admin.css">
+    <script src="../js/jquery-3.3.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="<?php echo ($current_page == 'login.php') ? 'login-page' : 'admin-dashboard'; ?>">

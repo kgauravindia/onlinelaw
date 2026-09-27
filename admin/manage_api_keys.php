@@ -1,16 +1,97 @@
 <?php
-require_once('includes/header.php');
+require_once(__DIR__ . '/../includes/config.php');
+require_once(__DIR__ . '/../includes/function.php');
 
-// Handle AJAX Actions
+// Admin Auth Check
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    if (isset($_REQUEST['ajax_action']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized access. Please log in.']);
+        exit();
+    }
+    header("Location: login.php");
+    exit();
+}
+
+// Auto Schema Migration / Table Verification
+$tbl_check = direct_sql("SHOW TABLES LIKE 'api_logs'");
+if (empty($tbl_check['count']) || $tbl_check['count'] == 0) {
+    direct_sql("CREATE TABLE IF NOT EXISTS `api_logs` (
+        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+        `api_key_id` int(11) NULL,
+        `api_key` varchar(100) NULL,
+        `endpoint` varchar(100) NULL,
+        `ip_address` varchar(45) NULL,
+        `user_agent` varchar(255) NULL,
+        `referer` varchar(255) NULL,
+        `status_code` int(11) DEFAULT 200,
+        `response_time_ms` float DEFAULT 0,
+        `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `idx_api_key_id` (`api_key_id`),
+        KEY `idx_created_at` (`created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;", 'set');
+}
+
+$cols_res = direct_sql("DESCRIBE api_keys");
+if (!empty($cols_res['data'])) {
+    $existing_fields = array_column($cols_res['data'], 'Field');
+    $needed_cols = [
+        'contact_email' => "VARCHAR(255) NULL",
+        'allowed_endpoints' => "TEXT NULL",
+        'allowed_ips' => "TEXT NULL",
+        'allowed_domains' => "TEXT NULL",
+        'rate_limit_per_day' => "INT DEFAULT 0",
+        'rate_limit_per_min' => "INT DEFAULT 0",
+        'last_used_at' => "DATETIME NULL",
+        'notes' => "TEXT NULL"
+    ];
+    foreach ($needed_cols as $col => $def) {
+        if (!in_array($col, $existing_fields)) {
+            direct_sql("ALTER TABLE api_keys ADD $col $def", 'set');
+        }
+    }
+}
+
+// Handle Direct GET Actions (e.g. ?del=ID or ?toggle=ID)
+if (isset($_GET['del'])) {
+    $del_id = intval($_GET['del']);
+    if ($del_id > 0) {
+        direct_sql("DELETE FROM api_keys WHERE id = $del_id", 'set');
+        direct_sql("DELETE FROM api_logs WHERE api_key_id = $del_id", 'set');
+        echo "<script>alert('API Key and associated logs deleted successfully.'); window.location.href='manage_api_keys.php';</script>";
+        exit;
+    }
+}
+
+if (isset($_GET['toggle'])) {
+    $toggle_id = intval($_GET['toggle']);
+    if ($toggle_id > 0) {
+        $curr = direct_sql("SELECT is_active FROM api_keys WHERE id = $toggle_id LIMIT 1");
+        $curr_status = (!empty($curr['data'][0]['is_active'])) ? intval($curr['data'][0]['is_active']) : 0;
+        $new_status = ($curr_status === 1) ? 0 : 1;
+        direct_sql("UPDATE api_keys SET is_active = $new_status, updated_at = NOW() WHERE id = $toggle_id", 'set');
+        echo "<script>window.location.href='manage_api_keys.php';</script>";
+        exit;
+    }
+}
+
+if (isset($_GET['clear_logs'])) {
+    direct_sql("TRUNCATE TABLE api_logs", 'set');
+    echo "<script>alert('All API request logs have been cleared.'); window.location.href='manage_api_keys.php';</script>";
+    exit;
+}
+
+// Handle AJAX Actions (BEFORE header.php is loaded)
 if (isset($_POST['ajax_action'])) {
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     $ajax_action = trim($_POST['ajax_action']);
 
     if ($ajax_action === 'toggle_status') {
         $id = intval($_POST['id'] ?? 0);
         $new_status = intval($_POST['status'] ?? 0);
         if ($id > 0) {
-            $up = direct_sql("UPDATE api_keys SET is_active = $new_status, updated_at = NOW() WHERE id = $id", 'set');
+            direct_sql("UPDATE api_keys SET is_active = $new_status, updated_at = NOW() WHERE id = $id", 'set');
             echo json_encode(['status' => 'success', 'message' => 'Status updated successfully.']);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Invalid key ID.']);
@@ -74,7 +155,7 @@ if (isset($_POST['ajax_action'])) {
         if ($res['status'] === 'success') {
             echo json_encode(['status' => 'success', 'key' => $new_key, 'message' => 'API Key created successfully!']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error creating key.']);
+            echo json_encode(['status' => 'error', 'message' => 'Database error creating key: ' . ($res['msg'] ?? '')]);
         }
         exit;
     }
@@ -88,7 +169,7 @@ $total_keys = count($keys);
 $active_keys = 0;
 $total_calls = 0;
 foreach ($keys as $k) {
-    if (intval($k['is_active']) === 1) $active_keys++;
+    if (isset($k['is_active']) && intval($k['is_active']) === 1) $active_keys++;
     $total_calls += intval($k['usage_count'] ?? 0);
 }
 
@@ -102,6 +183,9 @@ $today_success_rate = $today_total_logs > 0 ? round(($today_success_logs / $toda
 // Fetch Recent Logs (Latest 50)
 $recent_logs_res = direct_sql("SELECT l.*, k.website_name FROM api_logs l LEFT JOIN api_keys k ON l.api_key_id = k.id ORDER BY l.id DESC LIMIT 50");
 $recent_logs = $recent_logs_res['data'] ?? [];
+
+// Include HTML Header
+require_once('includes/header.php');
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
@@ -238,7 +322,7 @@ $recent_logs = $recent_logs_res['data'] ?? [];
                     <tbody>
                         <?php if (!empty($keys)): ?>
                             <?php foreach ($keys as $k): 
-                                $is_active = intval($k['is_active']) === 1;
+                                $is_active = isset($k['is_active']) && intval($k['is_active']) === 1;
                                 $raw_endpoints = trim($k['allowed_endpoints'] ?? '');
                                 $is_all_endpoints = empty($raw_endpoints) || $raw_endpoints === '*' || $raw_endpoints === 'all';
                                 
@@ -342,12 +426,10 @@ $recent_logs = $recent_logs_res['data'] ?? [];
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input status-toggle-switch" id="switch-<?php echo $k['id']; ?>" data-id="<?php echo $k['id']; ?>" <?php echo $is_active ? 'checked' : ''; ?>>
-                                            <label class="custom-control-label small font-weight-bold <?php echo $is_active ? 'text-success' : 'text-danger'; ?>" for="switch-<?php echo $k['id']; ?>" id="switch-label-<?php echo $k['id']; ?>">
-                                                <?php echo $is_active ? 'Active' : 'Suspended'; ?>
-                                            </label>
-                                        </div>
+                                        <a href="manage_api_keys.php?toggle=<?php echo $k['id']; ?>" class="btn btn-sm <?php echo $is_active ? 'btn-outline-success' : 'btn-outline-danger'; ?> font-weight-bold py-1 px-2" style="border-radius: 20px; font-size: 0.78rem;" title="Click to toggle status">
+                                            <i class="fas <?php echo $is_active ? 'fa-check-circle' : 'fa-ban'; ?> mr-1"></i>
+                                            <?php echo $is_active ? 'Active' : 'Suspended'; ?>
+                                        </a>
                                     </td>
                                     <td class="text-right">
                                         <div class="d-inline-flex gap-1" style="gap: 5px;">
@@ -360,9 +442,9 @@ $recent_logs = $recent_logs_res['data'] ?? [];
                                             <button type="button" class="btn-action-circle text-warning" title="Regenerate Key" onclick="regenerateKey(<?php echo $k['id']; ?>, '<?php echo htmlspecialchars($k['website_name']); ?>')">
                                                 <i class="fas fa-sync-alt"></i>
                                             </button>
-                                            <button type="button" class="btn-action-circle text-danger" title="Revoke & Delete Key" onclick="deleteKey(<?php echo $k['id']; ?>, '<?php echo htmlspecialchars($k['website_name']); ?>')">
+                                            <a href="manage_api_keys.php?del=<?php echo $k['id']; ?>" class="btn-action-circle text-danger" title="Revoke & Delete Key" onclick="return confirm('Are you sure you want to completely revoke and delete the API key for \'<?php echo htmlspecialchars($k['website_name']); ?>\'?');">
                                                 <i class="fas fa-trash"></i>
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -389,9 +471,9 @@ $recent_logs = $recent_logs_res['data'] ?? [];
                     <i class="fas fa-history text-primary mr-2"></i> Real-time API Traffic &amp; Security Auditing
                 </div>
                 <div>
-                    <button type="button" class="btn btn-sm btn-outline-danger font-weight-bold" onclick="clearAllLogs()">
+                    <a href="manage_api_keys.php?clear_logs=1" class="btn btn-sm btn-outline-danger font-weight-bold" onclick="return confirm('Are you sure you want to purge and clear all API audit logs?');">
                         <i class="fas fa-trash-alt mr-1"></i> Clear Audit Logs
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -603,24 +685,28 @@ $recent_logs = $recent_logs_res['data'] ?? [];
     </div>
 </div>
 
+<?php require_once('includes/footer.php'); ?>
+
 <script>
 $(document).ready(function() {
-    $('#apiKeysTable').DataTable({
-        "pageLength": 25,
-        "language": {
-            "search": "_INPUT_",
-            "searchPlaceholder": "Filter API keys..."
-        }
-    });
+    if ($.fn.DataTable) {
+        $('#apiKeysTable').DataTable({
+            "pageLength": 25,
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Filter API keys..."
+            }
+        });
 
-    $('#apiLogsTable').DataTable({
-        "pageLength": 25,
-        "order": [[0, "desc"]],
-        "language": {
-            "search": "_INPUT_",
-            "searchPlaceholder": "Filter logs..."
-        }
-    });
+        $('#apiLogsTable').DataTable({
+            "pageLength": 25,
+            "order": [[0, "desc"]],
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Filter logs..."
+            }
+        });
+    }
 
     // Handle Quick Create Key
     $('#quickCreateKeyForm').on('submit', function(e) {
@@ -641,31 +727,6 @@ $(document).ready(function() {
             btn.prop('disabled', false).html('<i class="fas fa-check mr-1"></i> Generate API Key');
             alert('Request failed. Check server logs.');
         });
-    });
-
-    // Handle Instant Status Toggle Switch
-    $('.status-toggle-switch').on('change', function() {
-        var id = $(this).data('id');
-        var isChecked = $(this).is(':checked');
-        var statusVal = isChecked ? 1 : 0;
-        var label = $('#switch-label-' + id);
-
-        $.post('manage_api_keys.php', {
-            ajax_action: 'toggle_status',
-            id: id,
-            status: statusVal
-        }, function(res) {
-            if (res.status === 'success') {
-                if (isChecked) {
-                    label.removeClass('text-danger').addClass('text-success').text('Active');
-                } else {
-                    label.removeClass('text-success').addClass('text-danger').text('Suspended');
-                }
-            } else {
-                alert('Failed to update status: ' + res.message);
-                location.reload();
-            }
-        }, 'json');
     });
 });
 
@@ -699,36 +760,6 @@ function regenerateKey(id, name) {
         }, function(res) {
             if (res.status === 'success') {
                 alert('New API Key Generated:\n' + res.new_key);
-                location.reload();
-            } else {
-                alert('Error: ' + res.message);
-            }
-        }, 'json');
-    }
-}
-
-function deleteKey(id, name) {
-    if (confirm('Are you sure you want to completely revoke and delete the API key for "' + name + '"?')) {
-        $.post('manage_api_keys.php', {
-            ajax_action: 'delete_key',
-            id: id
-        }, function(res) {
-            if (res.status === 'success') {
-                $('#row-key-' + id).fadeOut();
-            } else {
-                alert('Error: ' + res.message);
-            }
-        }, 'json');
-    }
-}
-
-function clearAllLogs() {
-    if (confirm('Are you sure you want to purge and clear all API audit logs?')) {
-        $.post('manage_api_keys.php', {
-            ajax_action: 'clear_logs'
-        }, function(res) {
-            if (res.status === 'success') {
-                alert(res.message);
                 location.reload();
             } else {
                 alert('Error: ' + res.message);
@@ -823,5 +854,3 @@ function executePlaygroundRequest() {
     });
 }
 </script>
-
-<?php require_once('includes/footer.php'); ?>
