@@ -2,6 +2,26 @@
     require_once('includes/config.php');
     require_once('includes/function.php');
 
+    // AJAX Endpoint for Live NIC Search
+    if (isset($_GET['ajax_nic_search'])) {
+        header('Content-Type: application/json');
+        $kw = trim($_GET['ajax_nic_search']);
+        if (empty($kw)) {
+            echo json_encode(['status' => 'error', 'message' => 'Query is empty']);
+            exit;
+        }
+        $safe_kw = mysqli_real_escape_string($con, $kw);
+        $res = mysqli_query($con, "SELECT code, level, title, description, division_code FROM `nic` WHERE (code LIKE '%$safe_kw%' OR title LIKE '%$safe_kw%' OR description LIKE '%$safe_kw%') ORDER BY CHAR_LENGTH(code) ASC, code ASC LIMIT 20");
+        $items = [];
+        if ($res) {
+            while ($row = mysqli_fetch_assoc($res)) {
+                $items[] = $row;
+            }
+        }
+        echo json_encode(['status' => 'success', 'data' => $items]);
+        exit;
+    }
+
     $cin_param = isset($_GET['cin']) ? trim($_GET['cin']) : '';
     $q_param = isset($_GET['q']) ? trim($_GET['q']) : '';
     $category_param = isset($_GET['category']) ? strtoupper(trim($_GET['category'])) : '';
@@ -62,7 +82,6 @@
                 $matched_divs = [];
                 while ($ndr = mysqli_fetch_assoc($nic_kw_res)) {
                     $matched_divs[] = "'" . mysqli_real_escape_string($con, $ndr['division_code']) . "'";
-                    // also single digit if leading zero
                     if (str_starts_with($ndr['division_code'], '0')) {
                         $matched_divs[] = "'" . (int)$ndr['division_code'] . "'";
                     }
@@ -105,7 +124,9 @@
     if ($stats_res['count'] > 0) {
         foreach ($stats_res['data'] as $s) {
             $cat = strtoupper($s['category']);
-            $stats[$cat] = (int)$s['cnt'];
+            if (isset($stats[$cat])) {
+                $stats[$cat] = (int)$s['cnt'];
+            }
             $stats['TOTAL'] += (int)$s['cnt'];
         }
     }
@@ -191,11 +212,25 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Company Incorporation India, New Company Registration, MCA Registered Companies, Search CIN, LLP Registration, Foreign Company FCIN, Daily Registered Companies">
+<meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+<meta name="keywords" content="Company Incorporation India, New Company Registration, MCA Registered Companies, Search CIN, LLP Registration, Foreign Company FCIN, Daily Registered Companies, ROC Verification">
 <meta name="author" content="OfferPlant">
 <title><?php echo $page_title; ?></title>
 <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
+
+<!-- Open Graph / Social Meta -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Online Law">
+<meta property="og:url" content="<?php echo htmlspecialchars($canonical_url); ?>">
+<meta property="og:title" content="<?php echo htmlspecialchars($page_title); ?>">
+<meta property="og:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+<meta property="og:image" content="<?php echo $base_url; ?>images/favicon.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<?php echo htmlspecialchars($page_title); ?>">
+<meta name="twitter:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+<meta name="twitter:image" content="<?php echo $base_url; ?>images/favicon.png">
 
 <!-- Schema.org Structured Data -->
 <?php if ($single_company): 
@@ -215,144 +250,466 @@ $company_schema = [
 <?php endif; ?>
 
 <style>
-    .company-badge-indian { background: #eff6ff; color: #1d4ed8; font-weight: 700; }
-    .company-badge-llp { background: #ecfdf5; color: #047857; font-weight: 700; }
-    .company-badge-foreign { background: #fffbeb; color: #b45309; font-weight: 700; }
+    /* ==========================================================================
+       MODERN DESIGN SYSTEM & STYLES FOR COMPANY INCORPORATION DIRECTORY
+       ========================================================================== */
+    :root {
+        --incorp-primary: #2563eb;
+        --incorp-primary-hover: #1d4ed8;
+        --incorp-primary-light: #eff6ff;
+        --incorp-dark: #0f172a;
+        --incorp-slate: #1e293b;
+        --incorp-emerald: #059669;
+        --incorp-amber: #d97706;
+        --incorp-border: #e2e8f0;
+        --incorp-card-bg: #ffffff;
+        --incorp-radius-lg: 16px;
+        --incorp-radius-md: 12px;
+        --incorp-radius-sm: 8px;
+    }
+
+    /* Category Badges */
+    .company-badge-indian { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 700; }
+    .company-badge-llp { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 700; }
+    .company-badge-foreign { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 700; }
     
+    /* Modern Banner Styling */
+    .hero-incorp-banner {
+        background: radial-gradient(circle at 20% 20%, #1e293b 0%, #0f172a 100%);
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .hero-incorp-banner::before {
+        content: '';
+        position: absolute;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
+        top: -120px;
+        right: -80px;
+        border-radius: 50%;
+        filter: blur(40px);
+        pointer-events: none;
+    }
+    .hero-incorp-banner::after {
+        content: '';
+        position: absolute;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%);
+        bottom: -100px;
+        left: -80px;
+        border-radius: 50%;
+        filter: blur(50px);
+        pointer-events: none;
+    }
+
+    .hero-pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #93c5fd;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .hero-pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green 2s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .hero-gradient-headline {
+        background: linear-gradient(135deg, #ffffff 30%, #93c5fd 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Stats Quick Ribbon in Hero */
+    .hero-stat-pill {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 10px 18px;
+        transition: all 0.25s ease;
+    }
+    .hero-stat-pill:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Elevated Search Console */
+    .search-console-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        transition: all 0.3s ease;
+    }
+    .search-console-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 16px 35px -8px rgba(15, 23, 42, 0.12);
+    }
+
+    .form-control-custom {
+        height: 48px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        font-size: 14px;
+        font-weight: 500;
+        color: #1e293b;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+    }
+    .form-control-custom:focus {
+        background-color: #ffffff;
+        border-color: var(--incorp-primary);
+        box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Company Card Elevated (Grid View) */
     .company-card-elevated {
         background: #ffffff;
-        border: 1px solid var(--border-soft);
-        border-radius: var(--radius-md);
-        transition: var(--transition-smooth);
-        box-shadow: var(--shadow-xs);
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.02);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .company-card-elevated::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+        background: linear-gradient(90deg, #2563eb, #60a5fa);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+    .company-card-elevated.card-llp::before {
+        background: linear-gradient(90deg, #059669, #34d399);
+    }
+    .company-card-elevated.card-foreign::before {
+        background: linear-gradient(90deg, #d97706, #fbbf24);
     }
     .company-card-elevated:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        border-color: rgba(37, 99, 235, 0.35);
+        transform: translateY(-5px);
+        box-shadow: 0 16px 30px -8px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(15, 23, 42, 0.04);
+        border-color: #cbd5e1;
     }
+    .company-card-elevated:hover::before {
+        opacity: 1;
+    }
+
+    /* Modern Spec Tiles for Details View */
+    .spec-tile {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 16px 18px;
+        transition: all 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .spec-tile:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Nav Pills Modern */
     .nav-pills-modern .nav-link {
         color: #475569;
-        font-family: var(--font-heading);
+        font-family: inherit;
         font-weight: 600;
         font-size: 13.5px;
-        border-radius: var(--radius-pill);
-        padding: 7px 16px;
+        border-radius: 30px;
+        padding: 8px 18px;
         margin-right: 6px;
         margin-bottom: 6px;
         background: #ffffff;
-        border: 1.5px solid var(--border-soft);
-        transition: var(--transition-smooth);
+        border: 1.5px solid #e2e8f0;
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
         gap: 6px;
     }
     .nav-pills-modern .nav-link:hover {
-        color: var(--primary-color);
-        border-color: var(--primary-color);
-        background: var(--primary-light);
+        color: var(--incorp-primary);
+        border-color: var(--incorp-primary);
+        background: #eff6ff;
     }
     .nav-pills-modern .nav-link.active {
-        background: var(--primary-gradient);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff !important;
         border-color: transparent;
-        box-shadow: var(--shadow-glow-blue);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
+
+    /* View Switcher */
     .view-switch-btn {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        border: 1.5px solid var(--border-soft);
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
         background: #ffffff;
         color: #64748b;
-        transition: var(--transition-smooth);
+        transition: all 0.2s ease;
     }
     .view-switch-btn.active, .view-switch-btn:hover {
-        background: var(--primary-light);
-        color: var(--primary-color);
-        border-color: var(--primary-color);
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #2563eb;
     }
 
-    /* Infographic Components */
+    /* Infographics */
     .infographic-card {
         background: #ffffff;
-        border: 1px solid var(--border-soft);
-        border-radius: var(--radius-xl);
-        padding: 32px 28px;
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition-bounce);
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 26px 22px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         height: 100%;
-    }
-    .infographic-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg);
-    }
-    .cin-anatomy-diagram {
-        background: #0f172a;
-        color: #ffffff;
-        border-radius: var(--radius-xl);
-        padding: 36px 30px;
         position: relative;
         overflow: hidden;
     }
+    .infographic-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+        border-color: #cbd5e1;
+    }
+
+    /* CIN Anatomy Visual Diagram */
+    .cin-anatomy-diagram {
+        background: radial-gradient(circle at 80% 20%, #1e293b 0%, #0f172a 100%);
+        color: #ffffff;
+        border-radius: 20px;
+        padding: 34px 28px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.4);
+    }
     .cin-segment-pill {
         display: inline-block;
-        padding: 6px 12px;
+        padding: 6px 14px;
         border-radius: 8px;
-        font-family: monospace;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         font-weight: 800;
         font-size: 18px;
-        letter-spacing: 1px;
+        letter-spacing: 1.5px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
+    }
+    .cin-segment-pill:hover {
+        transform: scale(1.06);
+    }
+
+    /* Toast notification */
+    .law-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #0f172a;
+        color: #ffffff;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-size: 13.5px;
+        font-weight: 600;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .law-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Quick Filter Badges */
+    .quick-chip {
+        display: inline-flex;
+        align-items: center;
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+    }
+    .quick-chip:hover {
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #bfdbfe;
+        transform: translateY(-1px);
+    }
+
+    /* Breadcrumbs Modern */
+    .incorp-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 14px;
+    }
+    .incorp-breadcrumb a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .incorp-breadcrumb a:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    /* Pagination Modern */
+    .pagination-modern .page-link {
+        border-radius: 10px;
+        margin: 0 3px;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+        font-weight: 600;
+        padding: 8px 16px;
+        transition: all 0.2s ease;
+    }
+    .pagination-modern .page-item.active .page-link {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+    .pagination-modern .page-link:hover:not(.active) {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #2563eb;
     }
 </style>
 
 <?php require_once('includes/header.php'); ?>
 
-<!-- Banner Section Start -->
-<section class="hero-modern-banner" style="padding: clamp(36px, 5vw, 60px) 0 clamp(50px, 7vw, 75px) 0;">
-	<div class="hero-glow-sphere-1"></div>
-	<div class="hero-glow-sphere-2"></div>
+<!-- ==========================================================================
+     HERO MODERN BANNER SECTION
+     ========================================================================== -->
+<section class="hero-incorp-banner" style="padding: clamp(36px, 5vw, 64px) 0 clamp(48px, 6vw, 76px) 0;">
 	<div class="container position-relative" style="z-index: 2;">
 		<div class="row justify-content-center">
 			<div class="col-lg-10 col-12 text-center">
-				<div class="hero-pill-tag mb-3">
+                
+                <!-- Breadcrumbs -->
+                <div class="d-flex justify-content-center">
+                    <nav class="incorp-breadcrumb" aria-label="breadcrumb">
+                        <a href="<?php echo $base_url; ?>index"><i class="fas fa-home mr-1"></i> Home</a>
+                        <span>/</span>
+                        <?php if ($single_company): ?>
+                            <a href="<?php echo $base_url; ?>company-incorporation">Company Incorporations</a>
+                            <span>/</span>
+                            <span class="text-white font-weight-semibold"><?php echo htmlspecialchars(mb_strimwidth($single_company['company_name'], 0, 32, '...')); ?></span>
+                        <?php else: ?>
+                            <span class="text-white font-weight-semibold">Company Incorporations</span>
+                        <?php endif; ?>
+                    </nav>
+                </div>
+
+				<div class="hero-pill-badge mb-3">
 					<span class="hero-pulse-dot"></span>
-					<span>OFFICIAL MCA CORPORATE REGISTRY • UPDATED 2026</span>
+					<span>OFFICIAL MCA CORPORATE REGISTRY • REAL-TIME 2026</span>
 				</div>
-				<h1 class="hero-main-heading" style="font-size: clamp(26px, 4vw, 38px) !important;">
-					Indian Company &amp; LLP <br>
-					<span class="hero-gradient-text">Incorporations Directory</span>
+
+				<h1 class="hero-gradient-headline mb-2" style="font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -0.5px;">
+					Indian Company &amp; LLP Incorporations
 				</h1>
-				<p class="hero-subtext" style="max-width: 700px; margin-bottom: 0;">
-					Instant search, verification, and registration details for Indian Companies, LLPs, and Foreign Entities from official MCA records.
+				<p style="max-width: 680px; margin: 0 auto; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.85);">
+					Instant search, legal verification, and registration specs for Indian Private/Public Companies, LLPs, and Foreign Entities from official MCA records.
 				</p>
+
+                <!-- Quick Hero Stats Ribbon -->
+                <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-4 pt-1">
+                    <div class="hero-stat-pill">
+                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">TOTAL INCORPORATED</small>
+                        <strong class="text-white" style="font-size: 15px;"><?php echo number_format($stats['TOTAL']); ?>+</strong>
+                    </div>
+                    <div class="hero-stat-pill">
+                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">INDIAN COMPANIES</small>
+                        <strong class="text-primary" style="color: #93c5fd !important; font-size: 15px;"><?php echo number_format($stats['INDIAN']); ?></strong>
+                    </div>
+                    <div class="hero-stat-pill">
+                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">REGISTERED LLPs</small>
+                        <strong class="text-success" style="color: #6ee7b7 !important; font-size: 15px;"><?php echo number_format($stats['LLP']); ?></strong>
+                    </div>
+                    <div class="hero-stat-pill">
+                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">FOREIGN ENTITIES</small>
+                        <strong class="text-warning" style="color: #fcd34d !important; font-size: 15px;"><?php echo number_format($stats['FOREIGN']); ?></strong>
+                    </div>
+                </div>
+
 			</div>
 		</div>
 	</div>
 </section>
-<!-- Banner Section End -->
+<!-- Hero Modern Banner End -->
 
-<div class="full-row py-4" style="background-color: var(--bg-body); margin-top: -40px; position: relative; z-index: 10;">
+<!-- ==========================================================================
+     MAIN BODY & SEARCH CONSOLE
+     ========================================================================== -->
+<div class="full-row py-4" style="background-color: #f8fafc; margin-top: -36px; position: relative; z-index: 10;">
 	<div class="container">
 
-        <!-- Search Form Console -->
-        <div class="bg-white rounded-xl shadow-md border p-4 mb-4">
+        <!-- Unified Search & Filter Console -->
+        <div class="search-console-card p-4 p-md-4 mb-4">
             <form action="<?php echo $base_url; ?>company-incorporation" method="GET">
                 <div class="row align-items-end">
                     <div class="col-lg-4 col-md-12 mb-3 mb-lg-0">
-                        <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-search mr-1 text-primary"></i> Company Name, CIN, or Keyword</label>
-                        <input type="text" name="q" class="form-control" style="height: 48px;" placeholder="e.g. Tata, Infosys, U47713DC2026PTC474566, Software..." value="<?php echo htmlspecialchars($q_param); ?>">
+                        <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-search mr-1 text-primary"></i> Company Name, CIN, or Keyword</label>
+                        <input type="text" name="q" class="form-control form-control-custom" placeholder="e.g. Tata, Infosys, U47713DC2026PTC474566..." value="<?php echo htmlspecialchars($q_param); ?>">
                     </div>
                     <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
-                        <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-industry mr-1 text-warning"></i> NIC 2025 Industry Sector</label>
-                        <select name="activity" class="form-control" style="height: 48px;">
+                        <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-industry mr-1 text-warning"></i> NIC 2025 Industry Sector</label>
+                        <select name="activity" class="form-control form-control-custom">
                             <option value="">All Industry Sectors</option>
                             <?php
                             $top_nic_sectors = [
@@ -391,8 +748,8 @@ $company_schema = [
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
-                        <label class="small font-weight-bold text-muted mb-2"><i class="fas fa-filter mr-1 text-primary"></i> Category</label>
-                        <select name="category" class="form-control" style="height: 48px;">
+                        <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-filter mr-1 text-primary"></i> Category</label>
+                        <select name="category" class="form-control form-control-custom">
                             <option value="">All Categories</option>
                             <option value="INDIAN" <?php echo ($category_param === 'INDIAN') ? 'selected' : ''; ?>>Indian Companies</option>
                             <option value="LLP" <?php echo ($category_param === 'LLP') ? 'selected' : ''; ?>>LLPs</option>
@@ -400,29 +757,30 @@ $company_schema = [
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
-                        <label class="small font-weight-bold text-muted mb-2"><i class="far fa-calendar-alt mr-1 text-primary"></i> Reg. Date</label>
-                        <input type="date" name="date" class="form-control" style="height: 48px;" value="<?php echo htmlspecialchars($date_param); ?>">
+                        <label class="small font-weight-bold text-muted mb-1.5"><i class="far fa-calendar-alt mr-1 text-primary"></i> Reg. Date</label>
+                        <input type="date" name="date" class="form-control form-control-custom" value="<?php echo htmlspecialchars($date_param); ?>">
                     </div>
                     <div class="col-lg-1 col-md-6">
-                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0" style="height: 48px;" title="Search">
+                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0 d-flex align-items-center justify-content-center shadow-sm" style="height: 48px; border-radius: 10px;" title="Search Records">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
                 </div>
             </form>
 
-            <!-- Quick Filter Tags -->
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
-                <span class="small text-muted font-weight-bold mr-1"><i class="fas fa-bolt text-warning mr-1"></i> Quick Industry Lookups:</span>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=62" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Software &amp; IT (62)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=47" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Retail &amp; E-Com (47)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=86" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Healthcare (86)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=68" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Real Estate (68)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=35" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Solar &amp; Power (35)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=85" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">Education (85)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?category=LLP" class="badge badge-light px-2.5 py-1 text-dark font-weight-semibold">LLPs</a>
+            <!-- Quick Filter Chips -->
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2.5 border-top" style="border-color: #f1f5f9 !important;">
+                <span class="small text-muted font-weight-bold mr-1"><i class="fas fa-bolt text-warning mr-1"></i> Quick Lookups:</span>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=62" class="quick-chip"><i class="fas fa-laptop-code text-primary mr-1"></i> Software &amp; IT (62)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=47" class="quick-chip"><i class="fas fa-shopping-cart text-danger mr-1"></i> Retail &amp; E-Com (47)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=86" class="quick-chip"><i class="fas fa-heartbeat text-danger mr-1"></i> Healthcare (86)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=68" class="quick-chip"><i class="fas fa-city text-warning mr-1"></i> Real Estate (68)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=35" class="quick-chip"><i class="fas fa-bolt text-warning mr-1"></i> Solar &amp; Power (35)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?activity=85" class="quick-chip"><i class="fas fa-graduation-cap text-info mr-1"></i> Education (85)</a>
+                <a href="<?php echo $base_url; ?>company-incorporation?category=LLP" class="quick-chip"><i class="fas fa-handshake text-success mr-1"></i> LLPs</a>
+                
                 <?php if ($has_search): ?>
-                <a href="<?php echo $base_url; ?>company-incorporation" class="badge badge-danger px-2.5 py-1 text-white font-weight-semibold ml-auto">
+                <a href="<?php echo $base_url; ?>company-incorporation" class="badge badge-danger px-3 py-1.5 text-white font-weight-semibold ml-auto" style="border-radius: 20px; font-size: 12px;">
                     <i class="fas fa-times mr-1"></i> Clear Search
                 </a>
                 <?php endif; ?>
@@ -431,20 +789,23 @@ $company_schema = [
 
         <?php if ($has_search || $single_company !== null || (!empty($cin_param) && !$single_company)): ?>
 
+            <!-- Not Found State -->
             <?php if (!empty($cin_param) && !$single_company): ?>
-            <div class="bg-white rounded-xl shadow-sm border py-5 text-center mb-5">
+            <div class="bg-white rounded-xl shadow-sm border py-5 text-center mb-5" style="border-radius: 18px;">
                 <div class="card-body">
-                    <div class="tool-icon-squircle mx-auto mb-3" style="background: #fef2f2; color: #ef4444;">
+                    <div class="tool-icon-squircle mx-auto mb-3" style="background: #fef2f2; color: #ef4444; width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                         <i class="fas fa-exclamation-circle fa-2x"></i>
                     </div>
                     <h4 class="font-weight-bold text-dark mb-2">Company Record Not Found</h4>
                     <p class="text-muted mb-4" style="max-width: 520px; margin: 0 auto;">We could not locate any incorporation record matching "<strong><?php echo htmlspecialchars($cin_param); ?></strong>". The company may not be registered yet, or the CIN/slug may be incorrect.</p>
-                    <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4">Browse All Companies</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4" style="border-radius: 10px;">Browse All Companies</a>
                 </div>
             </div>
             <?php endif; ?>
 
-            <!-- Single Company Detail View (if selected) -->
+            <!-- =================================================================
+                 SINGLE COMPANY DETAIL VIEW
+                 ================================================================= -->
             <?php if ($single_company): ?>
             <?php 
                 $parsedCin = parseCINDetails($single_company['cin'], $state_roc_map, $class_map);
@@ -457,7 +818,7 @@ $company_schema = [
             ?>
 
             <?php if ($is_admin): ?>
-            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2 px-3 shadow-sm border-0" style="border-radius: var(--radius-md); background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc;">
+            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2.5 px-3.5 shadow-sm border-0" style="border-radius: 12px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc;">
                 <div class="d-flex align-items-center flex-wrap gap-2">
                     <span class="badge badge-warning text-dark font-weight-bold px-2.5 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> Admin View</span>
                     <span class="small text-light">Status: <strong class="<?php echo (strtoupper($single_company['status'] ?? '') === 'BLOCK') ? 'text-danger' : 'text-success'; ?>"><?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?></strong></span>
@@ -475,76 +836,106 @@ $company_schema = [
             </div>
             <?php endif; ?>
 
-            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3 border-bottom mb-4">
+            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5" style="border-radius: 20px;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3.5 border-bottom mb-4">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge <?php echo $badgeClass; ?> px-3 py-1 text-uppercase rounded-pill">
+                            <span class="badge <?php echo $badgeClass; ?> px-3 py-1 text-uppercase rounded-pill" style="font-size: 11.5px;">
                                 <?php echo htmlspecialchars($single_company['category']); ?> COMPANY
                             </span>
                             <?php if (strtoupper($single_company['status'] ?? '') === 'BLOCK'): ?>
-                                <span class="badge badge-danger px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #fef2f2; color: #b91c1c;">
+                                <span class="badge badge-danger px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #fef2f2; color: #b91c1c; font-size: 11.5px;">
                                     <i class="fas fa-ban mr-1"></i> BLOCKED (Hidden from Public)
                                 </span>
                             <?php else: ?>
-                                <span class="badge badge-success px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857;">
+                                <span class="badge badge-success px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857; font-size: 11.5px;">
                                     <i class="fas fa-check-circle mr-1"></i> <?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?>
                                 </span>
                             <?php endif; ?>
                         </div>
-                        <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(20px, 3vw, 28px); font-family: var(--font-heading);">
+                        <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(22px, 3.5vw, 30px); letter-spacing: -0.3px;">
                             <?php echo htmlspecialchars($single_company['company_name']); ?>
                         </h2>
-                        <div class="text-muted small mt-1">
-                            Corporate Identification Number: 
-                            <code class="font-weight-bold text-primary font-monospace fs-6 ml-1"><?php echo htmlspecialchars($single_company['cin']); ?></code>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-muted ml-2" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($single_company['cin']); ?>'); alert('CIN copied to clipboard: <?php echo htmlspecialchars($single_company['cin']); ?>');" title="Copy CIN">
+                        <div class="text-muted small mt-1.5 d-flex align-items-center flex-wrap gap-1">
+                            <span>Corporate Identification Number:</span> 
+                            <code class="font-weight-bold text-primary font-monospace fs-6 px-2.5 py-0.5 rounded ml-1" style="background: #eff6ff; font-size: 14px;"><?php echo htmlspecialchars($single_company['cin']); ?></code>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-primary ml-2 font-weight-semibold" onclick="copyToClipboard('<?php echo htmlspecialchars($single_company['cin']); ?>', 'CIN');" title="Copy CIN to Clipboard">
                                 <i class="far fa-copy"></i> Copy
                             </button>
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold" style="border-radius: var(--radius-md);" title="File a complaint to request deletion or removal of this company data">
+                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold" style="border-radius: 10px;" title="File a complaint or data removal request">
                             <i class="fas fa-flag mr-1"></i> Complain (Delete Data)
                         </a>
-                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: var(--radius-md);">
+                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: 10px;">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
-                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold" style="border-radius: var(--radius-md);">
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold" style="border-radius: 10px;">
                             <i class="fas fa-arrow-left mr-1"></i> Back to All
                         </a>
                     </div>
                 </div>
 
-                <!-- Clean Key-Value Data Specs List -->
+                <!-- Clean 6-Tile Key-Value Data Specs Grid -->
                 <div class="row">
-                    <div class="col-md-6 pr-md-4">
-                        <div class="d-flex justify-content-between py-2.5 border-bottom">
-                            <span class="text-muted"><i class="fas fa-layer-group mr-2 text-primary"></i> Class of Company</span>
-                            <strong class="text-dark"><?php echo htmlspecialchars($single_company['class'] ?: 'N/A'); ?></strong>
-                        </div>
-                        <div class="d-flex justify-content-between py-2.5 border-bottom">
-                            <span class="text-muted"><i class="fas fa-tag mr-2 text-info"></i> Company Type</span>
-                            <strong class="text-dark"><?php echo htmlspecialchars($single_company['company_type'] ?: 'N/A'); ?></strong>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="spec-tile">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-primary"><i class="fas fa-layer-group"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Class of Company</small>
+                            </div>
+                            <strong class="text-dark" style="font-size: 14.5px;"><?php echo htmlspecialchars($single_company['class'] ?: 'N/A'); ?></strong>
                         </div>
                     </div>
-                    <div class="col-md-6 pl-md-4">
-                        <div class="d-flex justify-content-between py-2.5 border-bottom">
-                            <span class="text-muted"><i class="fas fa-industry mr-2 text-warning"></i> Activity / NIC Code</span>
-                            <strong class="text-dark">
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="spec-tile">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-info"><i class="fas fa-tag"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Company Type</small>
+                            </div>
+                            <strong class="text-dark" style="font-size: 14.5px;"><?php echo htmlspecialchars($single_company['company_type'] ?: 'N/A'); ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="spec-tile">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-danger"><i class="fas fa-map-marker-alt"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">RoC Jurisdiction</small>
+                            </div>
+                            <strong class="text-dark" style="font-size: 14.5px;"><?php echo $parsedCin ? htmlspecialchars($parsedCin['state_name']) : 'Registrar of Companies'; ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="spec-tile">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-warning"><i class="fas fa-industry"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Activity / NIC Code</small>
+                            </div>
+                            <strong class="text-dark" style="font-size: 14.5px;">
                                 Division <?php echo htmlspecialchars($single_company['activity_code'] ?: 'N/A'); ?>
                                 <?php if (!empty($nic_info['division']['title'])): ?>
-                                    <span class="text-primary font-weight-normal small ml-1">&bull; <?php echo htmlspecialchars($nic_info['division']['title']); ?></span>
+                                    <span class="text-primary font-weight-normal small ml-1">&bull; <?php echo htmlspecialchars(mb_strimwidth($nic_info['division']['title'], 0, 30, '...')); ?></span>
                                 <?php endif; ?>
                             </strong>
                         </div>
-                        <div class="d-flex justify-content-between py-2.5 border-bottom">
-                            <span class="text-muted"><i class="fas fa-archive mr-2 text-secondary"></i> Batch Month</span>
-                            <strong class="text-dark"><?php echo htmlspecialchars($single_company['report_month'] ?: 'N/A'); ?></strong>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="spec-tile">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-secondary"><i class="fas fa-archive"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Batch Month</small>
+                            </div>
+                            <strong class="text-dark" style="font-size: 14.5px;"><?php echo htmlspecialchars($single_company['report_month'] ?: 'N/A'); ?></strong>
                         </div>
-                        <div class="d-flex justify-content-between py-2.5 border-bottom">
-                            <span class="text-muted"><i class="fas fa-shield-alt mr-2 text-success"></i> MCA Status</span>
-                            <span class="text-success font-weight-bold"><i class="fas fa-check-circle mr-1"></i> Active / Registered</span>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="spec-tile">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-success"><i class="fas fa-shield-alt"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">MCA Registry Status</small>
+                            </div>
+                            <span class="text-success font-weight-bold" style="font-size: 14.5px;"><i class="fas fa-check-circle mr-1"></i> Active / Registered</span>
                         </div>
                     </div>
                 </div>
@@ -559,7 +950,7 @@ $company_schema = [
                         <span class="badge badge-light border text-muted small">MoSPI NIC 2025 Standard</span>
                     </div>
 
-                    <div class="p-3.5 rounded-lg border bg-light">
+                    <div class="p-3.5 rounded-lg border bg-light" style="border-radius: 12px;">
                         <div class="row">
                             <?php if (!empty($nic_info['section'])): ?>
                             <div class="col-md-6 mb-2">
@@ -612,7 +1003,7 @@ $company_schema = [
                     <div class="small font-weight-bold text-muted text-uppercase mb-2">
                         <i class="fas fa-info-circle text-primary mr-1"></i> CIN Architecture Breakdown (21 Digits)
                     </div>
-                    <p class="small text-muted mb-0">
+                    <p class="small text-muted mb-0" style="line-height: 1.7;">
                         <strong>Listing:</strong> <?php echo $parsedCin['listing_code']; ?> (<?php echo $parsedCin['listing']; ?>) &bull;
                         <strong>NIC Activity:</strong> <?php echo $parsedCin['industry']; ?> &bull;
                         <strong>State ROC:</strong> <?php echo $parsedCin['state_code']; ?> (<?php echo $parsedCin['state_name']; ?>) &bull;
@@ -625,7 +1016,7 @@ $company_schema = [
 
                 <!-- MCA Disclaimer Note -->
                 <div class="mt-4 pt-3 border-top">
-                    <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: var(--radius-md);">
+                    <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: 12px;">
                         <div class="d-flex align-items-start gap-2">
                             <i class="fas fa-shield-alt text-secondary mt-1 mr-2" style="font-size: 1.1rem;"></i>
                             <div class="small text-muted" style="line-height: 1.6; width: 100%;">
@@ -644,6 +1035,9 @@ $company_schema = [
             </div>
             <?php endif; ?>
 
+            <!-- =================================================================
+                 SEARCH RESULTS VIEW (GRID / TABLE)
+                 ================================================================= -->
             <?php if ($has_search): ?>
 
             <!-- Category Nav Pills Filter & View Switcher -->
@@ -693,7 +1087,7 @@ $company_schema = [
 
                 <?php if ($view_mode === 'table'): ?>
                     <!-- Table View Mode -->
-                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden">
+                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden" style="border-radius: 16px;">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead class="bg-light">
@@ -751,11 +1145,11 @@ $company_schema = [
                                                 <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
                                             </td>
                                             <td class="px-4 py-3 align-middle text-right text-nowrap">
-                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 6px;">
                                                     View
                                                 </a>
                                                 <?php if ($is_admin): ?>
-                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none;" title="Edit in Admin">
+                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 6px;" title="Edit in Admin">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
                                                 <?php endif; ?>
@@ -772,19 +1166,28 @@ $company_schema = [
                         <?php foreach ($companies_list['data'] as $comp): ?>
                             <?php
                             $badgeClass = 'company-badge-indian';
-                            if ($comp['category'] === 'LLP') $badgeClass = 'company-badge-llp';
-                            if ($comp['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+                            $cardExtraClass = '';
+                            $badgeIcon = 'fa-building';
+                            if ($comp['category'] === 'LLP') {
+                                $badgeClass = 'company-badge-llp';
+                                $cardExtraClass = 'card-llp';
+                                $badgeIcon = 'fa-handshake';
+                            } elseif ($comp['category'] === 'FOREIGN') {
+                                $badgeClass = 'company-badge-foreign';
+                                $cardExtraClass = 'card-foreign';
+                                $badgeIcon = 'fa-globe';
+                            }
 
                             $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                             $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
                             $comp_href = company_url($comp);
                             ?>
                             <div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
-                                <div class="company-card-elevated p-4 w-100">
+                                <div class="company-card-elevated <?php echo $cardExtraClass; ?> p-4 w-100">
                                     <div>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-2.5">
                                             <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase" style="font-size: 11px;">
-                                                <?php echo htmlspecialchars($comp['category']); ?>
+                                                <i class="fas <?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($comp['category']); ?>
                                             </span>
                                             <span class="small text-muted font-weight-medium">
                                                 <i class="far fa-calendar-alt mr-1"></i>
@@ -792,26 +1195,26 @@ $company_schema = [
                                             </span>
                                         </div>
                                         
-                                        <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px; font-family: var(--font-heading);">
-                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='#0f172a';">
+                                        <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px;">
+                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--incorp-primary)';" onmouseout="this.style.color='#0f172a';">
                                                 <?php echo htmlspecialchars($comp['company_name']); ?>
                                             </a>
                                         </h5>
 
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <small class="text-muted font-weight-bold">CIN / ID:</small>
-                                            <code class="font-weight-bold text-primary" style="font-size: 12.5px;"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                        <div class="d-flex justify-content-between align-items-center mb-2.5 p-2 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                            <small class="text-muted font-weight-bold" style="font-size: 11px;">CIN / ID:</small>
+                                            <code class="font-weight-bold text-primary font-monospace" style="font-size: 12.5px;"><?php echo htmlspecialchars($comp['cin']); ?></code>
                                         </div>
 
                                         <div class="small text-muted mb-2">
                                             <?php if (!empty($comp['class'])): ?>
-                                                <span class="mr-2"><i class="fas fa-tag text-primary mr-1"></i> <?php echo htmlspecialchars($comp['class']); ?></span>
+                                                <div class="mb-1"><i class="fas fa-tag text-primary mr-1"></i> <?php echo htmlspecialchars($comp['class']); ?></div>
                                             <?php endif; ?>
                                             <?php if (!empty($comp['activity_code'])): ?>
                                                 <div class="mt-1" title="<?php echo htmlspecialchars($act_title); ?>">
                                                     <i class="fas fa-industry text-warning mr-1"></i> 
                                                     <strong>NIC <?php echo htmlspecialchars($comp['activity_code']); ?>:</strong> 
-                                                    <span class="text-dark"><?php echo htmlspecialchars(mb_strimwidth($act_title ?: 'Industrial Classification', 0, 28, '...')); ?></span>
+                                                    <span class="text-dark"><?php echo htmlspecialchars(mb_strimwidth($act_title ?: 'Industrial Classification', 0, 26, '...')); ?></span>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -819,16 +1222,16 @@ $company_schema = [
 
                                     <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                         <div class="d-flex align-items-center" style="gap: 6px;">
-                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                            <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
                                                 View Details &rarr;
                                             </a>
                                             <?php if ($is_admin): ?>
-                                                <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none;" title="Edit in Admin">
+                                                <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 8px;" title="Edit in Admin">
                                                     <i class="fas fa-edit mr-1"></i> Edit
                                                 </a>
                                             <?php endif; ?>
                                         </div>
-                                        <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($comp['cin']); ?>'); alert('CIN copied: <?php echo htmlspecialchars($comp['cin']); ?>');" title="Copy CIN">
+                                        <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;" onclick="copyToClipboard('<?php echo htmlspecialchars($comp['cin']); ?>', 'CIN');" title="Copy CIN">
                                             <i class="far fa-copy"></i>
                                         </button>
                                     </div>
@@ -848,9 +1251,9 @@ $company_schema = [
                             // Prev
                             if ($page > 1) {
                                 $queryParams['p'] = $page - 1;
-                                echo '<li class="page-item"><a class="page-link rounded-pill px-3" href="?' . http_build_query($queryParams) . '">&laquo; Prev</a></li>';
+                                echo '<li class="page-item"><a class="page-link" href="?' . http_build_query($queryParams) . '">&laquo; Prev</a></li>';
                             } else {
-                                echo '<li class="page-item disabled"><span class="page-link rounded-pill px-3">&laquo; Prev</span></li>';
+                                echo '<li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>';
                             }
 
                             $startPage = max(1, $page - 2);
@@ -859,15 +1262,15 @@ $company_schema = [
                             for ($i = $startPage; $i <= $endPage; $i++) {
                                 $queryParams['p'] = $i;
                                 $active = ($i == $page) ? 'active' : '';
-                                echo '<li class="page-item ' . $active . '"><a class="page-link rounded-pill px-3" href="?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                                echo '<li class="page-item ' . $active . '"><a class="page-link" href="?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
                             }
 
                             // Next
                             if ($page < $total_pages) {
                                 $queryParams['p'] = $page + 1;
-                                echo '<li class="page-item"><a class="page-link rounded-pill px-3" href="?' . http_build_query($queryParams) . '">Next &raquo;</a></li>';
+                                echo '<li class="page-item"><a class="page-link" href="?' . http_build_query($queryParams) . '">Next &raquo;</a></li>';
                             } else {
-                                echo '<li class="page-item disabled"><span class="page-link rounded-pill px-3">Next &raquo;</span></li>';
+                                echo '<li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>';
                             }
                             ?>
                         </ul>
@@ -876,14 +1279,14 @@ $company_schema = [
                 <?php endif; ?>
 
             <?php else: ?>
-                <div class="bg-white rounded-xl shadow-sm border py-5 text-center">
+                <div class="bg-white rounded-xl shadow-sm border py-5 text-center" style="border-radius: 18px;">
                     <div class="card-body">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f1f5f9; color: #64748b;">
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f1f5f9; color: #64748b; width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
                             <i class="fas fa-building fa-2x"></i>
                         </div>
                         <h4 class="font-weight-bold text-dark mb-2">No Registered Companies Found</h4>
                         <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">No companies matched your query "<strong><?php echo htmlspecialchars($q_param); ?></strong>". Try searching with a different keyword, CIN, or category.</p>
-                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4">Reset Search</a>
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-primary font-weight-bold px-4" style="border-radius: 10px;">Reset Search</a>
                     </div>
                 </div>
             <?php endif; ?>
@@ -895,12 +1298,12 @@ $company_schema = [
             <div class="mt-5 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <h4 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);">
+                        <h4 class="font-weight-bold text-dark mb-1">
                             <i class="fas fa-layer-group text-primary mr-2"></i> Other Recent Incorporations <?php echo !empty($single_company['activity_code']) ? '(NIC '.$single_company['activity_code'].')' : 'in '.$single_company['category']; ?>
                         </h4>
                         <p class="text-muted small mb-0">Newly registered companies and entities in similar activity and sector.</p>
                     </div>
-                    <a href="<?php echo $base_url; ?>company-incorporation?category=<?php echo urlencode($single_company['category']); ?><?php echo !empty($single_company['activity_code']) ? '&activity='.urlencode($single_company['activity_code']) : ''; ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                    <a href="<?php echo $base_url; ?>company-incorporation?category=<?php echo urlencode($single_company['category']); ?><?php echo !empty($single_company['activity_code']) ? '&activity='.urlencode($single_company['activity_code']) : ''; ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
                         Browse All &rarr;
                     </a>
                 </div>
@@ -908,19 +1311,28 @@ $company_schema = [
                     <?php foreach ($related_companies['data'] as $comp): ?>
                         <?php
                         $badgeClass = 'company-badge-indian';
-                        if ($comp['category'] === 'LLP') $badgeClass = 'company-badge-llp';
-                        if ($comp['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+                        $cardExtraClass = '';
+                        $badgeIcon = 'fa-building';
+                        if ($comp['category'] === 'LLP') {
+                            $badgeClass = 'company-badge-llp';
+                            $cardExtraClass = 'card-llp';
+                            $badgeIcon = 'fa-handshake';
+                        } elseif ($comp['category'] === 'FOREIGN') {
+                            $badgeClass = 'company-badge-foreign';
+                            $cardExtraClass = 'card-foreign';
+                            $badgeIcon = 'fa-globe';
+                        }
 
                         $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                         $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
                         $comp_href = company_url($comp);
                         ?>
                         <div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
-                            <div class="company-card-elevated p-4 w-100">
+                            <div class="company-card-elevated <?php echo $cardExtraClass; ?> p-4 w-100">
                                 <div>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2.5">
                                         <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase" style="font-size: 11px;">
-                                            <?php echo htmlspecialchars($comp['category']); ?>
+                                            <i class="fas <?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($comp['category']); ?>
                                         </span>
                                         <span class="small text-muted font-weight-medium">
                                             <i class="far fa-calendar-alt mr-1"></i>
@@ -928,26 +1340,26 @@ $company_schema = [
                                         </span>
                                     </div>
                                     
-                                    <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px; font-family: var(--font-heading);">
-                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='#0f172a';">
+                                    <h5 class="font-weight-bold mb-2" style="font-size: 16px; line-height: 1.4; min-height: 44px;">
+                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--incorp-primary)';" onmouseout="this.style.color='#0f172a';">
                                             <?php echo htmlspecialchars($comp['company_name']); ?>
                                         </a>
                                     </h5>
 
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <small class="text-muted font-weight-bold">CIN / ID:</small>
-                                        <code class="font-weight-bold text-primary" style="font-size: 12.5px;"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                    <div class="d-flex justify-content-between align-items-center mb-2.5 p-2 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                        <small class="text-muted font-weight-bold" style="font-size: 11px;">CIN / ID:</small>
+                                        <code class="font-weight-bold text-primary font-monospace" style="font-size: 12.5px;"><?php echo htmlspecialchars($comp['cin']); ?></code>
                                     </div>
 
                                     <div class="small text-muted mb-2">
                                         <?php if (!empty($comp['class'])): ?>
-                                            <span class="mr-2"><i class="fas fa-tag text-primary mr-1"></i> <?php echo htmlspecialchars($comp['class']); ?></span>
+                                            <div class="mb-1"><i class="fas fa-tag text-primary mr-1"></i> <?php echo htmlspecialchars($comp['class']); ?></div>
                                         <?php endif; ?>
                                         <?php if (!empty($comp['activity_code'])): ?>
                                             <div class="mt-1" title="<?php echo htmlspecialchars($act_title); ?>">
                                                 <i class="fas fa-industry text-warning mr-1"></i> 
                                                 <strong>NIC <?php echo htmlspecialchars($comp['activity_code']); ?>:</strong> 
-                                                <span class="text-dark"><?php echo htmlspecialchars(mb_strimwidth($act_title ?: 'Industrial Classification', 0, 28, '...')); ?></span>
+                                                <span class="text-dark"><?php echo htmlspecialchars(mb_strimwidth($act_title ?: 'Industrial Classification', 0, 26, '...')); ?></span>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -955,16 +1367,16 @@ $company_schema = [
 
                                 <div class="pt-3 border-top mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                     <div class="d-flex align-items-center" style="gap: 6px;">
-                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3">
+                                        <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
                                             View Details &rarr;
                                         </a>
                                         <?php if ($is_admin): ?>
-                                            <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none;" title="Edit in Admin">
+                                            <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 8px;" title="Edit in Admin">
                                                 <i class="fas fa-edit mr-1"></i> Edit
                                             </a>
                                         <?php endif; ?>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" onclick="navigator.clipboard.writeText('<?php echo htmlspecialchars($comp['cin']); ?>'); alert('CIN copied: <?php echo htmlspecialchars($comp['cin']); ?>');" title="Copy CIN">
+                                    <button type="button" class="btn btn-sm btn-light text-muted border rounded-circle" style="width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;" onclick="copyToClipboard('<?php echo htmlspecialchars($comp['cin']); ?>', 'CIN');" title="Copy CIN">
                                         <i class="far fa-copy"></i>
                                     </button>
                                 </div>
@@ -988,7 +1400,7 @@ $company_schema = [
                         <span class="badge badge-warning text-dark font-weight-bold px-3 py-1 rounded-pill text-uppercase mb-1" style="font-size: 11px;">
                             INFOGRAPHIC ARCHITECTURE
                         </span>
-                        <h3 class="font-weight-bold text-white mb-1" style="font-family: var(--font-heading); font-size: clamp(20px, 3vw, 26px);">
+                        <h3 class="font-weight-bold text-white mb-1" style="font-size: clamp(20px, 3vw, 26px);">
                             How Indian Corporate Identification Numbers (CIN) Work
                         </h3>
                         <p class="text-white-50 small mb-0">Every registered company in India carries a distinct 21-digit alphanumeric identification code containing 6 vital regulatory parameters.</p>
@@ -1001,7 +1413,7 @@ $company_schema = [
                 </div>
 
                 <!-- Animated Visual CIN Example Banner -->
-                <div class="text-center py-3 px-2 rounded-lg mb-4" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);">
+                <div class="text-center py-3 px-2 rounded-lg mb-4" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;">
                     <div class="d-flex flex-wrap justify-content-center align-items-center" style="gap: 8px;">
                         <span class="cin-segment-pill" style="background: #2563eb; color: #fff;" title="Listing Status">U</span>
                         <span class="cin-segment-pill" style="background: #059669; color: #fff;" title="NIC Activity Code">47713</span>
@@ -1016,7 +1428,7 @@ $company_schema = [
                 <!-- 6 Explanatory Infographic Rows -->
                 <div class="row">
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <span class="badge" style="background: #2563eb; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">1</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Listing Status (1 Char)</h6>
@@ -1025,7 +1437,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <span class="badge" style="background: #059669; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">2</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">NIC Activity Code (5 Digits)</h6>
@@ -1034,7 +1446,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <span class="badge" style="background: #d97706; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">3</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">State / ROC Code (2 Chars)</h6>
@@ -1043,7 +1455,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <span class="badge" style="background: #0284c7; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">4</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Incorporation Year (4 Digits)</h6>
@@ -1052,7 +1464,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <span class="badge" style="background: #dc2626; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">5</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Ownership Class (3 Chars)</h6>
@@ -1061,7 +1473,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <span class="badge" style="background: #7c3aed; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">6</span>
                             <div>
                                 <h6 class="text-white font-weight-bold mb-1">Registration Serial (6 Digits)</h6>
@@ -1076,44 +1488,44 @@ $company_schema = [
             <div class="row mb-5">
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #eff6ff; color: #2563eb;">
-                            <i class="fas fa-building"></i>
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #eff6ff; color: #2563eb; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-building fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['TOTAL']); ?>+</div>
-                        <div class="text-muted small font-weight-bold text-uppercase">Total Incorporated</div>
+                        <div class="h3 font-weight-bold text-dark mb-1"><?php echo number_format($stats['TOTAL']); ?>+</div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Total Incorporated</div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f0fdf4; color: #15803d;">
-                            <i class="fas fa-city"></i>
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f0fdf4; color: #15803d; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-city fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-success mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['INDIAN']); ?></div>
-                        <div class="text-muted small font-weight-bold text-uppercase">Indian Companies (CIN)</div>
+                        <div class="h3 font-weight-bold text-success mb-1"><?php echo number_format($stats['INDIAN']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Indian Companies (CIN)</div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #ecfdf5; color: #047857;">
-                            <i class="fas fa-handshake"></i>
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #ecfdf5; color: #047857; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-handshake fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['LLP']); ?></div>
-                        <div class="text-muted small font-weight-bold text-uppercase">LLPs (LLPIN)</div>
+                        <div class="h3 font-weight-bold text-dark mb-1"><?php echo number_format($stats['LLP']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">LLPs (LLPIN)</div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
                     <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #fffbeb; color: #b45309;">
-                            <i class="fas fa-globe"></i>
+                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #fffbeb; color: #b45309; width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-globe fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-warning mb-1" style="font-family: var(--font-heading);"><?php echo number_format($stats['FOREIGN']); ?></div>
-                        <div class="text-muted small font-weight-bold text-uppercase">Foreign Entities (FCIN)</div>
+                        <div class="h3 font-weight-bold text-warning mb-1"><?php echo number_format($stats['FOREIGN']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Foreign Entities (FCIN)</div>
                     </div>
                 </div>
             </div>
 
             <!-- Infographic 3: NIC 2025 Industry Sectors & Activity Code Explorer -->
-            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5">
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5" style="border-radius: 20px;">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -1124,7 +1536,7 @@ $company_schema = [
                                 2,715 Official Codes
                             </span>
                         </div>
-                        <h3 class="font-weight-bold text-dark mb-1" style="font-size: 22px; font-family: var(--font-heading);">
+                        <h3 class="font-weight-bold text-dark mb-1" style="font-size: 22px;">
                             Browse Incorporations by NIC 2025 Industry Sectors
                         </h3>
                         <p class="text-muted small mb-0">Explore registered companies classified according to Ministry of Statistics &amp; Programme Implementation (MoSPI) standards.</p>
@@ -1146,9 +1558,9 @@ $company_schema = [
                     ];
                     foreach ($sector_cards as $sc): ?>
                     <div class="col-lg-3 col-md-6 col-12 mb-3 d-flex">
-                        <a href="<?php echo $base_url; ?>company-incorporation?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.2s; border-color: #e2e8f0;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)';">
+                        <a href="<?php echo $base_url; ?>company-incorporation?activity=<?php echo $sc['code']; ?>" class="p-3 rounded-lg border w-100 text-decoration-none d-flex flex-column justify-content-between" style="background: #ffffff; transition: all 0.2s; border-color: #e2e8f0; border-radius: 14px;" onmouseover="this.style.borderColor='<?php echo $sc['color']; ?>'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 18px rgba(0,0,0,0.05)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <span class="d-inline-flex align-items-center justify-content-center rounded-lg" style="width: 36px; height: 36px; background: <?php echo $sc['bg']; ?>; color: <?php echo $sc['color']; ?>; font-size: 16px;">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-lg" style="width: 38px; height: 38px; background: <?php echo $sc['bg']; ?>; color: <?php echo $sc['color']; ?>; font-size: 16px; border-radius: 10px;">
                                     <i class="fas <?php echo $sc['icon']; ?>"></i>
                                 </span>
                                 <div>
@@ -1156,7 +1568,7 @@ $company_schema = [
                                     <div class="font-weight-bold text-dark" style="font-size: 13.5px; line-height: 1.3;"><?php echo $sc['title']; ?></div>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top" style="border-color: #f1f5f9 !important;">
                                 <span class="small font-weight-bold text-primary"><?php echo $sc['count']; ?> Companies</span>
                                 <span class="small text-muted font-weight-bold">View &rarr;</span>
                             </div>
@@ -1166,7 +1578,7 @@ $company_schema = [
                 </div>
 
                 <!-- Instant NIC 2025 Activity Code Finder Widget -->
-                <div class="p-4 rounded-xl" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
+                <div class="p-4 rounded-xl" style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 16px;">
                     <div class="row align-items-center mb-3">
                         <div class="col-lg-7 col-md-12 mb-2 mb-lg-0">
                             <h5 class="font-weight-bold text-dark mb-1" style="font-size: 16px;">
@@ -1176,9 +1588,9 @@ $company_schema = [
                         </div>
                         <div class="col-lg-5 col-md-12">
                             <div class="input-group">
-                                <input type="text" id="nicLiveSearchInput" class="form-control" placeholder="Search 2,715 NIC activities..." style="height: 44px;">
+                                <input type="text" id="nicLiveSearchInput" class="form-control form-control-custom" placeholder="Search 2,715 NIC activities..." style="height: 44px;">
                                 <div class="input-group-append">
-                                    <button class="btn btn-primary px-3 font-weight-bold" type="button" onclick="runNicLiveSearch();">
+                                    <button class="btn btn-primary px-3 font-weight-bold" style="border-radius: 0 10px 10px 0;" type="button" onclick="runNicLiveSearch();">
                                         <i class="fas fa-search"></i> Find
                                     </button>
                                 </div>
@@ -1186,7 +1598,7 @@ $company_schema = [
                         </div>
                     </div>
 
-                    <div id="nicSearchResultsBox" style="display: none;" class="mt-3 bg-white rounded-lg border p-3 shadow-sm">
+                    <div id="nicSearchResultsBox" style="display: none;" class="mt-3 bg-white rounded-lg border p-3 shadow-sm" style="border-radius: 12px;">
                         <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                             <span class="small font-weight-bold text-dark"><i class="fas fa-list mr-1 text-primary"></i> Matching NIC 2025 Codes:</span>
                             <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="document.getElementById('nicSearchResultsBox').style.display='none';"><i class="fas fa-times"></i> Close</button>
@@ -1197,12 +1609,12 @@ $company_schema = [
             </div>
 
             <!-- Infographic 4: Comparative Corporate Classification Matrix -->
-            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5">
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5 mb-5" style="border-radius: 20px;">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <div class="brand-icon-badge" style="width: 32px; height: 32px; font-size: 14px;">
+                    <div class="brand-icon-badge" style="width: 36px; height: 36px; font-size: 16px; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px;">
                         <i class="fas fa-balance-scale"></i>
                     </div>
-                    <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px; font-family: var(--font-heading);">
+                    <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px;">
                         Comparison of Registered Business Structures in India
                     </h3>
                 </div>
@@ -1252,18 +1664,18 @@ $company_schema = [
                 </div>
             </div>
 
-            <!-- Infographic 4: How to Verify Company Status (3 Steps) -->
-            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5">
+            <!-- Infographic 5: How to Verify Company Status (3 Steps) -->
+            <div class="bg-white rounded-xl shadow-sm border p-4 p-md-5" style="border-radius: 20px;">
                 <div class="row text-center mb-4 justify-content-center">
                     <div class="col-lg-8 col-12">
-                        <span class="badge badge-primary px-3 py-1 rounded-pill text-uppercase font-weight-bold mb-2" style="background: var(--primary-light); color: var(--primary-color);">CITIZEN VERIFICATION</span>
-                        <h4 class="font-weight-bold text-dark mb-1" style="font-size: 22px; font-family: var(--font-heading);">How to Verify Any Indian Business Entity</h4>
+                        <span class="badge badge-primary px-3 py-1 rounded-pill text-uppercase font-weight-bold mb-2" style="background: #eff6ff; color: #2563eb;">CITIZEN VERIFICATION</span>
+                        <h4 class="font-weight-bold text-dark mb-1" style="font-size: 22px;">How to Verify Any Indian Business Entity</h4>
                         <p class="text-muted small mb-0">Follow these 3 simple steps to conduct legal due diligence on contractors, vendors, and companies.</p>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-lg-4 col-md-6 col-12 mb-3">
-                        <div class="p-3.5 rounded border bg-light h-100">
+                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 12px;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge badge-primary rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
                                 <h6 class="font-weight-bold text-dark mb-0">Locate Identification No.</h6>
@@ -1272,7 +1684,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 col-12 mb-3">
-                        <div class="p-3.5 rounded border bg-light h-100">
+                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 12px;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge badge-success rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
                                 <h6 class="font-weight-bold text-dark mb-0">Search on OnlineLaw</h6>
@@ -1281,7 +1693,7 @@ $company_schema = [
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 col-12 mb-3">
-                        <div class="p-3.5 rounded border bg-light h-100">
+                        <div class="p-3.5 rounded border bg-light h-100" style="border-radius: 12px;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="badge badge-info rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
                                 <h6 class="font-weight-bold text-dark mb-0">Verify Compliance Status</h6>
@@ -1295,13 +1707,13 @@ $company_schema = [
         <?php endif; ?>
 
         <!-- Disclaimer: Regarding MCA (Ministry of Corporate Affairs) -->
-        <div class="p-4 rounded-xl border bg-white shadow-sm mt-5 mb-4" style="border-radius: var(--radius-lg); border-left: 4px solid var(--primary-color) !important;">
+        <div class="p-4 rounded-xl border bg-white shadow-sm mt-5 mb-4" style="border-radius: 18px; border-left: 4px solid var(--incorp-primary) !important;">
             <div class="d-flex align-items-start">
                 <div class="p-2 rounded-circle bg-light text-primary mr-3 d-none d-sm-inline-flex" style="width: 44px; height: 44px; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i class="fas fa-balance-scale fa-lg"></i>
                 </div>
                 <div>
-                    <h5 class="font-weight-bold text-dark mb-2" style="font-family: var(--font-heading);">
+                    <h5 class="font-weight-bold text-dark mb-2">
                         <i class="fas fa-shield-alt text-primary mr-1 d-inline d-sm-none"></i> Disclaimer: Regarding Ministry of Corporate Affairs (MCA)
                     </h5>
                     <p class="text-muted small mb-2" style="line-height: 1.7;">
@@ -1323,7 +1735,44 @@ $company_schema = [
 	</div>
 </div>
 
+<!-- ==========================================================================
+     INTERACTIVE SCRIPTS & TOAST NOTIFICATION SYSTEM
+     ========================================================================== -->
 <script>
+function copyToClipboard(text, label = 'CIN') {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(showToast).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+
+    function showToast() {
+        let toast = document.getElementById('lawCopyToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'lawCopyToast';
+            toast.className = 'law-toast';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = '<i class="fas fa-check-circle text-success mr-2" style="font-size: 16px;"></i> <span>' + label + ' copied: <strong>' + text + '</strong></span>';
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2800);
+    }
+
+    function fallbackCopy(str) {
+        const temp = document.createElement('textarea');
+        temp.value = str;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast();
+    }
+}
+
 function runNicLiveSearch() {
     const input = document.getElementById('nicLiveSearchInput');
     const box = document.getElementById('nicSearchResultsBox');
@@ -1339,30 +1788,24 @@ function runNicLiveSearch() {
     box.style.display = 'block';
     list.innerHTML = '<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin mr-1"></i> Searching official NIC 2025 records...</div>';
 
-    fetch('api.php?action=nic&q=' + encodeURIComponent(query))
+    fetch('<?php echo $base_url; ?>company-incorporation?ajax_nic_search=' + encodeURIComponent(query))
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success' && data.data) {
-                const results = Array.isArray(data.data) ? data.data : (data.data.subclass ? [data.data.subclass] : (data.data.class ? [data.data.class] : [data.data.division]));
-                if (!results || results.length === 0) {
-                    list.innerHTML = '<div class="text-muted p-2">No matching NIC 2025 activity codes found for "<strong>' + encodeURIComponent(query) + '</strong>".</div>';
-                    return;
-                }
-
+            if (data.status === 'success' && data.data && data.data.length > 0) {
                 let html = '<div class="list-group list-group-flush">';
-                results.slice(0, 15).forEach(item => {
+                data.data.forEach(item => {
                     if (!item) return;
                     const code = item.code || '';
                     const level = item.level || '';
                     const title = item.title || '';
                     const divCode = item.division_code || (code.length >= 2 ? code.substring(0, 2) : code);
 
-                    html += '<div class="list-group-item px-2 py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">' +
+                    html += '<div class="list-group-item px-2 py-2.5 d-flex flex-wrap justify-content-between align-items-center gap-2" style="border-color: #f1f5f9;">' +
                         '<div>' +
                             '<span class="badge badge-primary mr-2" style="font-size: 11px;">' + level + ' ' + code + '</span>' +
                             '<strong class="text-dark">' + title + '</strong>' +
                         '</div>' +
-                        '<a href="<?php echo $base_url; ?>company-incorporation?activity=' + divCode + '" class="btn btn-xs btn-outline-primary font-weight-bold" style="font-size: 11px; padding: 2px 8px;">' +
+                        '<a href="<?php echo $base_url; ?>company-incorporation?activity=' + divCode + '" class="btn btn-xs btn-outline-primary font-weight-bold px-2.5 py-1" style="font-size: 11.5px; border-radius: 6px;">' +
                             'View Companies (Div ' + divCode + ') &rarr;' +
                         '</a>' +
                     '</div>';
@@ -1370,7 +1813,7 @@ function runNicLiveSearch() {
                 html += '</div>';
                 list.innerHTML = html;
             } else {
-                list.innerHTML = '<div class="text-muted p-2">No matching NIC 2025 activity codes found.</div>';
+                list.innerHTML = '<div class="text-muted p-2">No matching NIC 2025 activity codes found for "<strong>' + encodeURIComponent(query) + '</strong>".</div>';
             }
         })
         .catch(err => {
