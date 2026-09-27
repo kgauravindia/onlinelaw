@@ -449,13 +449,6 @@ require_once('includes/header.php');
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="9" class="text-center py-5 text-muted">
-                                    <i class="fas fa-key fa-3x mb-3 d-block text-muted opacity-50"></i>
-                                    No API Keys generated yet. Click <strong>"Create API Key"</strong> above to generate your first client access key.
-                                </td>
-                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -478,7 +471,7 @@ require_once('includes/header.php');
             </div>
 
             <div class="table-responsive">
-                <table class="table align-middle" id="apiLogsTable">
+                <table class="table align-middle" id="apiLogsTable" style="width: 100%;">
                     <thead>
                         <tr>
                             <th style="width: 70px;">Log ID</th>
@@ -524,13 +517,6 @@ require_once('includes/header.php');
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="fas fa-clipboard-list fa-3x mb-3 d-block text-muted opacity-50"></i>
-                                    No API access logs recorded yet. Inbound API requests will appear here in real time.
-                                </td>
-                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -690,20 +676,37 @@ require_once('includes/header.php');
 <script>
 $(document).ready(function() {
     if ($.fn.DataTable) {
+        // Prevent generic alert popups
+        $.fn.dataTable.ext.errMode = 'none';
+
         $('#apiKeysTable').DataTable({
             "pageLength": 25,
+            "autoWidth": false,
             "language": {
                 "search": "_INPUT_",
-                "searchPlaceholder": "Filter API keys..."
+                "searchPlaceholder": "Filter API keys...",
+                "emptyTable": "No API Keys generated yet. Click 'Create API Key' to get started."
             }
         });
 
-        $('#apiLogsTable').DataTable({
+        var logsTable = $('#apiLogsTable').DataTable({
             "pageLength": 25,
             "order": [[0, "desc"]],
+            "autoWidth": false,
             "language": {
                 "search": "_INPUT_",
-                "searchPlaceholder": "Filter logs..."
+                "searchPlaceholder": "Filter logs...",
+                "emptyTable": "No API access logs recorded yet. Inbound requests will appear here in real time."
+            }
+        });
+
+        // Auto-adjust columns when tabs are switched
+        $('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
+            if ($.fn.DataTable.isDataTable('#apiLogsTable')) {
+                $('#apiLogsTable').DataTable().columns.adjust().responsive.recalc();
+            }
+            if ($.fn.DataTable.isDataTable('#apiKeysTable')) {
+                $('#apiKeysTable').DataTable().columns.adjust().responsive.recalc();
             }
         });
     }
