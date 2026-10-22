@@ -56,6 +56,9 @@ if (isset($monthly_trends['data']) && count($monthly_trends['data']) > 0) {
         <span class="badge bg-white text-dark shadow-sm border px-3 py-2 rounded-pill d-inline-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
             <i class="far fa-calendar-alt text-primary mr-2"></i><?php echo date('l, d M Y'); ?>
         </span>
+        <a href="manage_settings.php" class="btn btn-outline-secondary px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
+            <i class="fas fa-sliders-h mr-1"></i> Site Settings
+        </a>
         <a href="manage_api_keys.php" class="btn btn-outline-info px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-key mr-1"></i> API Keys
         </a>

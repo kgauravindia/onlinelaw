@@ -13,16 +13,22 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
-// Handle Status Toggle (ACTIVE <-> BLOCK) via AJAX or direct GET/POST
+// Handle Status Toggle (ACTIVE <-> STRUCK_OFF <-> BLOCK) via AJAX or direct GET/POST
 if (isset($_REQUEST['toggle_status_id'])) {
     $toggle_id = intval($_REQUEST['toggle_status_id']);
     $to_status = isset($_REQUEST['to_status']) ? strtoupper(trim($_REQUEST['to_status'])) : '';
     
-    if (!in_array($to_status, ['ACTIVE', 'BLOCK'])) {
-        // Auto toggle if not explicitly specified
+    if (!in_array($to_status, ['ACTIVE', 'STRUCK_OFF', 'BLOCK'])) {
+        // Auto cycle if not explicitly specified: ACTIVE -> STRUCK_OFF -> BLOCK -> ACTIVE
         $curr = direct_sql("SELECT status FROM companies_incorporated WHERE id = $toggle_id LIMIT 1");
-        $curr_status = ($curr['count'] > 0 && strtoupper($curr['data'][0]['status'] ?? '') === 'BLOCK') ? 'BLOCK' : 'ACTIVE';
-        $to_status = ($curr_status === 'ACTIVE') ? 'BLOCK' : 'ACTIVE';
+        $curr_status = strtoupper($curr['data'][0]['status'] ?? 'ACTIVE');
+        if ($curr_status === 'ACTIVE' || empty($curr_status)) {
+            $to_status = 'STRUCK_OFF';
+        } elseif ($curr_status === 'STRUCK_OFF' || $curr_status === 'STRUCK OFF') {
+            $to_status = 'BLOCK';
+        } else {
+            $to_status = 'ACTIVE';
+        }
     }
 
     $update_res = update_data('companies_incorporated', ['status' => $to_status], $toggle_id);
@@ -31,11 +37,16 @@ if (isset($_REQUEST['toggle_status_id'])) {
     if ($is_ajax) {
         header('Content-Type: application/json');
         if ($update_res['status'] === 'success') {
+            $status_labels = [
+                'ACTIVE' => 'ACTIVE (Visible on Website)',
+                'STRUCK_OFF' => 'STRUCK OFF (Marked Struck Off by MCA)',
+                'BLOCK' => 'BLOCKED (Hidden from Website)'
+            ];
             echo json_encode([
                 'status' => 'success',
                 'id' => $toggle_id,
                 'new_status' => $to_status,
-                'message' => "Company status updated to " . ($to_status === 'ACTIVE' ? "ACTIVE (Visible on Website)" : "BLOCKED (Hidden from Website)")
+                'message' => "Company status updated to " . ($status_labels[$to_status] ?? $to_status)
             ]);
         } else {
             echo json_encode([
@@ -89,10 +100,12 @@ if (!empty($filter_category) && in_array($filter_category, ['INDIAN', 'LLP', 'FO
     $fc = mysqli_real_escape_string($con, $filter_category);
     $where_clauses[] = "category = '$fc'";
 }
-if (!empty($filter_status) && in_array($filter_status, ['ACTIVE', 'BLOCK'])) {
+if (!empty($filter_status) && in_array($filter_status, ['ACTIVE', 'STRUCK_OFF', 'BLOCK'])) {
     $fs = mysqli_real_escape_string($con, $filter_status);
     if ($fs === 'BLOCK') {
         $where_clauses[] = "status = 'BLOCK'";
+    } elseif ($fs === 'STRUCK_OFF') {
+        $where_clauses[] = "(status = 'STRUCK_OFF' OR status = 'STRUCK OFF' OR status = 'STRIKE_OFF')";
     } else {
         $where_clauses[] = "(status = 'ACTIVE' OR status IS NULL OR status = '')";
     }
@@ -136,13 +149,16 @@ if ($stats_query['count'] > 0) {
     }
 }
 
-// Overall status stats (Active vs Blocked)
+// Overall status stats (Active vs Struck Off vs Blocked)
 $status_stats_query = direct_sql("SELECT status, COUNT(*) as cnt FROM companies_incorporated GROUP BY status");
-$stats_status = ['ACTIVE' => 0, 'BLOCK' => 0];
+$stats_status = ['ACTIVE' => 0, 'STRUCK_OFF' => 0, 'BLOCK' => 0];
 if ($status_stats_query['count'] > 0) {
     foreach ($status_stats_query['data'] as $st) {
-        if (strtoupper($st['status'] ?? '') === 'BLOCK') {
+        $st_val = strtoupper($st['status'] ?? '');
+        if ($st_val === 'BLOCK') {
             $stats_status['BLOCK'] += (int)$st['cnt'];
+        } elseif ($st_val === 'STRUCK_OFF' || $st_val === 'STRUCK OFF' || $st_val === 'STRIKE_OFF') {
+            $stats_status['STRUCK_OFF'] += (int)$st['cnt'];
         } else {
             $stats_status['ACTIVE'] += (int)$st['cnt'];
         }
@@ -161,15 +177,20 @@ if ($status_stats_query['count'] > 0) {
 <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
     <div>
         <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">Manage Companies Incorporated</h1>
-        <p class="text-muted mb-0" style="font-size: 0.9rem;">Browse, search, edit, or toggle ACTIVE / BLOCK visibility for registered companies on the website.</p>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Browse, search, edit, or toggle ACTIVE, STRUCK OFF &amp; BLOCK status for companies and LLPs.</p>
         
         <!-- Quick Status Pills -->
         <div class="d-flex align-items-center flex-wrap gap-2 mt-2" style="gap: 8px;">
-            <span class="small font-weight-bold text-muted mr-1">Website Visibility:</span>
+            <span class="small font-weight-bold text-muted mr-1">MCA Status:</span>
             <a href="manage_companies.php?status=ACTIVE<?php echo !empty($filter_category) ? '&category='.$filter_category : ''; ?>" 
                class="badge <?php echo $filter_status === 'ACTIVE' ? 'badge-success shadow-sm' : 'badge-light border text-success'; ?> px-3 py-1 font-weight-bold" 
                style="border-radius: 20px; font-size: 0.8rem; text-decoration: none;">
                 <i class="fas fa-check-circle mr-1"></i> Active on Web: <span id="hdr-active-count"><?php echo number_format($stats_status['ACTIVE']); ?></span>
+            </a>
+            <a href="manage_companies.php?status=STRUCK_OFF<?php echo !empty($filter_category) ? '&category='.$filter_category : ''; ?>" 
+               class="badge <?php echo $filter_status === 'STRUCK_OFF' ? 'badge-warning shadow-sm' : 'badge-light border text-warning'; ?> px-3 py-1 font-weight-bold" 
+               style="border-radius: 20px; font-size: 0.8rem; text-decoration: none; color: #b45309 !important;">
+                <i class="fas fa-exclamation-triangle mr-1"></i> Struck Off: <span id="hdr-struck-count"><?php echo number_format($stats_status['STRUCK_OFF']); ?></span>
             </a>
             <a href="manage_companies.php?status=BLOCK<?php echo !empty($filter_category) ? '&category='.$filter_category : ''; ?>" 
                class="badge <?php echo $filter_status === 'BLOCK' ? 'badge-danger shadow-sm' : 'badge-light border text-danger'; ?> px-3 py-1 font-weight-bold" 
@@ -183,6 +204,7 @@ if ($status_stats_query['count'] > 0) {
             <?php endif; ?>
         </div>
     </div>
+
     <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2" style="gap: 8px;">
         <a href="https://www.mca.gov.in/content/mca/global/en/data-and-reports/company-llp-info/incorporated-closed-month.html" target="_blank" class="btn btn-outline-secondary font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-external-link-alt mr-1"></i> MCA Portal
@@ -274,10 +296,11 @@ if ($status_stats_query['count'] > 0) {
             </select>
         </div>
         <div class="col-xl-2 col-lg-2 col-md-6 mb-3">
-            <label class="small font-weight-bold text-muted mb-1">Website Status</label>
+            <label class="small font-weight-bold text-muted mb-1">MCA Status</label>
             <select name="status" class="form-control">
                 <option value="">All Status</option>
-                <option value="ACTIVE" <?php echo ($filter_status === 'ACTIVE') ? 'selected' : ''; ?>>ACTIVE (Show on Web)</option>
+                <option value="ACTIVE" <?php echo ($filter_status === 'ACTIVE') ? 'selected' : ''; ?>>ACTIVE (Active on Web)</option>
+                <option value="STRUCK_OFF" <?php echo ($filter_status === 'STRUCK_OFF') ? 'selected' : ''; ?>>STRUCK OFF (Struck Off by MCA)</option>
                 <option value="BLOCK" <?php echo ($filter_status === 'BLOCK') ? 'selected' : ''; ?>>BLOCK (Hidden)</option>
             </select>
         </div>
@@ -345,9 +368,11 @@ if ($status_stats_query['count'] > 0) {
                 <?php if ($companies['count'] > 0): ?>
                     <?php foreach ($companies['data'] as $c): ?>
                         <?php 
-                        $is_blocked = (strtoupper($c['status'] ?? '') === 'BLOCK');
-                        $current_status = $is_blocked ? 'BLOCK' : 'ACTIVE';
-                        $next_status = $is_blocked ? 'ACTIVE' : 'BLOCK';
+                        $raw_status = strtoupper($c['status'] ?? 'ACTIVE');
+                        $is_blocked = ($raw_status === 'BLOCK');
+                        $is_struck = ($raw_status === 'STRUCK_OFF' || $raw_status === 'STRUCK OFF' || $raw_status === 'STRIKE_OFF');
+                        $current_status = $is_blocked ? 'BLOCK' : ($is_struck ? 'STRUCK_OFF' : 'ACTIVE');
+                        $next_status = $is_blocked ? 'ACTIVE' : ($is_struck ? 'BLOCK' : 'STRUCK_OFF');
                         ?>
                         <tr id="company-row-<?php echo $c['id']; ?>">
                             <td class="text-muted small">#<?php echo $c['id']; ?></td>
@@ -388,17 +413,28 @@ if ($status_stats_query['count'] > 0) {
                             </td>
                             <!-- Interactive Status Button -->
                             <td class="text-center" id="status-cell-<?php echo $c['id']; ?>">
+                                <?php
+                                $btnClass = 'btn-outline-success';
+                                if ($is_blocked) {
+                                    $btnClass = 'btn-outline-danger';
+                                } elseif ($is_struck) {
+                                    $btnClass = 'btn-outline-warning text-dark';
+                                }
+                                ?>
                                 <button type="button" 
-                                        class="btn btn-sm btn-status-toggle w-100 <?php echo $is_blocked ? 'btn-outline-danger' : 'btn-outline-success'; ?> font-weight-bold"
-                                        style="border-radius: 20px; font-size: 0.78rem; padding: 4px 10px; transition: all 0.2s;"
+                                        class="btn btn-sm btn-status-toggle w-100 <?php echo $btnClass; ?> font-weight-bold"
+                                        style="border-radius: 20px; font-size: 0.78rem; padding: 4px 8px; transition: all 0.2s;"
                                         data-id="<?php echo $c['id']; ?>"
                                         data-name="<?php echo htmlspecialchars($c['company_name']); ?>"
                                         data-current="<?php echo $current_status; ?>"
                                         data-next="<?php echo $next_status; ?>"
-                                        title="<?php echo $is_blocked ? 'Currently HIDDEN on website. Click to set ACTIVE.' : 'Currently VISIBLE on website. Click to BLOCK.'; ?>">
+                                        title="<?php echo $is_blocked ? 'Currently BLOCKED. Click to set ACTIVE.' : ($is_struck ? 'Currently STRUCK OFF. Click to set BLOCK.' : 'Currently ACTIVE. Click to set STRUCK OFF.'); ?>">
                                     <?php if ($is_blocked): ?>
                                         <i class="fas fa-ban mr-1"></i> <span>BLOCK</span>
                                         <span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Hidden on Web</span>
+                                    <?php elseif ($is_struck): ?>
+                                        <i class="fas fa-exclamation-triangle mr-1 text-warning"></i> <span>STRUCK OFF</span>
+                                        <span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Struck in MCA</span>
                                     <?php else: ?>
                                         <i class="fas fa-check-circle mr-1"></i> <span>ACTIVE</span>
                                         <span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Visible on Web</span>
@@ -417,12 +453,12 @@ if ($status_stats_query['count'] > 0) {
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>
                                     <a href="<?php echo $action_url; ?>" 
-                                       class="btn-action-circle <?php echo $is_blocked ? 'text-success' : 'text-warning'; ?> action-status-link-<?php echo $c['id']; ?>" 
+                                       class="btn-action-circle <?php echo $is_blocked ? 'text-success' : ($is_struck ? 'text-danger' : 'text-warning'); ?> action-status-link-<?php echo $c['id']; ?>" 
                                        data-id="<?php echo $c['id']; ?>"
                                        data-next="<?php echo $next_status; ?>"
-                                       title="<?php echo $is_blocked ? 'Show on website (Set ACTIVE)' : 'Hide from website (Set BLOCK)'; ?>"
-                                       onclick="return confirm('Change status of this company to <?php echo $next_status; ?> (<?php echo $next_status === 'ACTIVE' ? 'Show on website' : 'Hide from website'; ?>)?');">
-                                        <i class="fas <?php echo $is_blocked ? 'fa-eye' : 'fa-eye-slash'; ?>"></i>
+                                       title="Cycle status to <?php echo $next_status; ?>"
+                                       onclick="return confirm('Change status of this company to <?php echo $next_status; ?>?');">
+                                        <i class="fas <?php echo $is_blocked ? 'fa-eye' : ($is_struck ? 'fa-ban' : 'fa-exclamation-triangle'); ?>"></i>
                                     </a>
                                     <a href="edit_company.php?id=<?php echo $c['id']; ?>" class="btn-action-circle text-primary" title="Edit Company Details">
                                         <i class="fas fa-pen"></i>
@@ -535,53 +571,47 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 this.disabled = false;
                 if (data.status === 'success') {
-                    const isNowBlocked = (data.new_status === 'BLOCK');
-                    const newNext = isNowBlocked ? 'ACTIVE' : 'BLOCK';
+                    const newStatus = data.new_status;
+                    let newNext = 'ACTIVE';
+                    if (newStatus === 'ACTIVE') newNext = 'STRUCK_OFF';
+                    else if (newStatus === 'STRUCK_OFF') newNext = 'BLOCK';
+                    else if (newStatus === 'BLOCK') newNext = 'ACTIVE';
 
                     // Update button styling and contents
-                    this.setAttribute('data-current', data.new_status);
+                    this.setAttribute('data-current', newStatus);
                     this.setAttribute('data-next', newNext);
 
-                    if (isNowBlocked) {
+                    if (newStatus === 'BLOCK') {
                         this.className = 'btn btn-sm btn-status-toggle w-100 btn-outline-danger font-weight-bold';
                         this.innerHTML = '<i class="fas fa-ban mr-1"></i> <span>BLOCK</span><span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Hidden on Web</span>';
                         this.title = 'Currently HIDDEN on website. Click to set ACTIVE.';
+                    } else if (newStatus === 'STRUCK_OFF') {
+                        this.className = 'btn btn-sm btn-status-toggle w-100 btn-outline-warning text-dark font-weight-bold';
+                        this.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-warning"></i> <span>STRUCK OFF</span><span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Struck in MCA</span>';
+                        this.title = 'Currently STRUCK OFF in MCA. Click to set BLOCK.';
                     } else {
                         this.className = 'btn btn-sm btn-status-toggle w-100 btn-outline-success font-weight-bold';
                         this.innerHTML = '<i class="fas fa-check-circle mr-1"></i> <span>ACTIVE</span><span class="d-block small status-subtext" style="font-size: 0.68rem; font-weight: 500; opacity: 0.85;">Visible on Web</span>';
-                        this.title = 'Currently VISIBLE on website. Click to BLOCK.';
+                        this.title = 'Currently VISIBLE on website. Click to set STRUCK OFF.';
                     }
 
                     // Update corresponding action link icon and title in same row
                     const actionLink = document.querySelector('.action-status-link-' + id);
                     if (actionLink) {
                         actionLink.setAttribute('data-next', newNext);
-                        if (isNowBlocked) {
+                        if (newStatus === 'BLOCK') {
                             actionLink.className = 'btn-action-circle text-success action-status-link-' + id;
                             actionLink.innerHTML = '<i class="fas fa-eye"></i>';
-                            actionLink.title = 'Show on website (Set ACTIVE)';
+                            actionLink.title = 'Set ACTIVE';
+                        } else if (newStatus === 'STRUCK_OFF') {
+                            actionLink.className = 'btn-action-circle text-danger action-status-link-' + id;
+                            actionLink.innerHTML = '<i class="fas fa-ban"></i>';
+                            actionLink.title = 'Set BLOCK';
                         } else {
                             actionLink.className = 'btn-action-circle text-warning action-status-link-' + id;
-                            actionLink.innerHTML = '<i class="fas fa-eye-slash"></i>';
-                            actionLink.title = 'Hide from website (Set BLOCK)';
+                            actionLink.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                            actionLink.title = 'Set STRUCK OFF';
                         }
-                    }
-
-                    // Update header counters if present
-                    const activeCountEl = document.getElementById('hdr-active-count');
-                    const blockCountEl = document.getElementById('hdr-block-count');
-                    if (activeCountEl && blockCountEl) {
-                        let activeVal = parseInt(activeCountEl.textContent.replace(/,/g, '')) || 0;
-                        let blockVal = parseInt(blockCountEl.textContent.replace(/,/g, '')) || 0;
-                        if (isNowBlocked) {
-                            activeVal = Math.max(0, activeVal - 1);
-                            blockVal = blockVal + 1;
-                        } else {
-                            activeVal = activeVal + 1;
-                            blockVal = Math.max(0, blockVal - 1);
-                        }
-                        activeCountEl.textContent = activeVal.toLocaleString();
-                        blockCountEl.textContent = blockVal.toLocaleString();
                     }
 
                     showToast((name ? name + ': ' : '') + data.message, true);

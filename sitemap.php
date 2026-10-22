@@ -12,14 +12,16 @@ $base = rtrim($inst_url, '/') . '/';
 // List of sitemap indices or files to include
 $sitemaps = [
     'sitemap-main.xml',
+    'sitemap-company.xml',
+    'sitemap-company-llp.xml',
+    'sitemap-company-foreign.xml',
     'sitemap-pincode.xml',
     'sitemap-passport.xml',
     'sitemap-ifsc.xml',
     'sitemap-micr.xml',
     'sitemap-gst.xml',
     'sitemap-acts.xml',
-    'sitemap-nic.xml',
-    'sitemap-company.xml'
+    'sitemap-nic.xml'
 ];
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";

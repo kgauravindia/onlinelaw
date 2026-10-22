@@ -153,6 +153,10 @@ $nic_schema = [
 <?php echo json_encode($nic_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); ?>
 </script>
 
+<!-- Google Fonts & FontAwesome -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
     /* =========================================================
        NIC CODE FINDER - CUSTOM MODERN STYLES
@@ -169,6 +173,12 @@ $nic_schema = [
         --nic-class-purple-bg: #f3e8ff;
         --nic-subclass-emerald: #059669;
         --nic-subclass-emerald-bg: #ecfdf5;
+        --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-code: 'JetBrains Mono', monospace;
+    }
+
+    body {
+        font-family: var(--font-main) !important;
     }
 
     /* Hero Banner with Grid Pattern */
@@ -580,14 +590,14 @@ $nic_schema = [
                     Explore <strong>2,715 official activity codes</strong> across 21 broad sections &amp; 87 divisions. Indispensable for <strong class="text-white">MCA SPICe+ Incorporation</strong>, <strong class="text-white">MSME Udyam Registration</strong>, and <strong class="text-white">GST HSN/SAC Mapping</strong>.
                 </p>
                 <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 pt-1">
-                    <span class="badge badge-dark px-3 py-1.5 rounded-pill border border-secondary text-white font-weight-normal" style="font-size: 12px; background: rgba(255,255,255,0.08);">
-                        <i class="fas fa-check-circle text-success mr-1"></i> MCA SPICe+ Compliant
+                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);">
+                        <i class="fas fa-check-circle mr-1" style="color: #38bdf8;"></i> MCA SPICe+ Compliant
                     </span>
-                    <span class="badge badge-dark px-3 py-1.5 rounded-pill border border-secondary text-white font-weight-normal" style="font-size: 12px; background: rgba(255,255,255,0.08);">
-                        <i class="fas fa-check-circle text-success mr-1"></i> MSME Udyam 2/4/5 Digit Key
+                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #34d399; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.35); box-shadow: 0 2px 8px rgba(52, 211, 153, 0.15);">
+                        <i class="fas fa-check-circle mr-1" style="color: #34d399;"></i> MSME Udyam 2/4/5 Digit Key
                     </span>
-                    <span class="badge badge-dark px-3 py-1.5 rounded-pill border border-secondary text-white font-weight-normal" style="font-size: 12px; background: rgba(255,255,255,0.08);">
-                        <i class="fas fa-check-circle text-success mr-1"></i> 21-Digit CIN Industry Segment
+                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);">
+                        <i class="fas fa-check-circle mr-1" style="color: #fbbf24;"></i> 21-Digit CIN Industry Segment
                     </span>
                 </div>
             </div>

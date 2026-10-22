@@ -1,18 +1,45 @@
-<?php require_once ('includes/config.php'); ?> 
+<?php 
+/**
+ * Online Law - Global Header Include
+ * Modernized 2026 Design with Cascading Tool Menus & SEO Tags
+ */
+require_once (__DIR__ . '/config.php'); 
+require_once (__DIR__ . '/function.php'); 
+
+$ga_id = get_setting('google_analytics_id', 'G-TDGJS08YY4');
+$ga_enabled = get_setting('google_analytics_enabled', '1');
+
+$adsense_id = get_setting('google_adsense_id', 'ca-pub-1272970612043134');
+$adsense_enabled = get_setting('google_adsense_enabled', '1');
+
+$header_custom_code = get_setting('header_custom_code', '');
+$g_site_verification = get_setting('google_site_verification', '');
+$bing_site_verification = get_setting('bing_site_verification', '');
+?> 
 <link rel="icon" type="image/png" href="<?php echo $base_url; ?>images/favicon.png">
 <link rel="canonical" href="<?php echo !empty($canonical_url) ? htmlspecialchars($canonical_url) : ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>">
 <meta name="robots" content="index, follow">
-<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<?php if (!empty($g_site_verification)): ?>
+<!-- Google Search Console Verification -->
+<meta name="google-site-verification" content="<?php echo htmlspecialchars($g_site_verification); ?>" />
+<?php endif; ?>
+<?php if (!empty($bing_site_verification)): ?>
+<!-- Bing Webmaster Verification -->
+<meta name="msvalidate.01" content="<?php echo htmlspecialchars($bing_site_verification); ?>" />
+<?php endif; ?>
+<!-- DNS Prefetch & Preconnect for High Performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Links of css files -->
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+<link rel="dns-prefetch" href="https://cdn.datatables.net">
+<link rel="dns-prefetch" href="https://code.jquery.com">
+
+<!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono with font-display swap -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- Optimized Core CSS Stylesheets -->
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/bootstrap-4.1.3.min.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/fontawesome-all-5.5.0.min.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/jquery.fancybox.min.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/animate.min.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/owl.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>webfonts/flaticon/flaticon.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/style.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/responsive.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
@@ -24,8 +51,25 @@
 <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
 <![endif]-->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1272970612043134"
-     crossorigin="anonymous"></script>
+<?php if (!empty($adsense_id) && $adsense_enabled == '1'): ?>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?php echo htmlspecialchars($adsense_id); ?>" crossorigin="anonymous"></script>
+<?php endif; ?>
+<?php if (!empty($ga_id) && $ga_enabled == '1'): ?>
+<!-- Google tag (gtag.js) / Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo htmlspecialchars($ga_id); ?>"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '<?php echo htmlspecialchars($ga_id); ?>');
+</script>
+<?php endif; ?>
+<?php if (!empty($header_custom_code)): ?>
+<!-- Custom Header Code -->
+<?php echo $header_custom_code; ?>
+<?php endif; ?>
 </head>
 
 <body>
@@ -88,6 +132,12 @@
 									</a>
 								</li>
 								<li>
+									<a class="dropdown-item" href="<?php echo $base_url; ?>pincode-finder">
+										<span><i class="fas fa-map-marked-alt text-success mr-2" style="width: 16px;"></i>PIN Code Finder (State &amp; District)</span>
+										<span class="nav-badge-pill nav-badge-new">NEW</span>
+									</a>
+								</li>
+								<li>
 									<a class="dropdown-item" href="<?php echo $base_url; ?>pincode">
 										<span><i class="fas fa-map-pin text-info mr-2" style="width: 16px;"></i>PIN Code by Number</span>
 									</a>
@@ -95,21 +145,6 @@
 								<li>
 									<a class="dropdown-item" href="<?php echo $base_url; ?>pincode-by-locality">
 										<span><i class="fas fa-search-location text-info mr-2" style="width: 16px;"></i>PIN Code by Locality</span>
-									</a>
-								</li>
-								<li>
-									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc">
-										<span><i class="fas fa-university text-warning mr-2" style="width: 16px;"></i>Bank IFSC</span>
-									</a>
-								</li>
-								<li>
-									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc-by-branch-name">
-										<span><i class="fas fa-code-branch text-warning mr-2" style="width: 16px;"></i>Bank IFSC by Branch</span>
-									</a>
-								</li>
-								<li>
-									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-micr">
-										<span><i class="fas fa-money-check-alt text-success mr-2" style="width: 16px;"></i>Bank MICR Codes</span>
 									</a>
 								</li>
 								<li>
@@ -131,10 +166,32 @@
 							</li>
 							<li class="nav-item dropdown"> 
 								<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									<i class="fas fa-landmark d-lg-none mr-2"></i>Bank Directory
+									<i class="fas fa-landmark d-lg-none mr-2"></i>Bank &amp; IFSC
 								</a>
 							  <ul class="dropdown-menu">
-								<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank"><span><i class="fas fa-university text-primary mr-2" style="width: 16px;"></i>Directory Home</span></a></li>
+								<li>
+									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-finder">
+										<span><i class="fas fa-landmark text-success mr-2" style="width: 16px;"></i>Bank Finder (Bank, State &amp; Branch)</span>
+										<span class="nav-badge-pill nav-badge-new">NEW</span>
+									</a>
+								</li>
+								<li>
+									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc">
+										<span><i class="fas fa-university text-primary mr-2" style="width: 16px;"></i>Bank IFSC Search</span>
+									</a>
+								</li>
+								<li>
+									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-ifsc-by-branch-name">
+										<span><i class="fas fa-code-branch text-warning mr-2" style="width: 16px;"></i>Bank IFSC by Branch Name</span>
+									</a>
+								</li>
+								<li>
+									<a class="dropdown-item" href="<?php echo $base_url; ?>bank-micr">
+										<span><i class="fas fa-money-check-alt text-info mr-2" style="width: 16px;"></i>Bank MICR Codes</span>
+									</a>
+								</li>
+								<div class="dropdown-divider my-1"></div>
+								<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank"><span><i class="fas fa-book text-muted mr-2" style="width: 16px;"></i>Bank Services Directory</span></a></li>
 								<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank/services"><span><i class="fas fa-mobile-alt text-success mr-2" style="width: 16px;"></i>Digital Banking Services</span></a></li>
 								<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank/card"><span><i class="fas fa-credit-card text-warning mr-2" style="width: 16px;"></i>Card Helplines</span></a></li>
 								<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank/account"><span><i class="fas fa-phone-volume text-info mr-2" style="width: 16px;"></i>Balance Check Numbers</span></a></li>

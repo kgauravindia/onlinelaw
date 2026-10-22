@@ -1,374 +1,492 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<!-- Meta Tag -->
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <?php
-    // Set include path to root directory so that relative requires in includes/header.php and function.php work correctly
+    // Set include path to root directory so that relative requires work correctly
     set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__DIR__));
     require_once('includes/config.php');
 
-    // Since this script is in a subdirectory, if we are on localhost, $base_url will end in '/bank/'
-    // We need to strip the '/bank/' from $base_url to correctly point to the root path
+    // Strip subdirectory from base_url if needed
     if (isset($base_url)) {
         $base_url = preg_replace('/bank\/$/', '', $base_url);
     }
 
-    require_once ('includes/function.php'); 
+    require_once('includes/function.php'); 
     
-    $page_title = "Indian Banks IFSC Directory & Search Tool (Updated August 2026) | Online Law";
-    $meta_desc = "Quickly find and search Bank IFSC codes, MICR codes, branch addresses, and phone numbers for all Indian banks. Verified RBI database updated as of 15 Aug 2026.";
+    $page_title = "Indian Banks IFSC & MICR Directory (1.8+ Lakh Branches 2026) | Online Law";
+    $meta_desc = "Search official RBI Bank IFSC codes, MICR codes, branch addresses, and customer care details across all Indian banks. Fast cascading Bank Finder, IFSC lookup, and branch locator.";
+    $meta_keywords = "bank directory, ifsc search, bank finder, find micr code, bank branch list india, rbi bank code, ifsc code lookup, sbi ifsc, hdfc ifsc, icici ifsc";
+    $canonical_url = $base_url . "bank";
+
+    // Schema.org Structured Data
+    $schema_graphs = [];
+    $schema_graphs[] = [
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+            ["@type" => "ListItem", "position" => 1, "name" => "Home", "item" => $base_url],
+            ["@type" => "ListItem", "position" => 2, "name" => "Bank Directory", "item" => $canonical_url]
+        ]
+    ];
+    $schema_graphs[] = [
+        "@context" => "https://schema.org",
+        "@type" => "WebSite",
+        "name" => "Online Law Bank Directory",
+        "url" => $canonical_url,
+        "potentialAction" => [
+            "@type" => "SearchAction",
+            "target" => $base_url . "bank-ifsc?ifsc={search_term_string}",
+            "query-input" => "required name=search_term_string"
+        ]
+    ];
 ?>
-<meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="bank directory, ifsc search, find micr code, bank branch list india, rbi bank code, ifsc code lookup, sbi ifsc, hdfc ifsc">
-<meta name="author" content="OfferPlant">
-<title><?php echo $page_title; ?></title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title><?php echo htmlspecialchars($page_title); ?></title>
+    <meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta name="keywords" content="<?php echo htmlspecialchars($meta_keywords); ?>">
+    <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/bank.css">
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?php echo htmlspecialchars($page_title); ?>">
+    <meta property="og:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars($canonical_url); ?>">
+    <meta property="og:site_name" content="Online Law">
+    <meta property="og:image" content="<?php echo $base_url; ?>images/logo/logo.png">
 
-<?php require_once ('includes/header.php'); ?> 
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($page_title); ?>">
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta name="twitter:image" content="<?php echo $base_url; ?>images/logo/logo.png">
 
-<!-- Banner Section Start -->
-<section class="bg-img-3 overlay p-0 full-row" style="padding: 20px 0 !important;">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="banner-text text-center">
-					<h2 class="text-white banner-tittle position-relative mb-1" style="font-family: var(--font-heading) !important; font-size: 32px; margin: 0;">Bank IFSC Directory</h2>
-					<ul class="list-inline mt-2 mb-0" style="color: #cbd5e1; font-family: var(--font-body); font-size: 15px;">
-						<li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: rgba(255,255,255,0.8); text-decoration: none;">Home</a></li>
-						<li class="list-inline-item mx-2">/</li>
-						<li class="list-inline-item" style="color: #fff; font-weight: 500;">Bank Directory</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
+    <link rel="stylesheet" href="<?php echo $base_url; ?>css/bank.css">
+
+    <!-- JSON-LD Structured Data Schema -->
+    <?php foreach ($schema_graphs as $schema): ?>
+        <script type="application/ld+json">
+        <?php echo json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); ?>
+        </script>
+    <?php endforeach; ?>
+</head>
+<body>
+
+<?php require_once('includes/header.php'); ?>
+
+<style>
+    :root {
+        --bank-primary: #047857;
+        --bank-primary-dark: #064e3b;
+        --bank-accent: #10b981;
+        --bank-surface: #f8fafc;
+    }
+
+    /* Hero Banner */
+    .hero-bank-index-banner {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0f172a 100%);
+        padding: 56px 0 64px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .bank-glow-orb-1 {
+        position: absolute;
+        top: -20%;
+        left: -10%;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(50px);
+        pointer-events: none;
+    }
+    .bank-glow-orb-2 {
+        position: absolute;
+        bottom: -25%;
+        right: -10%;
+        width: 480px;
+        height: 480px;
+        background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+    }
+
+    /* Modern Card Console */
+    .bank-index-console-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8);
+        position: relative;
+        margin-top: -36px;
+        z-index: 20;
+    }
+
+    /* Search Tab Navs */
+    .nav-tabs-bank {
+        border-bottom: 2px solid #e2e8f0;
+        gap: 8px;
+    }
+    .nav-tabs-bank .nav-link {
+        border: none;
+        border-radius: 12px 12px 0 0;
+        color: #475569;
+        font-weight: 600;
+        font-size: 14.5px;
+        padding: 12px 20px;
+        background: transparent;
+        transition: all 0.2s ease;
+    }
+    .nav-tabs-bank .nav-link:hover {
+        color: var(--bank-primary);
+        background: #f8fafc;
+    }
+    .nav-tabs-bank .nav-link.active {
+        color: var(--bank-primary);
+        background: #ffffff;
+        border-bottom: 3px solid var(--bank-primary);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Feature Service Card */
+    .bank-feature-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 24px;
+        transition: all 0.25s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .bank-feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 25px -5px rgba(0, 0, 0, 0.08);
+        border-color: #cbd5e1;
+    }
+    .bank-feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    /* Popular Bank Card */
+    .popular-bank-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        text-align: center;
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+        display: block;
+        height: 100%;
+    }
+    .popular-bank-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--bank-accent);
+        box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.15);
+    }
+
+    @media (max-width: 767px) {
+        .bank-index-console-card {
+            margin-top: -24px;
+            padding: 18px 14px !important;
+            border-radius: 18px !important;
+        }
+        .nav-tabs-bank .nav-link {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+<!-- ==========================================================================
+     HERO MODERN BANNER SECTION
+     ========================================================================== -->
+<section class="hero-bank-index-banner">
+    <div class="bank-glow-orb-1"></div>
+    <div class="bank-glow-orb-2"></div>
+
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-12 text-center">
+
+                <!-- Breadcrumbs -->
+                <div class="d-flex justify-content-center">
+                    <nav class="d-flex align-items-center flex-wrap gap-2 mb-3" style="font-size: 13.5px; color: #94a3b8;" aria-label="breadcrumb">
+                        <a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a>
+                        <span class="mx-1">/</span>
+                        <span class="text-white font-weight-bold">Bank Directory</span>
+                    </nav>
+                </div>
+
+                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(6, 78, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <i class="fas fa-university mr-1.5"></i> RBI MASTER BANKING DIRECTORY 2026
+                </div>
+
+                <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
+                    Indian Banks <span style="background: linear-gradient(135deg, #86efac 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">IFSC &amp; Branch Directory</span>
+                </h1>
+                <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+                    Lookup verified RBI IFSC codes, MICR codes, branch addresses, emergency card hotlines, and balance inquiry numbers across 181,900+ bank branches in India.
+                </p>
+
+            </div>
+        </div>
+    </div>
 </section>
-<!-- Banner Section End --> 
 
-<section class="full-row bg-body py-80" style="padding: 60px 0;">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="detail-area p-3 p-md-5" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: #fff;">
-					<div class="d-flex flex-column align-items-center text-center mb-4">
-						<h3 class="pb-2" style="font-family: var(--font-heading); font-weight: 700; font-size: calc(1.3rem + 0.6vw);">IFSC & MICR Code Directory</h3>
-						<span class="text-muted" style="font-size: 14px;">Find any bank branch details, including IFSC code, MICR code, address, and phone number.</span>
-						<div class="mt-3">
-							<div class="d-inline-flex align-items-center justify-content-center p-2 px-3 text-center" style="background: rgba(14, 165, 233, 0.1); color: var(--primary-color); font-weight: 600; border-radius: 12px; font-size: 13px; border: 1px solid rgba(14, 165, 233, 0.2); line-height: 1.5; max-width: 100%;">
-                                <div class="px-1">
-								    <i class="fas fa-check-circle mr-1"></i> 181,913 Bank IFSC Added <span class="d-block d-md-inline-block text-muted" style="font-weight: 500; font-size: 12px;">(Last Update: 15 Aug 2026 - RBI Official)</span>
-                                </div>
-							</div>
-						</div>
-					</div>
-					
-					<!-- Search Tabs Navigation -->
-					<ul class="nav nav-tabs nav-tabs-custom justify-content-center" id="searchTabs" role="tablist">
-					  <li class="nav-item">
-						<a class="nav-link active" id="ifsc-tab" data-toggle="tab" href="#ifsc" role="tab" aria-controls="ifsc" aria-selected="true">
-						  <i class="fas fa-university mr-2"></i> Search by IFSC Code
-						</a>
-					  </li>
-					  <li class="nav-item">
-						<a class="nav-link" id="branch-tab" data-toggle="tab" href="#branch" role="tab" aria-controls="branch" aria-selected="false">
-						  <i class="fas fa-search-location mr-2"></i> Search by Branch / City
-						</a>
-					  </li>
-					  <li class="nav-item">
-						<a class="nav-link" id="micr-tab" data-toggle="tab" href="#micr" role="tab" aria-controls="micr" aria-selected="false">
-						  <i class="fas fa-money-check-alt mr-2"></i> Search Bank MICR
-						</a>
-					  </li>
-					</ul>
-					
-					<!-- Search Tabs Content -->
-					<div class="tab-content pt-2" id="searchTabsContent">
-					  
-					  <!-- IFSC Search Tab -->
-					  <div class="tab-pane fade show active" id="ifsc" role="tabpanel" aria-labelledby="ifsc-tab">
-						<form method="post" action="<?php echo $base_url; ?>bank-ifsc" class="form-style-1 mb-4">
-						  <div class="row justify-content-center">
-							<div class="col-lg-7 col-md-9">
-							  <div class="form-group mb-0 position-relative">
-								<i class="fas fa-university position-absolute" style="top: 50%; transform: translateY(-50%); left: 20px; color: var(--text-muted); z-index: 10;"></i>
-								<input class="form-control text-uppercase" style="padding-left: 50px !important; height: 55px; border-radius: var(--radius-md); text-transform: uppercase;" type="text" placeholder="e.g. SBIN0000001" maxlength="11" minlength="11" name="ifsccode" required>
-							  </div>
-							</div>
-							<div class="col-lg-2 col-md-3 mt-3 mt-md-0">
-							  <div class="form-group mb-0">
-								<input class="btn-primary btn w-100" style="height: 55px; font-size: 16px; border-radius: var(--radius-md); padding-top: 0; padding-bottom: 0;" type="submit" value="Search Code">
-							  </div>
-							</div>
-						  </div>
-						</form>
-					  </div>
-					  
-					  <!-- Branch Search Tab -->
-					  <div class="tab-pane fade" id="branch" role="tabpanel" aria-labelledby="branch-tab">
-						<form method="post" action="<?php echo $base_url; ?>bank-ifsc-by-branch-name" class="form-style-1 mb-4">
-						  <div class="row justify-content-center">
-							<div class="col-lg-7 col-md-9">
-							  <div class="form-group mb-0 position-relative">
-								<i class="fas fa-building position-absolute" style="top: 50%; transform: translateY(-50%); left: 20px; color: var(--text-muted); z-index: 10;"></i>
-								<input class="form-control" style="padding-left: 50px !important; height: 55px; border-radius: var(--radius-md);" type="text" placeholder="e.g. Delhi Main or HDFC Noida" maxlength="50" minlength="3" name="branch" required>
-							  </div>
-							</div>
-							<div class="col-lg-2 col-md-3 mt-3 mt-md-0">
-							  <div class="form-group mb-0">
-								<input class="btn-primary btn w-100" style="height: 55px; font-size: 16px; border-radius: var(--radius-md); padding-top: 0; padding-bottom: 0;" type="submit" value="Search Branch">
-							  </div>
-							</div>
-						  </div>
-						</form>
-					  </div>
-					  
-					  <!-- MICR Search Tab -->
-					  <div class="tab-pane fade" id="micr" role="tabpanel" aria-labelledby="micr-tab">
-						<form method="post" action="<?php echo $base_url; ?>bank-micr" class="form-style-1 mb-4">
-						  <div class="row justify-content-center">
-							<div class="col-lg-7 col-md-9">
-							  <div class="form-group mb-0 position-relative">
-								<i class="fas fa-money-check-alt position-absolute" style="top: 50%; transform: translateY(-50%); left: 20px; color: var(--text-muted); z-index: 10;"></i>
-								<input class="form-control text-uppercase" style="padding-left: 50px !important; height: 55px; border-radius: var(--radius-md); text-transform: uppercase;" type="text" placeholder="e.g. 400002010" maxlength="9" minlength="9" name="micrcode" required>
-							  </div>
-							</div>
-							<div class="col-lg-2 col-md-3 mt-3 mt-md-0">
-							  <div class="form-group mb-0">
-								<input class="btn-primary btn w-100" style="height: 55px; font-size: 16px; border-radius: var(--radius-md); padding-top: 0; padding-bottom: 0;" type="submit" value="Search MICR">
-							  </div>
-							</div>
-						  </div>
-						</form>
-					  </div>
-					  
-					</div>
-					
-				</div>
-			</div>
-		</div>
-		
-		<!-- Popular Banks Section -->
-		<div class="row text-center mt-5 mb-4">
-			<div class="col-lg-12">
-				<h3 style="font-family: var(--font-heading); font-size: 26px; color: var(--text-main); font-weight: 700;">Browse Popular Banks</h3>
-				<p style="color: var(--text-muted); font-size: 14.5px;">Click on any bank to view its branches and locate IFSC codes instantly.</p>
-			</div>
-		</div>
-		
-		<div class="row">
-            <?php
-            $popular_banks = [
-                ['name' => 'State Bank of India', 'short' => 'SBI', 'query' => 'State Bank of India'],
-                ['name' => 'HDFC Bank', 'short' => 'HDFC', 'query' => 'HDFC Bank'],
-                ['name' => 'ICICI Bank', 'short' => 'ICICI', 'query' => 'ICICI Bank'],
-                ['name' => 'Punjab National Bank', 'short' => 'PNB', 'query' => 'Punjab National Bank'],
-                ['name' => 'Bank of Baroda', 'short' => 'BOB', 'query' => 'Bank of Baroda'],
-                ['name' => 'Axis Bank', 'short' => 'AXIS', 'query' => 'Axis Bank'],
-                ['name' => 'Canara Bank', 'short' => 'CANARA', 'query' => 'Canara Bank'],
-                ['name' => 'Union Bank of India', 'short' => 'UNION', 'query' => 'Union Bank of India'],
-                ['name' => 'Indian Bank', 'short' => 'INDIAN', 'query' => 'Indian Bank'],
-                ['name' => 'IDBI Bank', 'short' => 'IDBI', 'query' => 'IDBI Bank'],
-                ['name' => 'Central Bank of India', 'short' => 'CBI', 'query' => 'Central Bank of India'],
-                ['name' => 'IndusInd Bank', 'short' => 'INDUSIND', 'query' => 'IndusInd Bank']
-            ];
-            foreach($popular_banks as $bank) {
-            ?>
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <a href="<?php echo $base_url; ?>bank-ifsc-by-branch-name?branch=<?php echo urlencode($bank['query']); ?>" class="text-decoration-none d-block h-100">
-                        <div class="bank-card p-4 text-center">
-                            <div class="bank-icon-wrapper mx-auto">
-                                <i class="fas fa-university"></i>
-                            </div>
-                            <h5 class="mb-1" style="font-size: 15px; font-weight: 700; color: var(--text-main);"><?php echo htmlentities($bank['name']); ?></h5>
-                            <span class="text-muted small" style="font-weight: 500;"><?php echo $bank['short']; ?> IFSC Codes</span>
+<!-- ==========================================================================
+     MAIN BODY & SEARCH CONSOLE
+     ========================================================================== -->
+<div class="full-row py-4" style="background-color: #f8fafc; position: relative; z-index: 10;">
+    <div class="container">
+
+        <!-- Console Card -->
+        <div class="bank-index-console-card p-4 p-md-4 mb-5">
+            
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                <div>
+                    <h3 class="font-weight-bold text-dark mb-1" style="font-size: 20px;">
+                        <i class="fas fa-search-dollar text-success mr-1.5"></i> Find Bank Codes &amp; Branches
+                    </h3>
+                    <p class="text-muted small mb-0">Select your search method to find verified IFSC, MICR, or branch details.</p>
+                </div>
+                <div class="mt-2 mt-sm-0">
+                    <span class="badge badge-success px-3 py-1.5 font-weight-bold" style="background: #ecfdf5; color: #047857; font-size: 12px; border: 1px solid #a7f3d0; border-radius: 20px;">
+                        <i class="fas fa-check-circle mr-1"></i> 181,913 Branches Indexed
+                    </span>
+                </div>
+            </div>
+
+            <!-- Search Tabs Navigation -->
+            <ul class="nav nav-tabs nav-tabs-bank mb-4" id="bankSearchTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="tab-finder" data-toggle="tab" href="#pane-finder" role="tab">
+                        <i class="fas fa-landmark mr-1.5 text-success"></i> Cascading Bank Finder
+                        <span class="badge badge-success ml-1" style="font-size: 10px; background: #047857;">NEW</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab-ifsc" data-toggle="tab" href="#pane-ifsc" role="tab">
+                        <i class="fas fa-university mr-1.5 text-primary"></i> Search by IFSC Code
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab-branch" data-toggle="tab" href="#pane-branch" role="tab">
+                        <i class="fas fa-search-location mr-1.5 text-warning"></i> Search by Branch Name
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab-micr" data-toggle="tab" href="#pane-micr" role="tab">
+                        <i class="fas fa-money-check-alt mr-1.5 text-info"></i> Search by MICR Code
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Search Tabs Content Panes -->
+            <div class="tab-content" id="bankSearchTabsContent">
+                
+                <!-- Pane 1: Cascading Bank Finder Promotion -->
+                <div class="tab-pane fade show active py-2" id="pane-finder" role="tabpanel">
+                    <div class="p-4 rounded-xl border bg-light d-flex flex-column flex-md-row align-items-center justify-content-between" style="border-radius: 18px;">
+                        <div class="mb-3 mb-md-0 pr-md-4">
+                            <h4 class="font-weight-bold text-dark mb-1" style="font-size: 18px;">
+                                4-Step Cascading Bank &amp; Branch Finder
+                            </h4>
+                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                Select your <strong>Bank</strong> &rarr; <strong>State</strong> &rarr; <strong>District / City</strong> &rarr; <strong>Branch</strong> to get verified 11-digit IFSC, MICR, address, and settlement capabilities.
+                            </p>
                         </div>
+                        <a href="<?php echo $base_url; ?>bank-finder" class="btn btn-success font-weight-bold px-4 py-2.5 text-nowrap d-inline-flex align-items-center" style="border-radius: 12px; background: #047857; border-color: #047857;">
+                            Launch Bank Finder <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Pane 2: Search by IFSC Code -->
+                <div class="tab-pane fade py-2" id="pane-ifsc" role="tabpanel">
+                    <form method="GET" action="<?php echo $base_url; ?>bank-ifsc">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8 col-md-9 mb-3 mb-md-0">
+                                <div class="position-relative">
+                                    <i class="fas fa-university position-absolute text-muted" style="top: 50%; transform: translateY(-50%); left: 18px; font-size: 16px;"></i>
+                                    <input class="form-control text-uppercase" style="padding-left: 48px; height: 52px; border-radius: 14px; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter 11-digit IFSC (e.g. SBIN0000691, HDFC0000240)" maxlength="11" minlength="11" name="ifsc" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-3">
+                                <button type="submit" class="btn btn-success font-weight-bold btn-block d-flex align-items-center justify-content-center" style="height: 52px; border-radius: 14px; background: #047857; border-color: #047857;">
+                                    <i class="fas fa-search mr-2"></i> Search IFSC
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Pane 3: Search by Branch Name -->
+                <div class="tab-pane fade py-2" id="pane-branch" role="tabpanel">
+                    <form method="GET" action="<?php echo $base_url; ?>bank-ifsc-by-branch-name">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8 col-md-9 mb-3 mb-md-0">
+                                <div class="position-relative">
+                                    <i class="fas fa-building position-absolute text-muted" style="top: 50%; transform: translateY(-50%); left: 18px; font-size: 16px;"></i>
+                                    <input class="form-control" style="padding-left: 48px; height: 52px; border-radius: 14px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter Branch Name or City (e.g. Connaught Place, Andheri East)" maxlength="50" minlength="3" name="branch" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-3">
+                                <button type="submit" class="btn btn-success font-weight-bold btn-block d-flex align-items-center justify-content-center" style="height: 52px; border-radius: 14px; background: #047857; border-color: #047857;">
+                                    <i class="fas fa-search mr-2"></i> Search Branch
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Pane 4: Search by MICR Code -->
+                <div class="tab-pane fade py-2" id="pane-micr" role="tabpanel">
+                    <form method="GET" action="<?php echo $base_url; ?>bank-micr">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8 col-md-9 mb-3 mb-md-0">
+                                <div class="position-relative">
+                                    <i class="fas fa-money-check-alt position-absolute text-muted" style="top: 50%; transform: translateY(-50%); left: 18px; font-size: 16px;"></i>
+                                    <input class="form-control text-uppercase" style="padding-left: 48px; height: 52px; border-radius: 14px; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter 9-digit MICR Code (e.g. 110002001, 400002010)" maxlength="9" minlength="9" name="micr" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-3">
+                                <button type="submit" class="btn btn-success font-weight-bold btn-block d-flex align-items-center justify-content-center" style="height: 52px; border-radius: 14px; background: #047857; border-color: #047857;">
+                                    <i class="fas fa-search mr-2"></i> Search MICR
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ======================================================================
+             POPULAR BANKS QUICK ACCESS SECTION
+             ====================================================================== -->
+        <div class="p-4 bg-white rounded-xl border shadow-sm mb-5" style="border-radius: 22px;">
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                <div>
+                    <h3 class="font-weight-bold text-dark mb-1" style="font-size: 20px;">
+                        <i class="fas fa-university text-success mr-1.5"></i> Popular Banks Directory
+                    </h3>
+                    <p class="text-muted small mb-0">Select any bank to instantly explore branch codes, IFSC numbers, and locations.</p>
+                </div>
+                <a href="<?php echo $base_url; ?>bank-finder" class="btn btn-sm btn-outline-success font-weight-bold px-3 py-1.5" style="border-radius: 10px;">
+                    View All 200+ Banks &rarr;
+                </a>
+            </div>
+
+            <div class="row">
+                <?php
+                $popular_banks = [
+                    ['name' => 'STATE BANK OF INDIA', 'short' => 'SBI', 'branches' => '25,600+ Branches', 'color' => '#0284c7'],
+                    ['name' => 'PUNJAB NATIONAL BANK', 'short' => 'PNB', 'branches' => '13,000+ Branches', 'color' => '#d97706'],
+                    ['name' => 'CANARA BANK', 'short' => 'CANARA', 'branches' => '12,100+ Branches', 'color' => '#2563eb'],
+                    ['name' => 'UNION BANK OF INDIA', 'short' => 'UNION', 'branches' => '11,100+ Branches', 'color' => '#059669'],
+                    ['name' => 'HDFC BANK', 'short' => 'HDFC', 'branches' => '10,900+ Branches', 'color' => '#dc2626'],
+                    ['name' => 'BANK OF BARODA', 'short' => 'BOB', 'branches' => '10,100+ Branches', 'color' => '#ea580c'],
+                    ['name' => 'ICICI BANK LIMITED', 'short' => 'ICICI', 'branches' => '8,300+ Branches', 'color' => '#b91c1c'],
+                    ['name' => 'BANK OF INDIA', 'short' => 'BOI', 'branches' => '7,100+ Branches', 'color' => '#0284c7'],
+                    ['name' => 'AXIS BANK', 'short' => 'AXIS', 'branches' => '7,000+ Branches', 'color' => '#9333ea'],
+                    ['name' => 'INDIAN BANK', 'short' => 'INDIAN', 'branches' => '6,000+ Branches', 'color' => '#2563eb'],
+                    ['name' => 'CENTRAL BANK OF INDIA', 'short' => 'CBI', 'branches' => '4,700+ Branches', 'color' => '#059669'],
+                    ['name' => 'KOTAK MAHINDRA BANK LIMITED', 'short' => 'KOTAK', 'branches' => '1,800+ Branches', 'color' => '#dc2626']
+                ];
+                foreach($popular_banks as $bank):
+                ?>
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="<?php echo $base_url; ?>bank-finder?bank=<?php echo urlencode($bank['name']); ?>" class="popular-bank-card">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mr-2.5" style="width: 32px; height: 32px; background: <?php echo $bank['color']; ?>; font-size: 13px; font-weight: 700;">
+                                    <?php echo substr($bank['short'], 0, 1); ?>
+                                </div>
+                                <div class="text-left text-truncate">
+                                    <h6 class="font-weight-bold text-dark mb-0 text-truncate" style="font-size: 14px;" title="<?php echo htmlspecialchars($bank['name']); ?>">
+                                        <?php echo htmlspecialchars($bank['name']); ?>
+                                    </h6>
+                                    <small class="text-muted font-weight-medium" style="font-size: 11px;"><?php echo $bank['branches']; ?></small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- ======================================================================
+             BANKING SERVICES & GUIDES CARDS
+             ====================================================================== -->
+        <div class="row mb-5">
+            <div class="col-lg-4 col-md-6 col-12 mb-4">
+                <div class="bank-feature-card">
+                    <div>
+                        <div class="bank-feature-icon" style="background: #ecfdf5; color: #047857;">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4 class="font-weight-bold text-dark mb-2" style="font-size: 18px;">Official Bank Contacts</h4>
+                        <p class="text-muted small mb-3" style="line-height: 1.6;">
+                            Access verified toll-free customer care numbers, head office addresses, official portals, and support emails for 250+ banks.
+                        </p>
+                    </div>
+                    <a href="<?php echo $base_url; ?>bank/contact-details" class="font-weight-bold text-success text-decoration-none small">
+                        View Bank Contacts Directory &rarr;
                     </a>
                 </div>
-            <?php } ?>
-		</div>
-		
-		<!-- Banking Resources Section -->
-		<div class="row text-center mt-5 mb-4">
-			<div class="col-lg-12">
-				<h3 style="font-family: var(--font-heading); font-size: 26px; color: var(--text-main); font-weight: 700;">Explore Banking Services & Guides</h3>
-				<p style="color: var(--text-muted); font-size: 14.5px;">Browse our comprehensive guides on fund transfers, payment cards, and bank account types.</p>
-			</div>
-		</div>
+            </div>
 
-		<div class="row justify-content-center">
-			
-			<div class="col-lg-3 col-md-6 mb-4">
-				<a href="<?php echo $base_url; ?>bank/services" class="text-decoration-none d-block h-100">
-					<div class="bank-card p-4 text-center">
-						<div class="bank-icon-wrapper mx-auto">
-							<i class="fas fa-exchange-alt"></i>
-						</div>
-						<h5 class="mb-2" style="font-size: 16px; font-weight: 700; color: var(--text-main);">Digital Banking Services</h5>
-						<p class="text-muted small mb-0" style="line-height: 1.5; font-weight: 400;">Compare NEFT, RTGS, IMPS, and UPI transaction limits, charges, and settlement timings.</p>
-					</div>
-				</a>
-			</div>
-			
-			<div class="col-lg-3 col-md-6 mb-4">
-				<a href="<?php echo $base_url; ?>bank/card" class="text-decoration-none d-block h-100">
-					<div class="bank-card p-4 text-center">
-						<div class="bank-icon-wrapper mx-auto">
-							<i class="fas fa-credit-card"></i>
-						</div>
-						<h5 class="mb-2" style="font-size: 16px; font-weight: 700; color: var(--text-main);">Debit & Credit Cards</h5>
-						<p class="text-muted small mb-0" style="line-height: 1.5; font-weight: 400;">Access emergency bank toll-free numbers to block lost cards, card network comparisons, and safety tips.</p>
-					</div>
-				</a>
-			</div>
-			
-			<div class="col-lg-3 col-md-6 mb-4">
-				<a href="<?php echo $base_url; ?>bank/account" class="text-decoration-none d-block h-100">
-					<div class="bank-card p-4 text-center">
-						<div class="bank-icon-wrapper mx-auto">
-							<i class="fas fa-wallet"></i>
-						</div>
-						<h5 class="mb-2" style="font-size: 16px; font-weight: 700; color: var(--text-main);">Account Services</h5>
-						<p class="text-muted small mb-0" style="line-height: 1.5; font-weight: 400;">Compare Savings vs. Current accounts, and find missed-call balance check and mini-statement numbers.</p>
-					</div>
-				</a>
-			</div>
+            <div class="col-lg-4 col-md-6 col-12 mb-4">
+                <div class="bank-feature-card">
+                    <div>
+                        <div class="bank-feature-icon" style="background: #eff6ff; color: #2563eb;">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h4 class="font-weight-bold text-dark mb-2" style="font-size: 18px;">Card Helplines &amp; Safety</h4>
+                        <p class="text-muted small mb-3" style="line-height: 1.6;">
+                            Emergency 24x7 hotlines to immediately block lost, stolen, or compromised debit and credit cards across all major banks.
+                        </p>
+                    </div>
+                    <a href="<?php echo $base_url; ?>bank/card" class="font-weight-bold text-primary text-decoration-none small">
+                        View Card Hotlines &rarr;
+                    </a>
+                </div>
+            </div>
 
-			<div class="col-lg-3 col-md-6 mb-4">
-				<a href="<?php echo $base_url; ?>bank/contact-details" class="text-decoration-none d-block h-100">
-					<div class="bank-card p-4 text-center">
-						<div class="bank-icon-wrapper mx-auto">
-							<i class="fas fa-address-book"></i>
-						</div>
-						<h5 class="mb-2" style="font-size: 16px; font-weight: 700; color: var(--text-main);">Bank Contact Info</h5>
-						<p class="text-muted small mb-0" style="line-height: 1.5; font-weight: 400;">Official websites, toll-free customer care lines, support emails, and alternate contact numbers for all banks.</p>
-					</div>
-				</a>
-			</div>
-			
-		</div>
-		
-		<!-- FAQs Section -->
-		<div class="row justify-content-center mt-5 pt-4">
-			<div class="col-lg-10">
-				<div class="text-center mb-5">
-					<h3 style="font-family: var(--font-heading); font-size: 26px; color: var(--text-main); font-weight: 700;">Frequently Asked Questions</h3>
-					<p style="color: var(--text-muted); font-size: 14.5px;">Got questions about bank IFSC and MICR codes? Find answers below.</p>
-				</div>
-				
-				<div class="accordion faq-accordion" id="faqAccordion">
-				  
-				  <div class="card">
-					<div class="card-header" id="headingOne">
-					  <h2 class="mb-0">
-						<button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-						  What is an IFSC Code?
-						  <i class="fas fa-chevron-down small"></i>
-						</button>
-					  </h2>
-					</div>
-					<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#faqAccordion">
-					  <div class="card-body">
-						An IFSC (Indian Financial System Code) is a unique 11-digit alphanumeric code assigned by the Reserve Bank of India (RBI). It is used to identify specific bank branches participating in electronic fund transfer systems such as NEFT (National Electronic Funds Transfer), RTGS (Real Time Gross Settlement), and IMPS (Immediate Payment Service).
-					  </div>
-					</div>
-				  </div>
-				  
-				  <div class="card">
-					<div class="card-header" id="headingTwo">
-					  <h2 class="mb-0">
-						<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-						  How is an IFSC Code structured?
-						  <i class="fas fa-chevron-down small"></i>
-						</button>
-					  </h2>
-					</div>
-					<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#faqAccordion">
-					  <div class="card-body">
-						The 11-digit IFSC code is divided into three parts:
-						<ul class="pl-4 mt-2">
-							<li>The first 4 characters are alphabets representing the bank name (e.g., <b>SBIN</b> for State Bank of India).</li>
-							<li>The 5th character is always the digit <b>0</b> (reserved for future use).</li>
-							<li>The last 6 characters are numeric or alphabetic and identify the specific branch.</li>
-						</ul>
-					  </div>
-					</div>
-				  </div>
-				  
-				  <div class="card">
-					<div class="card-header" id="headingThree">
-					  <h2 class="mb-0">
-						<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-						  Where can I find my bank branch's IFSC Code?
-						  <i class="fas fa-chevron-down small"></i>
-						</button>
-					  </h2>
-					</div>
-					<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#faqAccordion">
-					  <div class="card-body">
-						You can find your branch's IFSC code in several places:
-						<ul class="pl-4 mt-2">
-							<li>Printed on your bank cheque book (usually at the top or bottom).</li>
-							<li>Printed on the first page of your bank passbook.</li>
-							<li>On your bank's official internet banking portal or mobile app.</li>
-							<li>By searching online via our <b>Bank IFSC Directory</b> tool above.</li>
-						</ul>
-					  </div>
-					</div>
-				  </div>
-				  
-				  <div class="card">
-					<div class="card-header" id="headingFour">
-					  <h2 class="mb-0">
-						<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-						  What is the difference between IFSC and MICR codes?
-						  <i class="fas fa-chevron-down small"></i>
-						</button>
-					  </h2>
-					</div>
-					<div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#faqAccordion">
-					  <div class="card-body">
-						While both codes identify bank branches, their uses are different:
-						<ul class="pl-4 mt-2">
-							<li><b>IFSC Code:</b> An 11-character alphanumeric code used for digital fund transfers (NEFT, RTGS, IMPS).</li>
-							<li><b>MICR Code:</b> A 9-digit numeric code printed using magnetic ink at the bottom of cheques. It is used primarily for the automated clearing and processing of physical cheques.</li>
-						</ul>
-					  </div>
-					</div>
-				  </div>
-				  
-				  <div class="card">
-					<div class="card-header" id="headingFive">
-					  <h2 class="mb-0">
-						<button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-						  Can an IFSC code change?
-						  <i class="fas fa-chevron-down small"></i>
-						</button>
-					  </h2>
-					</div>
-					<div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#faqAccordion">
-					  <div class="card-body">
-						Yes, the Reserve Bank of India (RBI) can change or assign new IFSC codes to bank branches. This typically happens during bank mergers, restructuring, branch relocations, or when a branch is upgraded. It is always recommended to verify your IFSC code before initiating high-value transactions.
-					  </div>
-					</div>
-				  </div>
-				  
-				</div>
-			</div>
-		</div>
-		<!-- Disclaimer Note -->
-		<div class="row mt-5">
-			<div class="col-lg-10 mx-auto">
-				<div class="p-3 bg-light rounded shadow-sm" style="border-left: 4px solid var(--primary-color);">
-					<p class="mb-0 small text-dark"><i class="fas fa-info-circle text-primary mr-1"></i> <b>Disclaimer:</b> Bank contact numbers, email addresses, and official websites are subject to change. Please verify any critical details with your bank's official website or your printed passbook/chequebook before making financial decisions.</p>
-				</div>
-			</div>
-		</div>
-		
-	</div>
-</section>
+            <div class="col-lg-4 col-md-12 col-12 mb-4">
+                <div class="bank-feature-card">
+                    <div>
+                        <div class="bank-feature-icon" style="background: #faf5ff; color: #7c3aed;">
+                            <i class="fas fa-phone-volume"></i>
+                        </div>
+                        <h4 class="font-weight-bold text-dark mb-2" style="font-size: 18px;">Balance Check Numbers</h4>
+                        <p class="text-muted small mb-3" style="line-height: 1.6;">
+                            Official missed-call banking numbers and SMS codes to instantly check account balance and receive mini-statements.
+                        </p>
+                    </div>
+                    <a href="<?php echo $base_url; ?>bank/account" class="font-weight-bold text-purple text-decoration-none small" style="color: #7c3aed;">
+                        View Missed-Call Numbers &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
 
-<?php require_once ('includes/footer.php'); ?> 
+    </div>
+</div>
+
+<?php require_once('includes/footer.php'); ?>
+
+</body>
+</html>

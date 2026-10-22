@@ -39,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $activity_code = trim($_POST['activity_code']);
     $registration_date = !empty($_POST['registration_date']) ? $_POST['registration_date'] : null;
     $report_month = !empty($_POST['report_month']) ? trim($_POST['report_month']) : ($registration_date ? date('Y-m', strtotime($registration_date)) : date('Y-m'));
-    $status = (isset($_POST['status']) && strtoupper(trim($_POST['status'])) === 'BLOCK') ? 'BLOCK' : 'ACTIVE';
+    $raw_status = isset($_POST['status']) ? strtoupper(trim($_POST['status'])) : 'ACTIVE';
+    $status = in_array($raw_status, ['ACTIVE', 'STRUCK_OFF', 'BLOCK']) ? $raw_status : 'ACTIVE';
 
     if (empty($cin) || empty($company_name)) {
         $msg = "CIN/LLPIN and Company Name are required fields.";
@@ -154,12 +155,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <div class="col-md-6 form-group mb-4">
-                        <label class="small font-weight-bold text-muted mb-1">Status (Website Visibility) *</label>
+                        <label class="small font-weight-bold text-muted mb-1">Company Status *</label>
                         <select name="status" class="form-control font-weight-bold" required>
-                            <option value="ACTIVE" <?php echo (strtoupper($company['status'] ?? 'ACTIVE') !== 'BLOCK') ? 'selected' : ''; ?>>ACTIVE (Show in Website)</option>
-                            <option value="BLOCK" <?php echo (strtoupper($company['status'] ?? '') === 'BLOCK') ? 'selected' : ''; ?>>BLOCK (Do Not Show in Website)</option>
+                            <option value="ACTIVE" <?php echo (strtoupper($company['status'] ?? 'ACTIVE') === 'ACTIVE' || empty($company['status'])) ? 'selected' : ''; ?>>ACTIVE (Active &amp; Visible on Web)</option>
+                            <option value="STRUCK_OFF" <?php echo (strtoupper($company['status'] ?? '') === 'STRUCK_OFF' || strtoupper($company['status'] ?? '') === 'STRUCK OFF') ? 'selected' : ''; ?>>STRUCK OFF (Struck Off by MCA / ROC)</option>
+                            <option value="BLOCK" <?php echo (strtoupper($company['status'] ?? '') === 'BLOCK') ? 'selected' : ''; ?>>BLOCK (Hidden from Web Completely)</option>
                         </select>
-                        <small class="form-text text-muted">ACTIVE shows the company on search and detail pages. BLOCK hides it completely.</small>
+                        <small class="form-text text-muted">ACTIVE shows entity as active. STRUCK OFF displays struck-off notice. BLOCK hides it.</small>
                     </div>
                 </div>
 

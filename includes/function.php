@@ -1377,9 +1377,10 @@ function get_all_nic_divisions() {
  * Generates SEO-friendly slug combining company name and CIN (e.g. "kalpavriksha-partners-llp-adb-7416")
  */
 function company_slug($name, $cin) {
-    $clean_name = slug($name);
     $clean_cin = slug($cin);
-    if (empty($clean_name) || $clean_name === 'n-a') {
+    $clean_name = slug($name);
+    // If name is empty, 'n-a', or contains no alphabetic characters (e.g. numeric timestamp serials), omit it from slug
+    if (empty($clean_name) || $clean_name === 'n-a' || !preg_match('/[a-z]/i', $clean_name)) {
         return $clean_cin;
     }
     return $clean_name . '-' . $clean_cin;
@@ -1459,10 +1460,135 @@ function resolve_company_incorporation($param) {
     return null;
 }
 
-/*-------- Test Area Start ---------*/
+/**
+ * -------------------------------------------------------------
+ * Site Settings & Analytics Configuration Helpers
+ * -------------------------------------------------------------
+ */
+function init_settings_table() {
+    global $con;
+    if (!$con) return;
+    $table_sql = "CREATE TABLE IF NOT EXISTS site_settings (
+        setting_key VARCHAR(100) NOT NULL PRIMARY KEY,
+        setting_value LONGTEXT NULL,
+        setting_group VARCHAR(50) DEFAULT 'general',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+    mysqli_query($con, $table_sql);
+}
 
-//echo advuniv('1');
+function get_all_settings() {
+    global $con;
+    static $cached_settings = null;
+    if ($cached_settings !== null) {
+        return $cached_settings;
+    }
+    $cached_settings = [];
+    if ($con) {
+        $res = mysqli_query($con, "SELECT setting_key, setting_value FROM site_settings");
+        if (!$res && mysqli_errno($con) == 1146) {
+            init_settings_table();
+            $res = mysqli_query($con, "SELECT setting_key, setting_value FROM site_settings");
+        }
+        if ($res) {
+            while ($row = mysqli_fetch_assoc($res)) {
+                $cached_settings[$row['setting_key']] = $row['setting_value'];
+            }
+        }
+    }
+    return $cached_settings;
+}
 
-/*-------------TEST AREA -----------*/
+function get_setting($key, $default = '') {
+    $settings = get_all_settings();
+    return (isset($settings[$key]) && $settings[$key] !== '') ? $settings[$key] : $default;
+}
+
+function set_setting($key, $value, $group = 'general') {
+    global $con;
+    init_settings_table();
+    if (!$con) return false;
+    $safe_key = mysqli_real_escape_string($con, trim($key));
+    $safe_val = mysqli_real_escape_string($con, $value);
+    $safe_grp = mysqli_real_escape_string($con, trim($group));
+    $sql = "INSERT INTO site_settings (setting_key, setting_value, setting_group) 
+            VALUES ('$safe_key', '$safe_val', '$safe_grp')
+            ON DUPLICATE KEY UPDATE setting_value = '$safe_val', setting_group = '$safe_grp'";
+    return mysqli_query($con, $sql);
+}
+
+/**
+ * Render Responsive Google AdSense Slot
+ * @param string $slot_type Type: 'horizontal', 'rectangle', 'in_content', 'multiplex', 'sidebar'
+ * @param string $slot_id Optional custom Google Ad Slot ID
+ * @param array $options Additional options (class, min_height, etc.)
+ * @return string HTML output
+ */
+function render_ad_slot($slot_type = 'horizontal', $slot_id = '', $options = []) {
+    $adsense_enabled = get_setting('google_adsense_enabled', '1');
+    if ($adsense_enabled != '1') {
+        return '';
+    }
+    
+    $client_id = get_setting('google_adsense_id', 'ca-pub-1272970612043134');
+    if (empty($client_id)) {
+        return '';
+    }
+
+    $custom_class = isset($options['class']) ? ' ' . htmlspecialchars($options['class']) : '';
+    $ad_format = 'auto';
+    $ad_layout = '';
+    $container_class = 'law-ad-horizontal';
+    $min_h = '90px';
+
+    switch ($slot_type) {
+        case 'rectangle':
+        case 'sidebar':
+            $container_class = 'law-ad-rectangle';
+            $ad_format = 'auto';
+            $min_h = '250px';
+            break;
+        case 'in_content':
+            $container_class = 'law-ad-incontent';
+            $ad_format = 'fluid';
+            $ad_layout = 'in-article';
+            $min_h = '120px';
+            break;
+        case 'multiplex':
+            $container_class = 'law-ad-multiplex';
+            $ad_format = 'autorelaxed';
+            $min_h = '280px';
+            break;
+        case 'horizontal':
+        case 'leaderboard':
+        default:
+            $container_class = 'law-ad-horizontal';
+            $ad_format = 'auto';
+            $min_h = '90px';
+            break;
+    }
+
+    $slot_attr = !empty($slot_id) ? ' data-ad-slot="' . htmlspecialchars($slot_id) . '"' : '';
+    $layout_attr = !empty($ad_layout) ? ' data-ad-layout="' . htmlspecialchars($ad_layout) . '"' : '';
+
+    ob_start();
+    ?>
+    <div class="law-ad-wrapper <?php echo $container_class . $custom_class; ?>" style="min-height: <?php echo $min_h; ?>;">
+        <span class="law-ad-tag">ADVERTISEMENT</span>
+        <ins class="adsbygoogle"
+             style="display:block; width:100%; text-align:center;"
+             data-ad-client="<?php echo htmlspecialchars($client_id); ?>"
+             <?php echo $slot_attr; ?>
+             data-ad-format="<?php echo $ad_format; ?>"
+             <?php echo $layout_attr; ?>
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    <?php
+    return ob_get_clean();
+}
 ?>
+
 

@@ -32,9 +32,21 @@ if (isset($_POST['action']) || isset($_GET['action'])) {
             $response['message'] = 'All sitemaps successfully regenerated!';
         } elseif ($action === 'generate_single') {
             switch ($target) {
+                case 'company_indian':
+                    $response['results']['company_indian'] = generate_company_indian_sitemap_xml($base);
+                    $response['message'] = 'Indian Companies sitemap successfully regenerated!';
+                    break;
+                case 'company_llp':
+                    $response['results']['company_llp'] = generate_company_llp_sitemap_xml($base);
+                    $response['message'] = 'LLP Entities sitemap successfully regenerated!';
+                    break;
+                case 'company_foreign':
+                    $response['results']['company_foreign'] = generate_company_foreign_sitemap_xml($base);
+                    $response['message'] = 'Foreign Companies sitemap successfully regenerated!';
+                    break;
                 case 'company':
                     $response['results']['company'] = generate_company_sitemap_xml($base);
-                    $response['message'] = 'Company Incorporations sitemap successfully regenerated!';
+                    $response['message'] = 'All Company Incorporations sitemaps (Indian, LLP, Foreign) successfully regenerated!';
                     break;
                 case 'main':
                     $response['results']['main'] = generate_main_sitemap_xml($base);
@@ -87,15 +99,35 @@ if (isset($_POST['action']) || isset($_GET['action'])) {
 
 // Sitemap Registry Definition
 $sitemaps_def = [
-    'company' => [
-        'name' => 'Company Incorporations (Multi-part)',
+    'company_indian' => [
+        'name' => 'Indian Companies (Multi-part)',
         'file' => 'sitemap-company.xml',
-        'desc' => 'MCA Indian Companies, LLPs & Foreign Entities with SEO Company Name-CIN slugs',
+        'desc' => 'MCA Indian Registered Companies (Pvt Ltd, Public Ltd, OPC, Section 8) with SEO slugs',
         'icon' => 'fas fa-building',
         'color' => '#2563eb',
-        'badge' => 'Primary Directory',
+        'badge' => 'Indian Registry (~831k)',
         'has_parts' => true,
         'parts_pattern' => 'sitemap-company-part*.xml'
+    ],
+    'company_llp' => [
+        'name' => 'LLP Entities (Multi-part)',
+        'file' => 'sitemap-company-llp.xml',
+        'desc' => 'Limited Liability Partnerships registered under Ministry of Corporate Affairs India',
+        'icon' => 'fas fa-handshake',
+        'color' => '#0284c7',
+        'badge' => 'LLP Hub (~266k)',
+        'has_parts' => true,
+        'parts_pattern' => 'sitemap-company-llp-part*.xml'
+    ],
+    'company_foreign' => [
+        'name' => 'Foreign Companies Registry',
+        'file' => 'sitemap-company-foreign.xml',
+        'desc' => 'Foreign Companies (FCRN) established in India and active branch offices',
+        'icon' => 'fas fa-globe-americas',
+        'color' => '#7c3aed',
+        'badge' => 'Foreign (~13k)',
+        'has_parts' => true,
+        'parts_pattern' => 'sitemap-company-foreign-part*.xml'
     ],
     'main' => [
         'name' => 'Main Core Pages & Tools',
@@ -142,7 +174,8 @@ $sitemaps_def = [
         'icon' => 'fas fa-map-pin',
         'color' => '#10b981',
         'badge' => 'India Post',
-        'has_parts' => false
+        'has_parts' => true,
+        'parts_pattern' => 'sitemap-pincode-part*.xml'
     ],
     'gst' => [
         'name' => 'GST HSN & SAC Directory',
@@ -203,6 +236,7 @@ foreach ($sitemaps_def as $key => $meta) {
     if (!empty($meta['has_parts']) && !empty($meta['parts_pattern'])) {
         $found_parts = glob($root_dir . '/' . $meta['parts_pattern']);
         if ($found_parts) {
+            natsort($found_parts);
             foreach ($found_parts as $fp) {
                 $parts_files[] = basename($fp);
                 $parts_size += filesize($fp);
@@ -295,9 +329,10 @@ require_once(__DIR__ . '/includes/header.php');
                     <i class="fas fa-link"></i>
                 </div>
             </div>
-            <div class="mt-3 pt-2 border-top d-flex justify-content-between text-muted small">
-                <span>Companies: <strong><?php echo number_format($sitemap_rows['company']['url_count'] ?? 0); ?></strong></span>
-                <span>Banks: <strong><?php echo number_format($sitemap_rows['ifsc']['url_count'] ?? 0); ?></strong></span>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between text-muted small" style="font-size: 0.78rem;">
+                <span>Ind: <strong><?php echo number_format($sitemap_rows['company_indian']['url_count'] ?? 0); ?></strong></span>
+                <span>LLP: <strong><?php echo number_format($sitemap_rows['company_llp']['url_count'] ?? 0); ?></strong></span>
+                <span>For: <strong><?php echo number_format($sitemap_rows['company_foreign']['url_count'] ?? 0); ?></strong></span>
             </div>
         </div>
     </div>
@@ -393,22 +428,33 @@ require_once(__DIR__ . '/includes/header.php');
                 <?php foreach ($sitemap_rows as $target => $row): ?>
                     <tr id="row-<?php echo $target; ?>">
                         <td class="px-4 py-3.5">
-                            <div class="d-flex align-items-center gap-3">
-                                <span class="d-inline-flex align-items-center justify-content-center rounded-lg" style="width: 38px; height: 38px; min-width: 38px; background: <?php echo $row['color']; ?>15; color: <?php echo $row['color']; ?>; font-size: 16px;">
+                            <div class="d-flex align-items-start gap-3">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-lg mt-0.5" style="width: 38px; height: 38px; min-width: 38px; background: <?php echo $row['color']; ?>15; color: <?php echo $row['color']; ?>; font-size: 16px;">
                                     <i class="<?php echo $row['icon']; ?>"></i>
                                 </span>
                                 <div>
                                     <div class="font-weight-bold text-dark" style="font-size: 0.95rem;">
                                         <?php echo htmlspecialchars($row['name']); ?>
                                     </div>
-                                    <div class="text-muted small" style="font-size: 0.82rem; max-width: 380px;">
+                                    <div class="text-muted small" style="font-size: 0.82rem; max-width: 420px;">
                                         <?php echo htmlspecialchars($row['desc']); ?>
                                     </div>
                                     <?php if (!empty($row['parts_files'])): ?>
-                                        <div class="mt-1">
-                                            <span class="badge badge-light border text-muted small">
-                                                <?php echo count($row['parts_files']); ?> Multi-part Files (<?php echo implode(', ', $row['parts_files']); ?>)
-                                            </span>
+                                        <div class="mt-2 pt-2 border-top">
+                                            <div class="d-flex align-items-center mb-1.5">
+                                                <span class="badge badge-light border text-primary font-weight-bold" style="font-size: 0.73rem; background: #eff6ff; border-color: #bfdbfe !important;">
+                                                    <i class="fas fa-layer-group mr-1"></i> <?php echo count($row['parts_files']); ?> XML Parts:
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-wrap" style="gap: 5px; max-width: 480px;">
+                                                <?php foreach ($row['parts_files'] as $part_file): ?>
+                                                    <a href="<?php echo $base . $part_file; ?>" target="_blank" class="badge badge-light border text-dark text-decoration-none py-1 px-2 d-inline-flex align-items-center" style="font-size: 0.76rem; font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: #f8fafc; border-color: #e2e8f0 !important;" title="Open <?php echo htmlspecialchars($part_file); ?>">
+                                                        <i class="fas fa-file-code text-primary mr-1" style="font-size: 10px;"></i>
+                                                        <?php echo htmlspecialchars($part_file); ?>
+                                                        <i class="fas fa-external-link-alt ml-1 text-muted" style="font-size: 8px;"></i>
+                                                    </a>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
                                 </div>

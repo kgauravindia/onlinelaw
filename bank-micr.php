@@ -1,350 +1,1058 @@
+<?php
+/**
+ * Online Law - Bank MICR Code Search Tool
+ * Fully updated for 2026 RBI Master Database
+ */
+require_once('includes/config.php');
+require_once('includes/function.php');
+
+// Retrieve search parameter (support GET ?micr=..., ?micrcode=..., ?ifsc=..., and POST)
+$micrcode = "";
+$search_type = "micr";
+
+if (isset($_GET['micr'])) {
+    $micrcode = strtoupper(trim($_GET['micr']));
+    $search_type = "micr";
+} elseif (isset($_GET['micrcode'])) {
+    $micrcode = strtoupper(trim($_GET['micrcode']));
+    $search_type = "micr";
+} elseif (isset($_GET['ifsc'])) {
+    $micrcode = strtoupper(trim($_GET['ifsc']));
+    $search_type = "ifsc";
+} elseif (isset($_POST['micrcode'])) {
+    $micrcode = strtoupper(trim($_POST['micrcode']));
+    $search_type = "micr";
+}
+
+$schema_graphs = [];
+$row_seo = null;
+$faq_items = [];
+$res_data = [];
+$total_found = 0;
+
+if (!empty($micrcode)) {
+    $safe_code = mysqli_real_escape_string($con, $micrcode);
+    if ($search_type === 'ifsc') {
+        $sql = "SELECT * FROM bank_ifsc WHERE ifsc = '$safe_code' ORDER BY branch ASC";
+    } else {
+        $sql = "SELECT * FROM bank_ifsc WHERE micr = '$safe_code' ORDER BY branch ASC";
+    }
+    
+    $res = direct_sql($sql);
+    $total_found = $res['count'];
+    $res_data = $res['data'];
+
+    if ($total_found > 0) {
+        $row_seo = $res_data[0];
+        $bank_name = $row_seo['bank'];
+        $branch_name = $row_seo['branch'];
+        $city_name = !empty($row_seo['city2']) ? $row_seo['city2'] : $row_seo['city1'];
+        $state_name = $row_seo['state'];
+        $micr_val = (!empty($row_seo['micr']) && $row_seo['micr'] != 'NA' && $row_seo['micr'] != '-') ? $row_seo['micr'] : 'N/A';
+        $ifsc_val = $row_seo['ifsc'];
+        $address_val = $row_seo['address'];
+
+        $canonical_url = $base_url . "bank-micr?micr=" . urlencode($micr_val);
+        $page_title = "MICR Code $micr_val - $bank_name, $branch_name Branch ($city_name) | Online Law";
+        $meta_desc = "Get verified MICR Code: $micr_val for $bank_name $branch_name branch in $city_name, $state_name. IFSC Code: $ifsc_val, Address: $address_val. 100% accurate for Cheque Clearance (CTS).";
+        $meta_keywords = "$micr_val, MICR Code $micr_val, $bank_name $branch_name MICR, $bank_name Cheque Clearance Code, CTS Clearing MICR $micr_val, Online Law";
+
+        // BreadcrumbList Schema
+        $schema_graphs[] = [
+            "@context" => "https://schema.org",
+            "@type" => "BreadcrumbList",
+            "itemListElement" => [
+                ["@type" => "ListItem", "position" => 1, "name" => "Home", "item" => $base_url],
+                ["@type" => "ListItem", "position" => 2, "name" => "Bank Directory", "item" => $base_url . "bank/"],
+                ["@type" => "ListItem", "position" => 3, "name" => "MICR Code Search", "item" => $base_url . "bank-micr"],
+                ["@type" => "ListItem", "position" => 4, "name" => "MICR $micr_val ($bank_name)", "item" => $canonical_url]
+            ]
+        ];
+
+        // Bank / Financial Entity Schema
+        $bank_schema = [
+            "@context" => "https://schema.org",
+            "@type" => ["BankOrCreditUnion", "FinancialService"],
+            "name" => "$bank_name, $branch_name Branch",
+            "alternateName" => "MICR $micr_val Branch",
+            "url" => $canonical_url,
+            "branchOf" => [
+                "@type" => "BankOrCreditUnion",
+                "name" => $bank_name
+            ],
+            "identifier" => $micr_val,
+            "address" => [
+                "@type" => "PostalAddress",
+                "streetAddress" => $address_val,
+                "addressLocality" => $city_name,
+                "addressRegion" => $state_name,
+                "addressCountry" => "IN"
+            ],
+            "paymentAccepted" => ["Cheque", "CTS", "NEFT", "RTGS", "IMPS"],
+            "currenciesAccepted" => "INR"
+        ];
+        $schema_graphs[] = $bank_schema;
+
+        // FAQ Items
+        $faq_items = [
+            [
+                "q" => "What is the MICR Code for $bank_name $branch_name branch?",
+                "a" => ($micr_val !== 'N/A')
+                    ? "The 9-digit MICR code for $bank_name $branch_name branch in $city_name, $state_name is $micr_val. It is used during cheque clearance in the RBI Cheque Truncation System (CTS)."
+                    : "The MICR code for $bank_name $branch_name is currently non-MICR or unallocated in official records."
+            ],
+            [
+                "q" => "What is the difference between IFSC and MICR Code?",
+                "a" => "An IFSC code (11 characters) is used for electronic online fund transfers (NEFT, RTGS, IMPS, UPI). An MICR code (9 digits) is printed using magnetic ink at the bottom of bank cheques to speed up physical cheque processing and clearing."
+            ],
+            [
+                "q" => "How is the 9-digit MICR code structured?",
+                "a" => "The first 3 digits represent the City Code (aligned with PIN code first 3 digits), the middle 3 digits represent the Bank Code, and the final 3 digits represent the unique Branch Code."
+            ],
+            [
+                "q" => "Where can I find the MICR code on my cheque leaf?",
+                "a" => "The MICR code is the second set of numbers printed in magnetic ink at the bottom of your cheque leaf, right beside the 6-digit cheque number."
+            ]
+        ];
+
+        $faq_schema = [
+            "@context" => "https://schema.org",
+            "@type" => "FAQPage",
+            "mainEntity" => []
+        ];
+        foreach ($faq_items as $f) {
+            $faq_schema["mainEntity"][] = [
+                "@type" => "Question",
+                "name" => $f["q"],
+                "acceptedAnswer" => [
+                    "@type" => "Answer",
+                    "text" => $f["a"]
+                ]
+            ];
+        }
+        $schema_graphs[] = $faq_schema;
+
+    } else {
+        $canonical_url = $base_url . "bank-micr";
+        $page_title = "MICR Code $micrcode - Not Found | Online Law";
+        $meta_desc = "No bank branch found for MICR Code $micrcode. Search across 181,900+ RBI bank branches across India.";
+        $meta_keywords = "MICR Code $micrcode, Bank MICR Search, Online Law";
+
+        $schema_graphs[] = [
+            "@context" => "https://schema.org",
+            "@type" => "BreadcrumbList",
+            "itemListElement" => [
+                ["@type" => "ListItem", "position" => 1, "name" => "Home", "item" => $base_url],
+                ["@type" => "ListItem", "position" => 2, "name" => "Bank Directory", "item" => $base_url . "bank/"],
+                ["@type" => "ListItem", "position" => 3, "name" => "MICR Code Search", "item" => $canonical_url]
+            ]
+        ];
+    }
+} else {
+    $canonical_url = $base_url . "bank-micr";
+    $page_title = "Bank MICR Code Search 2026 | Find Any Bank Branch MICR in India - Online Law";
+    $meta_desc = "Search 9-digit Magnetic Ink Character Recognition (MICR) codes for all bank branches in India. Verified CTS clearing codes, addresses, and IFSC details updated for 2026.";
+    $meta_keywords = "MICR Code Search, Find Bank MICR, RBI MICR List 2026, Cheque Clearance Codes, CTS MICR Codes India, Bank Branch Finder, Online Law";
+
+    $schema_graphs[] = [
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+            ["@type" => "ListItem", "position" => 1, "name" => "Home", "item" => $base_url],
+            ["@type" => "ListItem", "position" => 2, "name" => "Bank Directory", "item" => $base_url . "bank/"],
+            ["@type" => "ListItem", "position" => 3, "name" => "MICR Code Search", "item" => $canonical_url]
+        ]
+    ];
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Meta Tag -->
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<?php
-    // SEO & URL Parameter Handling (like pincode.php)
-    require_once ('includes/function.php'); 
-    $micrcode = "";
-    if(isset($_GET['ifsc'])) {
-        $micrcode = strtoupper(trim($_GET['ifsc']));
-        $_REQUEST['micrcode'] = $micrcode;
-    } elseif(isset($_POST['micrcode'])) {
-        $micrcode = strtoupper(trim($_POST['micrcode']));
-    }
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo htmlspecialchars($page_title); ?></title>
+    <meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta name="keywords" content="<?php echo htmlspecialchars($meta_keywords); ?>">
+    <meta name="author" content="Online Law">
+    <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
 
-    if(!empty($micrcode)) {
-        // Query database for a premium SEO title
-        $res_seo = direct_sql("select * from bank_ifsc where ifsc = '$micrcode' limit 1");
-        if($res_seo['count'] > 0) {
-            $row_seo = $res_seo['data'][0];
-            $page_title = "MICR Code: " . $row_seo['micr'] . ", " . $row_seo['branch'] . ", " . $row_seo['bank'];
-            $meta_desc = "MICR Code: " . $row_seo['micr'] . ". Get " . $row_seo['bank'] . " " . $row_seo['branch'] . " branch MICR, IFSC Code, Address: " . $row_seo['address'] . ", " . $row_seo['city2'] . ", " . $row_seo['state'] . ".";
-            
-            // Generate Schema.org JSON-LD
-            $schema_json = [
-                "@context" => "https://schema.org",
-                "@type" => "BankOrCreditUnion",
-                "name" => $row_seo['bank'] . " " . $row_seo['branch'],
-                "branchOf" => [
-                    "@type" => "BankOrCreditUnion",
-                    "name" => $row_seo['bank']
-                ],
-                "address" => [
-                    "@type" => "PostalAddress",
-                    "streetAddress" => $row_seo['address'],
-                    "addressLocality" => $row_seo['city2'],
-                    "addressRegion" => $row_seo['state'],
-                    "addressCountry" => "IN"
-                ],
-                "identifier" => $row_seo['micr']
-            ];
-            $seo_schema = '<script type="application/ld+json">' . "\n" . json_encode($schema_json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
-            $canonical_url = $base_url . "bank-micr?ifsc=" . $micrcode;
-        } else {
-            $page_title = "MICR Code: $micrcode Details - Online Law";
-            $meta_desc = "Find details for MICR Code $micrcode on Online Law. Fully updated RBI database.";
-            $seo_schema = "";
-            $canonical_url = $base_url . "bank-micr";
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Online Law">
+    <meta property="og:url" content="<?php echo htmlspecialchars($canonical_url); ?>">
+    <meta property="og:title" content="<?php echo htmlspecialchars($page_title); ?>">
+    <meta property="og:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta property="og:image" content="<?php echo $base_url; ?>images/favicon.png">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($page_title); ?>">
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta name="twitter:image" content="<?php echo $base_url; ?>images/favicon.png">
+
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Schema.org JSON-LD -->
+    <?php foreach ($schema_graphs as $schema): ?>
+        <script type="application/ld+json">
+        <?php echo json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); ?>
+        </script>
+    <?php endforeach; ?>
+
+    <style>
+        :root {
+            --bank-primary: #047857;
+            --bank-primary-hover: #065f46;
+            --bank-accent: #10b981;
+            --bank-dark: #064e3b;
+            --bank-navy: #0f172a;
+            --bank-surface: #f8fafc;
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
         }
-    } else {
-        $page_title = "Bank MICR Search Tool | Find Any Bank Branch in India - Online Law";
-        $meta_desc = "Quickly search for any Bank MICR code across India. Get instant details for NEFT, RTGS, and IMPS transactions. 100% accurate RBI database.";
-        $seo_schema = "";
-        $canonical_url = $base_url . "bank-micr";
-    }
-?>
-<meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
-<meta name="keywords" content="MICR Code Search, Find Bank MICR, RBI MICR List, NEFT RTGS Codes, Bank Branch Finder India, MICR Code Search, Net Banking Codes, <?php echo htmlspecialchars($micrcode); ?>">
-<meta name="author" content="OfferPlant">
-<title><?php echo htmlspecialchars($page_title); ?></title>
 
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Online Law">
-<meta property="og:url" content="<?php echo htmlspecialchars($canonical_url); ?>">
-<meta property="og:title" content="<?php echo htmlspecialchars($page_title); ?>">
-<meta property="og:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
-<meta property="og:image" content="<?php echo $base_url; ?>images/favicon.png">
+        body {
+            font-family: var(--font-main) !important;
+            background-color: var(--bank-surface);
+            color: #1e293b;
+        }
 
-<!-- Twitter Cards -->
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="<?php echo htmlspecialchars($page_title); ?>">
-<meta name="twitter:description" content="<?php echo htmlspecialchars($meta_desc); ?>">
-<meta name="twitter:image" content="<?php echo $base_url; ?>images/favicon.png">
+        /* Hero Banner */
+        .hero-bank-banner {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0f172a 100%);
+            padding: 56px 0 64px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .bank-glow-orb-1 {
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(50px);
+            pointer-events: none;
+        }
+        .bank-glow-orb-2 {
+            position: absolute;
+            bottom: -25%;
+            right: -10%;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+        }
 
-<!-- Schema.org JSON-LD -->
-<?php echo $seo_schema; ?>
-<style>
-    @media (max-width: 767px) {
-        .banner-tittle { font-size: 26px !important; }
-        .detail-area { padding: 25px 15px !important; }
-        .desktop-only { display: none !important; }
-        .mobile-only { display: block !important; }
-    }
-    @media (min-width: 768px) {
-        .mobile-only { display: none !important; }
-        .desktop-only { display: block !important; }
-    }
-    .bank-card {
-        background: #fff;
-        border: 1px solid #f1f5f9;
-        border-radius: 20px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        overflow: hidden;
-    }
-    .bank-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-</style>
+        /* Modern Card Console */
+        .bank-console-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8);
+            position: relative;
+            margin-top: -36px;
+            z-index: 20;
+            transition: box-shadow 0.3s ease;
+        }
 
+        /* Quick Tool Switcher Pills */
+        .tool-switcher-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .tool-switcher-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            background: #f1f5f9;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+        }
+        .tool-switcher-pill:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+        .tool-switcher-pill.active {
+            background: #047857;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+        }
 
-<?php require_once ('includes/header.php'); ?> 
-<?php require_once ('includes/function.php'); ?> 
+        /* Search input bar */
+        .search-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-input-group i.search-icon {
+            position: absolute;
+            left: 20px;
+            color: #94a3b8;
+            font-size: 18px;
+            z-index: 5;
+        }
+        .search-input-field {
+            height: 56px;
+            padding-left: 54px;
+            padding-right: 20px;
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            font-family: var(--font-code);
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+        .search-input-field:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            outline: none;
+        }
+        .search-btn-primary {
+            height: 56px;
+            border-radius: 14px;
+            background: #047857;
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+        }
+        .search-btn-primary:hover {
+            background: #065f46;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(4, 120, 87, 0.35);
+        }
 
-<!-- Banner Section Start -->
-<section class="bg-img-3 overlay p-0 full-row" style="padding: 20px 0 !important;">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="banner-text text-center">
-					<h2 class="text-white banner-tittle position-relative mb-1" style="font-family: var(--font-heading) !important; font-size: 32px; margin: 0;">Find MICR Code</h2>
-					<ul class="list-inline mt-2 mb-0" style="color: #cbd5e1; font-family: var(--font-body); font-size: 15px;">
-						<li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: rgba(255,255,255,0.8); text-decoration: none;">Home</a></li>
-						<li class="list-inline-item mx-2">/</li>
-						<li class="list-inline-item" style="color: #fff; font-weight: 500;">Find MICR Code</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
+        /* Codes Badges */
+        .ifsc-code-badge {
+            font-family: var(--font-code);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none !important;
+        }
+        .micr-code-badge {
+            font-family: var(--font-code);
+            font-weight: 700;
+            font-size: 13.5px;
+            background: #f1f5f9;
+            color: #1e293b;
+            border: 1.5px solid #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none !important;
+        }
+
+        /* Detail hero block */
+        .micr-result-hero {
+            background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
+            border: 1.5px solid #a7f3d0;
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 28px;
+        }
+
+        .bank-spec-tile {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            height: 100%;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .bank-spec-tile:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+
+        /* Copy Button */
+        .btn-copy-code {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-copy-code:hover {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #10b981;
+        }
+
+        /* Mobile Card */
+        .bank-card-mobile {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+            transition: all 0.25s ease;
+        }
+        .bank-card-mobile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        /* FAQ Card */
+        .bank-faq-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: #ffffff;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .bank-faq-header {
+            padding: 18px 22px;
+            background: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s ease;
+            text-decoration: none !important;
+        }
+        .bank-faq-header:hover {
+            background: #f8fafc;
+            color: #047857;
+        }
+        .bank-faq-body {
+            padding: 0 22px 18px 22px;
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.65;
+        }
+
+        /* Toast */
+        .bank-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #064e3b;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 600;
+            box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.4);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .bank-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 767px) {
+            .bank-console-card {
+                margin-top: -24px;
+                padding: 18px 16px !important;
+                border-radius: 18px !important;
+            }
+            .desktop-only { display: none !important; }
+            .mobile-only { display: block !important; }
+            .micr-result-hero {
+                padding: 20px 16px;
+            }
+        }
+        @media (min-width: 768px) {
+            .mobile-only { display: none !important; }
+            .desktop-only { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+<?php require_once('includes/header.php'); ?>
+
+<!-- ==========================================================================
+     HERO BANNER
+     ========================================================================== -->
+<section class="hero-bank-banner">
+    <div class="bank-glow-orb-1"></div>
+    <div class="bank-glow-orb-2"></div>
+
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-12 text-center">
+
+                <!-- Breadcrumbs -->
+                <div class="d-flex justify-content-center">
+                    <nav class="d-flex align-items-center flex-wrap gap-2 mb-3" style="font-size: 13.5px; color: #94a3b8;" aria-label="breadcrumb">
+                        <a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a>
+                        <span class="mx-1">/</span>
+                        <a href="<?php echo $base_url; ?>bank/" style="color: #cbd5e1; text-decoration: none;">Bank Directory</a>
+                        <span class="mx-1">/</span>
+                        <span class="text-white font-weight-bold">MICR Search</span>
+                        <?php if (!empty($micrcode)): ?>
+                            <span class="mx-1">/</span>
+                            <span class="text-success font-weight-bold"><?php echo htmlspecialchars($micrcode); ?></span>
+                        <?php endif; ?>
+                    </nav>
+                </div>
+
+                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(6, 78, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <i class="fas fa-money-check-alt mr-1.5"></i> RBI 9-DIGIT MICR CODE DIRECTORY 2026
+                </div>
+
+                <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
+                    Bank MICR <span style="background: linear-gradient(135deg, #86efac 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Code Search</span>
+                </h1>
+                <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+                    Search Magnetic Ink Character Recognition (MICR) codes for cheque clearance and CTS (Cheque Truncation System) operations across all Indian banks.
+                </p>
+
+            </div>
+        </div>
+    </div>
 </section>
-<!-- Banner Section End --> 
 
-<section class="full-row bg-body py-80" style="padding: 60px 0;">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="detail-area p-3 p-md-5" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: #fff;">
-					<div class="d-flex flex-column align-items-center text-center mb-4">
-						<h3 class="pb-2" style="font-family: var(--font-heading); font-weight: 700; font-size: calc(1.3rem + 0.6vw);">Magnetic Ink Character Recognition (MICR)</h3>
-						<span class="text-muted" style="font-size: 14px;">Enter a 9-digit numeric MICR code below to retrieve detailed branch information.</span>
-						<div class="mt-3">
-							<div class="d-inline-flex align-items-center justify-content-center p-2 px-3 text-center" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color); font-weight: 600; border-radius: 12px; font-size: 13px; border: 1px solid rgba(var(--primary-rgb), 0.2); line-height: 1.5; max-width: 100%;">
-                                <div class="px-1">
-								    <i class="fas fa-check-circle mr-1"></i> 181,913 Bank MICR Added <span class="d-block d-md-inline-block text-muted" style="font-weight: 500; font-size: 12px;">(Last Update: 15 Aug 2026 - RBI Official)</span>
+<!-- ==========================================================================
+     MAIN BODY & SEARCH CONSOLE
+     ========================================================================== -->
+<div class="full-row py-4" style="background-color: #f8fafc; position: relative; z-index: 10;">
+    <div class="container">
+
+        <!-- Console Card -->
+        <div class="bank-console-card p-4 p-md-4 mb-4">
+
+            <!-- Tool Switcher Bar -->
+            <div class="tool-switcher-bar">
+                <a href="<?php echo $base_url; ?>bank-finder" class="tool-switcher-pill">
+                    <i class="fas fa-landmark text-success"></i> Cascading Bank Finder
+                </a>
+                <a href="<?php echo $base_url; ?>bank-ifsc" class="tool-switcher-pill">
+                    <i class="fas fa-barcode"></i> Search by IFSC
+                </a>
+                <a href="<?php echo $base_url; ?>bank-micr" class="tool-switcher-pill active">
+                    <i class="fas fa-money-check-alt"></i> Search by MICR
+                </a>
+                <a href="<?php echo $base_url; ?>bank-ifsc-by-branch-name" class="tool-switcher-pill">
+                    <i class="fas fa-building"></i> Search by Branch Name
+                </a>
+                <a href="<?php echo $base_url; ?>bank/contact-details" class="tool-switcher-pill">
+                    <i class="fas fa-headset"></i> Bank Customer Care
+                </a>
+            </div>
+
+            <!-- Search Form -->
+            <form method="GET" action="<?php echo $base_url; ?>bank-micr" class="mb-4">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-md-8 mb-3 mb-md-0">
+                        <div class="search-input-group">
+                            <i class="fas fa-money-check search-icon"></i>
+                            <input type="text" name="micr" class="form-control search-input-field" placeholder="Enter 9-digit MICR Code (e.g. 110002005, 400024002, 700002014)" maxlength="9" minlength="9" value="<?php echo htmlspecialchars($micrcode); ?>" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-4">
+                        <button type="submit" class="btn btn-block search-btn-primary d-flex align-items-center justify-content-center">
+                            <i class="fas fa-search mr-2"></i> Search MICR
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Quick Suggestions -->
+            <div class="d-flex align-items-center flex-wrap justify-content-center gap-2 pt-2 border-top">
+                <span class="text-muted small font-weight-bold mr-2"><i class="fas fa-bolt text-warning mr-1"></i> Popular MICR Codes:</span>
+                <a href="<?php echo $base_url; ?>bank-micr?micr=110002005" class="badge badge-light border px-2.5 py-1.5 text-secondary" style="font-family: var(--font-code); font-size: 11.5px;">110002005 (Delhi SBI)</a>
+                <a href="<?php echo $base_url; ?>bank-micr?micr=400024002" class="badge badge-light border px-2.5 py-1.5 text-secondary" style="font-family: var(--font-code); font-size: 11.5px;">400024002 (Mumbai HDFC)</a>
+                <a href="<?php echo $base_url; ?>bank-micr?micr=700002014" class="badge badge-light border px-2.5 py-1.5 text-secondary" style="font-family: var(--font-code); font-size: 11.5px;">700002014 (Kolkata)</a>
+                <a href="<?php echo $base_url; ?>bank-micr?micr=560002001" class="badge badge-light border px-2.5 py-1.5 text-secondary" style="font-family: var(--font-code); font-size: 11.5px;">560002001 (Bengaluru)</a>
+            </div>
+        </div>
+
+        <!-- ======================================================================
+             SEARCH RESULTS DISPLAY
+             ====================================================================== -->
+        <?php if (!empty($micrcode)): ?>
+            <?php if ($total_found > 0): ?>
+                
+                <!-- Single Highlight Card -->
+                <?php $b = $res_data[0]; ?>
+                <div class="micr-result-hero shadow-sm">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8 mb-3 mb-lg-0">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                                <span class="badge badge-success px-2.5 py-1" style="background: #047857; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase;">
+                                    <i class="fas fa-check-circle mr-1"></i> RBI Verified CTS Code
+                                </span>
+                                <span class="text-muted small">Updated August 2026</span>
+                            </div>
+                            <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(20px, 2.4vw, 26px); line-height: 1.3;">
+                                <?php echo htmlspecialchars($b['bank']); ?>
+                            </h2>
+                            <p class="text-muted font-weight-bold mb-3" style="font-size: 15px;">
+                                <i class="fas fa-code-branch text-success mr-1.5"></i> <?php echo htmlspecialchars($b['branch']); ?> Branch &bull; <?php echo htmlspecialchars(!empty($b['city2']) ? $b['city2'] : $b['city1']); ?>, <?php echo htmlspecialchars($b['state']); ?>
+                            </p>
+
+                            <!-- MICR Code Box -->
+                            <div class="d-inline-flex align-items-center flex-wrap gap-2 p-2.5 px-3 rounded-lg" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px;">
+                                <div>
+                                    <div class="text-muted" style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">MICR Code (9-Digits)</div>
+                                    <div class="text-dark font-weight-bold" style="font-family: var(--font-code); font-size: 18px; color: #0f172a !important; letter-spacing: 0.5px;">
+                                        <?php echo (!empty($b['micr']) && $b['micr'] != 'NA' && $b['micr'] != '-') ? htmlspecialchars($b['micr']) : 'N/A'; ?>
+                                    </div>
                                 </div>
-							</div>
-						</div>
-                        
-                        <!-- News Ticker / Latest News -->
-                        <div class="mt-4 w-100" style="background: #fff8f1; border: 1px dashed #fb923c; border-radius: 12px; padding: 12px 20px; overflow: hidden;">
-                            <div class="d-flex align-items-center">
-                                <span class="badge py-1 px-2 mr-3" style="background: #ea580c; color: #fff; font-size: 11px; font-weight: 700; border-radius: 6px; text-transform: uppercase;">Latest News</span>
-                                <div style="font-size: 14px; color: #7c2d12; font-weight: 500;">
-                                    <i class="fas fa-bullhorn mr-2 text-warning"></i> 1,096 bank branches have been recently inaugurated and updated in the RBI official record as of 15 Aug 2026.
+                                <?php if (!empty($b['micr']) && $b['micr'] != 'NA' && $b['micr'] != '-'): ?>
+                                    <button type="button" class="btn-copy-code ml-2 py-1.5 px-3" onclick="copyText('<?php echo htmlspecialchars($b['micr']); ?>', 'MICR Code copied!')">
+                                        <i class="far fa-copy mr-1"></i> Copy MICR
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- IFSC Code Box -->
+                            <div class="d-inline-flex align-items-center flex-wrap gap-2 p-2.5 px-3 rounded-lg ml-md-2 mt-2 mt-md-0" style="background: #ffffff; border: 1.5px solid #a7f3d0; border-radius: 12px;">
+                                <div>
+                                    <div class="text-muted" style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">IFSC Code (Online Transfer)</div>
+                                    <div class="text-dark font-weight-bold" style="font-family: var(--font-code); font-size: 18px; color: #047857 !important;">
+                                        <?php echo htmlspecialchars($b['ifsc']); ?>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-copy-code ml-2 py-1.5 px-3" onclick="copyText('<?php echo htmlspecialchars($b['ifsc']); ?>', 'IFSC Code copied!')">
+                                    <i class="far fa-copy mr-1"></i> Copy IFSC
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cheque Clearing Badges -->
+                        <div class="col-lg-4 text-lg-right">
+                            <div class="p-3 bg-white rounded-lg border" style="border-radius: 14px;">
+                                <div class="font-weight-bold text-dark mb-2 small text-left text-lg-right">Cheque Clearance Capabilities:</div>
+                                <div class="d-flex flex-wrap justify-content-start justify-content-lg-end gap-1.5" style="gap: 6px;">
+                                    <span class="badge badge-primary px-2.5 py-1.5 font-weight-bold" style="border-radius: 6px; font-size: 11px;"><i class="fas fa-check mr-1"></i> CTS Cheque Truncation</span>
+                                    <span class="badge badge-success px-2.5 py-1.5 font-weight-bold" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 11px;"><i class="fas fa-bolt mr-1"></i> Speed Clearing</span>
+                                    <span class="badge badge-info px-2.5 py-1.5 font-weight-bold" style="border-radius: 6px; font-size: 11px;"><i class="fas fa-globe mr-1"></i> Grid Clearing</span>
                                 </div>
                             </div>
                         </div>
-					</div>
-					
-					<form method="post" action="<?php echo $base_url; ?>bank-micr" class="form-style-1 mb-5">
-					  <div class="row justify-content-center">
-						<div class="col-lg-5 col-md-8">
-						  <div class="form-group mb-0 position-relative">
-                            <i class="fas fa-university position-absolute" style="top: 50%; transform: translateY(-50%); left: 20px; color: var(--text-muted);"></i>
-							<input class="form-control text-uppercase" style="padding-left: 50px !important; height: 55px; border-radius: var(--radius-md); text-transform: uppercase;" type="text" placeholder="e.g. 110002005" maxlength="9" minlength="9" name="micrcode" value="<?php echo htmlentities($micrcode); ?>" required>
-						  </div>
-						</div>
-						<div class="col-lg-2 col-md-4 mt-3 mt-md-0">
-						  <div class="form-group mb-0">
-							<input id="submit_btn" class="btn-primary btn w-100" style="height: 55px; font-size: 16px; border-radius: var(--radius-md); padding-top: 0; padding-bottom: 0;" type="submit" value="Search">
-						  </div>
-						</div>
-					  </div>
-					</form>
-					
-					<!-- Table Results -->
-					<?php 
-                        if(isset($_REQUEST['micrcode']))
-                        {
-                            extract($_REQUEST);
-                            // Safety Check for empty
-                            if(!empty($micrcode)) {
-                                // Upper case standardization
-                                $micrcode = strtoupper(trim($micrcode));
-                                $sql = "select * from bank_ifsc where micr ='$micrcode' order by branch";
-                                $res = direct_sql($sql);
-                                $ct =$res['count'];
-                                
-                                if($ct >0)
-                                {
-                                    $i=1;
-                    ?>
-                                    <div class="results-container mt-4">
-                                        <h4 class="text-primary mb-4" style="font-family: var(--font-heading); font-weight: 600;">Showing results for MICR Code "<?php echo htmlentities($micrcode); ?>" </h4>
-                                        
-                                        <!-- Desktop Table View -->
-                                        <div class="table-responsive desktop-only">
-                                            <table class="display responsive nowrap w-100" id="micrcode_table">
-                                                <thead> 
-                                                <tr>
-                                                    <th> No </th>
-                                                    <th> Bank Name </th>
-                                                    <th> IFSC / MICR </th>
-                                                    <th> Branch</th>
-                                                    <th> District</th>
-                                                    <th>State / UT</th>
-                                                    <th> Address</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                <?php foreach( $res['data'] as $row) { ?>
-                                                    <tr>
-                                                        <td> <?php echo $i++; ?> </td>
-                                                        <td> <span style="font-weight: 600; color: var(--text-main);"><?php echo htmlentities($row['bank']); ?></span> </td>
-                                                        <td> 
-                                                            <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge mb-1" style="background: var(--primary-light); color: var(--primary-color); font-size: 14px; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-block;"><?php echo htmlentities($row['ifsc']); ?></a><br>
-                                                            <span style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">MICR: <?php echo !empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-' ? htmlentities($row['micr']) : 'N/A'; ?></span> 
-                                                        </td>
-                                                        <td> <?php echo htmlentities($row['branch']); ?> </td>
-                                                        <td> <?php echo htmlentities($row['city2']); ?> </td>
-                                                        <td> <?php echo htmlentities($row['state']); ?> </td>
-                                                        <td style="white-space: normal; max-width: 250px;"> <?php echo htmlentities($row['address']); ?> </td>
-                                                    </tr>
-                                                <?php } ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                    </div>
+                </div>
 
-                                        <!-- Mobile Card View -->
-                                        <div class="mobile-only">
-                                            <?php 
-                                            $mi = 1;
-                                            foreach($res['data'] as $row) { ?>
-                                                <div class="bank-card mb-4 p-4">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <h5 class="mb-0 text-primary" style="font-weight: 800; font-size: 18px; line-height: 1.3; margin-right: 10px;"><?php echo htmlentities($row['bank']); ?></h5>
-                                                        <div class="text-right">
-                                                            <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo $row['ifsc']; ?>" class="badge mb-1" style="background: #eff6ff; color: #1e40af; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-block;"><?php echo htmlentities($row['ifsc']); ?></a>
-                                                            <div style="font-size: 10px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; display: inline-block;">MICR: <?php echo !empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-' ? htmlentities($row['micr']) : 'N/A'; ?></div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="mb-3 d-flex align-items-center">
-                                                        <i class="fas fa-code-branch text-muted mr-2" style="font-size: 12px;"></i>
-                                                        <span class="text-dark font-weight-bold" style="font-size: 14px;"><?php echo htmlentities($row['branch']); ?></span>
-                                                    </div>
+                <!-- Spec Grid -->
+                <div class="row mb-4">
+                    <div class="col-lg-6 mb-3 mb-lg-0">
+                        <div class="bank-spec-tile">
+                            <div class="d-flex align-items-start">
+                                <div class="mr-3" style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small font-weight-bold text-uppercase">Branch Address</div>
+                                    <div class="font-weight-bold text-dark" style="font-size: 14.5px; line-height: 1.5;">
+                                        <?php echo htmlspecialchars($b['address']); ?>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        District: <strong><?php echo htmlspecialchars(!empty($b['city2']) ? $b['city2'] : $b['city1']); ?></strong> &bull; State: <strong><?php echo htmlspecialchars($b['state']); ?></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                                    <div class="p-3 mb-4" style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px;">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-map-marker-alt text-danger mt-1 mr-2" style="font-size: 13px;"></i>
-                                                            <p class="mb-0 text-dark" style="font-size: 13px; line-height: 1.6;"><?php echo htmlentities($row['address']); ?></p>
-                                                        </div>
-                                                        <div class="mt-2 text-muted px-4" style="font-size: 12px;">
-                                                            <?php echo htmlentities($row['city2']); ?>, <?php echo htmlentities($row['state']); ?>
-                                                        </div>
+                    <div class="col-lg-6">
+                        <div class="bank-spec-tile">
+                            <div class="d-flex align-items-start">
+                                <div class="mr-3" style="width: 40px; height: 40px; border-radius: 10px; background: #fdf2f8; color: #db2777; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                                    <i class="fas fa-compass"></i>
+                                </div>
+                                <div class="w-100">
+                                    <div class="text-muted small font-weight-bold text-uppercase mb-1">Quick Branch Navigation</div>
+                                    <div class="d-flex flex-wrap gap-2" style="gap: 8px;">
+                                        <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo urlencode($b['ifsc']); ?>" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 8px; font-size: 12px;">
+                                            <i class="fas fa-barcode mr-1"></i> IFSC: <?php echo htmlspecialchars($b['ifsc']); ?>
+                                        </a>
+                                        <a href="<?php echo $base_url; ?>bank-finder?bank=<?php echo urlencode($b['bank']); ?>&state=<?php echo urlencode($b['state']); ?>&district=<?php echo urlencode(!empty($b['city2']) ? $b['city2'] : $b['city1']); ?>" class="btn btn-sm btn-outline-primary font-weight-bold" style="border-radius: 8px; font-size: 12px;">
+                                            <i class="fas fa-landmark mr-1"></i> More in <?php echo htmlspecialchars(!empty($b['city2']) ? $b['city2'] : $b['city1']); ?>
+                                        </a>
+                                        <a href="<?php echo $base_url; ?>bank-ifsc-by-branch-name?branch=<?php echo urlencode($b['bank']); ?>" class="btn btn-sm btn-outline-secondary font-weight-bold" style="border-radius: 8px; font-size: 12px;">
+                                            <i class="fas fa-university mr-1"></i> All <?php echo htmlspecialchars($b['bank']); ?> Branches
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Table (Desktop) -->
+                <div class="desktop-only mb-4">
+                    <div class="card border-0 shadow-sm" style="border-radius: 18px; overflow: hidden;">
+                        <div class="card-header bg-white py-3 px-4 border-bottom">
+                            <h4 class="font-weight-bold text-dark mb-0" style="font-size: 16px;">
+                                <i class="fas fa-list-alt text-success mr-2"></i> Verified Record for MICR: <?php echo htmlspecialchars($micrcode); ?>
+                            </h4>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="micrcode_table">
+                                <thead style="background: #f8fafc; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569;">
+                                    <tr>
+                                        <th class="py-3 px-3">#</th>
+                                        <th class="py-3 px-3">Bank Name</th>
+                                        <th class="py-3 px-3">MICR Code</th>
+                                        <th class="py-3 px-3">IFSC Code</th>
+                                        <th class="py-3 px-3">Branch</th>
+                                        <th class="py-3 px-3">District</th>
+                                        <th class="py-3 px-3">State</th>
+                                        <th class="py-3 px-3" style="min-width: 260px;">Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 13.5px;">
+                                    <?php $idx = 1; foreach ($res_data as $row): ?>
+                                        <tr>
+                                            <td class="py-3 px-3 text-muted"><?php echo $idx++; ?></td>
+                                            <td class="py-3 px-3">
+                                                <span class="font-weight-bold text-dark"><?php echo htmlspecialchars($row['bank']); ?></span>
+                                            </td>
+                                            <td class="py-3 px-3">
+                                                <?php if (!empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-'): ?>
+                                                    <div class="d-flex align-items-center">
+                                                        <a href="<?php echo $base_url; ?>bank-micr?micr=<?php echo htmlspecialchars($row['micr']); ?>" class="micr-code-badge mr-1">
+                                                            <?php echo htmlspecialchars($row['micr']); ?>
+                                                        </a>
+                                                        <button type="button" class="btn-copy-code" onclick="copyText('<?php echo htmlspecialchars($row['micr']); ?>', 'MICR Copied!')" title="Copy MICR">
+                                                            <i class="far fa-copy"></i>
+                                                        </button>
                                                     </div>
+                                                <?php else: ?>
+                                                    <span class="text-muted small">N/A</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="py-3 px-3">
+                                                <div class="d-flex align-items-center">
+                                                    <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo htmlspecialchars($row['ifsc']); ?>" class="ifsc-code-badge mr-1">
+                                                        <?php echo htmlspecialchars($row['ifsc']); ?>
+                                                    </a>
+                                                    <button type="button" class="btn-copy-code" onclick="copyText('<?php echo htmlspecialchars($row['ifsc']); ?>', 'IFSC Copied!')" title="Copy IFSC">
+                                                        <i class="far fa-copy"></i>
+                                                    </button>
                                                 </div>
-                                            <?php } ?>
+                                            </td>
+                                            <td class="py-3 px-3 font-weight-bold text-dark"><?php echo htmlspecialchars($row['branch']); ?></td>
+                                            <td class="py-3 px-3"><?php echo htmlspecialchars(!empty($row['city2']) ? $row['city2'] : $row['city1']); ?></td>
+                                            <td class="py-3 px-3"><?php echo htmlspecialchars($row['state']); ?></td>
+                                            <td class="py-3 px-3 text-secondary" style="line-height: 1.4;"><?php echo htmlspecialchars($row['address']); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Card List View -->
+                <div class="mobile-only mb-4">
+                    <?php foreach ($res_data as $row): ?>
+                        <div class="bank-card-mobile">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="font-weight-bold text-dark mb-0" style="font-size: 16px;">
+                                        <?php echo htmlspecialchars($row['bank']); ?>
+                                    </h5>
+                                    <div class="text-muted small font-weight-bold">
+                                        <i class="fas fa-code-branch text-success mr-1"></i> <?php echo htmlspecialchars($row['branch']); ?> Branch
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-2.5 rounded-lg mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <span class="text-muted small font-weight-bold">MICR Code:</span>
+                                    <div class="d-flex align-items-center">
+                                        <span class="micr-code-badge mr-1"><?php echo (!empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-') ? htmlspecialchars($row['micr']) : 'N/A'; ?></span>
+                                        <?php if (!empty($row['micr']) && $row['micr'] != 'NA' && $row['micr'] != '-'): ?>
+                                            <button type="button" class="btn-copy-code" onclick="copyText('<?php echo htmlspecialchars($row['micr']); ?>', 'MICR Copied!')">
+                                                <i class="far fa-copy"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small font-weight-bold">IFSC Code:</span>
+                                    <div class="d-flex align-items-center">
+                                        <span class="ifsc-code-badge mr-1" style="font-size: 12px;"><?php echo htmlspecialchars($row['ifsc']); ?></span>
+                                        <button type="button" class="btn-copy-code" onclick="copyText('<?php echo htmlspecialchars($row['ifsc']); ?>', 'IFSC Copied!')">
+                                            <i class="far fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-muted small font-weight-bold text-uppercase">Branch Address:</div>
+                                <div class="text-secondary small mt-0.5" style="line-height: 1.5;">
+                                    <?php echo htmlspecialchars($row['address']); ?>, <?php echo htmlspecialchars(!empty($row['city2']) ? $row['city2'] : $row['city1']); ?>, <?php echo htmlspecialchars($row['state']); ?>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 pt-2 border-top" style="gap: 6px;">
+                                <a href="<?php echo $base_url; ?>bank-ifsc?ifsc=<?php echo urlencode($row['ifsc']); ?>" class="btn btn-sm btn-light border text-dark font-weight-bold" style="font-size: 11.5px; border-radius: 8px;">
+                                    <i class="fas fa-barcode text-success mr-1"></i> IFSC Details
+                                </a>
+                                <a href="<?php echo $base_url; ?>bank-finder?bank=<?php echo urlencode($row['bank']); ?>&state=<?php echo urlencode($row['state']); ?>&district=<?php echo urlencode(!empty($row['city2']) ? $row['city2'] : $row['city1']); ?>" class="btn btn-sm btn-light border text-dark font-weight-bold" style="font-size: 11.5px; border-radius: 8px;">
+                                    <i class="fas fa-landmark text-primary mr-1"></i> Nearby Branches
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- ==============================================================
+                     NEARBY BRANCHES
+                     ============================================================== -->
+                <?php
+                    $bank_ref = $b['bank'];
+                    $city_ref = !empty($b['city2']) ? $b['city2'] : $b['city1'];
+                    $state_ref = $b['state'];
+                    
+                    $safe_bank = mysqli_real_escape_string($con, $bank_ref);
+                    $safe_city = mysqli_real_escape_string($con, $city_ref);
+                    $safe_state = mysqli_real_escape_string($con, $state_ref);
+                    $safe_cur_micr = mysqli_real_escape_string($con, $b['micr']);
+
+                    // Same bank in same district
+                    $near_dist_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND city2 = '$safe_city' AND micr != '$safe_cur_micr' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+
+                    // Same bank in same state
+                    $near_state_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+                ?>
+
+                <?php if ($near_dist_res['count'] > 0 || $near_state_res['count'] > 0): ?>
+                    <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff;">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="mr-3" style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class="fas fa-code-branch"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-weight-bold text-dark mb-0" style="font-size: 18px;">Other Branches with MICR of <?php echo htmlspecialchars($bank_ref); ?></h3>
+                                <p class="text-muted small mb-0">Browse other verified branches in <?php echo htmlspecialchars($city_ref); ?> and <?php echo htmlspecialchars($state_ref); ?>.</p>
+                            </div>
+                        </div>
+
+                        <?php if ($near_dist_res['count'] > 0): ?>
+                            <h6 class="text-uppercase text-muted font-weight-bold mb-2.5 mt-2" style="font-size: 11px; letter-spacing: 0.8px;">
+                                <i class="fas fa-map-marker-alt text-danger mr-1"></i> Branches in <?php echo htmlspecialchars($city_ref); ?> District:
+                            </h6>
+                            <div class="row mb-3">
+                                <?php foreach ($near_dist_res['data'] as $nr): ?>
+                                    <div class="col-lg-3 col-md-4 col-sm-6 mb-2.5">
+                                        <a href="<?php echo $base_url; ?>bank-micr?micr=<?php echo htmlspecialchars($nr['micr']); ?>" class="d-block p-2.5 rounded-lg border text-decoration-none bg-light" style="border-radius: 10px; transition: all 0.2s ease;">
+                                            <div class="font-weight-bold text-dark text-truncate" style="font-size: 13px;"><?php echo htmlspecialchars($nr['branch']); ?></div>
+                                            <div class="text-secondary small font-weight-bold" style="font-family: var(--font-code); font-size: 11px;">MICR: <?php echo htmlspecialchars($nr['micr']); ?></div>
+                                        </a>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($near_state_res['count'] > 0): ?>
+                            <h6 class="text-uppercase text-muted font-weight-bold mb-2.5 mt-2" style="font-size: 11px; letter-spacing: 0.8px;">
+                                <i class="fas fa-map text-primary mr-1"></i> Other Branches in <?php echo htmlspecialchars($state_ref); ?>:
+                            </h6>
+                            <div class="row">
+                                <?php foreach ($near_state_res['data'] as $nr): ?>
+                                    <div class="col-lg-3 col-md-4 col-sm-6 mb-2.5">
+                                        <a href="<?php echo $base_url; ?>bank-micr?micr=<?php echo htmlspecialchars($nr['micr']); ?>" class="d-block p-2.5 rounded-lg border text-decoration-none bg-light" style="border-radius: 10px; transition: all 0.2s ease;">
+                                            <div class="font-weight-bold text-dark text-truncate" style="font-size: 13px;"><?php echo htmlspecialchars($nr['branch']); ?></div>
+                                            <div class="text-muted small" style="font-size: 11px;"><?php echo htmlspecialchars($nr['city2']); ?> &bull; <span style="font-family: var(--font-code); font-weight: 600;"><?php echo htmlspecialchars($nr['micr']); ?></span></div>
+                                        </a>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- ==============================================================
+                     FAQ SECTION
+                     ============================================================== -->
+                <?php if (!empty($faq_items)): ?>
+                    <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff;">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="mr-3" style="width: 42px; height: 42px; border-radius: 12px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-weight-bold text-dark mb-0" style="font-size: 18px;">Frequently Asked Questions</h3>
+                                <p class="text-muted small mb-0">Learn more about cheque clearing and MICR codes for <?php echo htmlspecialchars($b['bank']); ?>.</p>
+                            </div>
+                        </div>
+
+                        <div class="accordion" id="micrFaqAccordion">
+                            <?php foreach ($faq_items as $index => $faq): ?>
+                                <div class="bank-faq-card">
+                                    <div class="bank-faq-header" data-toggle="collapse" data-target="#faqCollapse<?php echo $index; ?>" aria-expanded="<?php echo ($index === 0) ? 'true' : 'false'; ?>">
+                                        <span><i class="fas fa-circle-question text-success mr-2"></i> <?php echo htmlspecialchars($faq['q']); ?></span>
+                                        <i class="fas fa-chevron-down text-muted" style="font-size: 12px;"></i>
+                                    </div>
+                                    <div id="faqCollapse<?php echo $index; ?>" class="collapse <?php echo ($index === 0) ? 'show' : ''; ?>" data-parent="#micrFaqAccordion">
+                                        <div class="bank-faq-body">
+                                            <?php echo htmlspecialchars($faq['a']); ?>
                                         </div>
                                     </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
-                    <?php
-                                    // Nearest Banks Logic derived from the first search result
-                                    $bank_ref = $res['data'][0]['bank'];
-                                    $city_ref = $res['data'][0]['city2'];
-                                    $state_ref = $res['data'][0]['state'];
-                                    
-                                    $safe_bank = addslashes($bank_ref);
-                                    $safe_city = addslashes($city_ref);
-                                    $safe_state = addslashes($state_ref);
-                                    $safe_micr = addslashes($res['data'][0]['micr']);
+            <?php else: ?>
+                <!-- Not Found Alert -->
+                <div class="alert p-4 mb-4" style="background: #fef2f2; border: 1.5px solid #fecaca; color: #991b1b; border-radius: 18px;">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-circle-exclamation mr-2" style="font-size: 22px;"></i>
+                        <h4 class="font-weight-bold mb-0" style="font-size: 17px;">No Record Found for MICR: <?php echo htmlspecialchars($micrcode); ?></h4>
+                    </div>
+                    <p class="mb-3 small" style="line-height: 1.6;">
+                        Please check if the 9-digit numeric MICR code was typed accurately as printed at the bottom of your cheque leaf.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2" style="gap: 8px;">
+                        <a href="<?php echo $base_url; ?>bank-ifsc" class="btn btn-sm btn-danger font-weight-bold px-3 py-2" style="border-radius: 10px;">
+                            <i class="fas fa-barcode mr-1.5"></i> Search by IFSC Code
+                        </a>
+                        <a href="<?php echo $base_url; ?>bank-finder" class="btn btn-sm btn-outline-danger font-weight-bold px-3 py-2" style="border-radius: 10px;">
+                            <i class="fas fa-landmark mr-1.5"></i> Find by Bank &amp; Branch
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
 
-                                    // Very Near (Same Bank in Same City)
-                                    $very_near_sql = "SELECT DISTINCT branch, micr, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND city2 = '$safe_city' AND micr != '$safe_micr' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch LIMIT 12";
-                                    $very_near_res = direct_sql($very_near_sql);
+        <!-- ======================================================================
+             MICR CODE EXPLANATION & EDUCATIONAL GUIDE
+             ====================================================================== -->
+        <div class="card border-0 shadow-sm p-4 p-md-5 mb-4" style="border-radius: 24px; background: #ffffff;">
+            <h3 class="font-weight-bold text-dark mb-2" style="font-size: 20px;">
+                <i class="fas fa-info-circle text-success mr-2"></i> How Does a 9-Digit MICR Code Work?
+            </h3>
+            <p class="text-muted small mb-4" style="line-height: 1.65;">
+                MICR (Magnetic Ink Character Recognition) is a 9-digit numeric technology used by banks to process cheques automatically through high-speed sorting machines in the Cheque Truncation System (CTS).
+            </p>
 
-                                    // Nearby (Same Bank in Same State, excluding Same City)
-                                    $nearby_sql = "SELECT DISTINCT branch, micr, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch LIMIT 12";
-                                    $nearby_res = direct_sql($nearby_sql);
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="p-3 rounded-lg border h-100" style="background: #f8fafc; border-radius: 14px;">
+                        <div class="font-weight-bold text-success mb-1" style="font-size: 15px;">
+                            <i class="fas fa-1 mr-1"></i> First 3 Digits (City Code)
+                        </div>
+                        <div class="text-dark font-weight-bold" style="font-family: var(--font-code); font-size: 14px;">e.g. 110 (Delhi), 400 (Mumbai)</div>
+                        <div class="text-muted small mt-1">Identifies the city location of the bank branch, aligned with the first 3 digits of the postal PIN code.</div>
+                    </div>
+                </div>
 
-                                    if($very_near_res['count'] > 0 || $nearby_res['count'] > 0) {
-                    ?>
-                                        <div class="nearby-banks mt-5 pt-4" style="border-top: 1px solid #eef2f6;">
-                                            <div class="d-flex align-items-center mb-4">
-                                                <div style="width: 40px; height: 40px; background: #fff7ed; color: #ea580c; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                                    <i class="fas fa-university"></i>
-                                                </div>
-                                                <div>
-                                                    <h4 class="mb-0" style="font-family: var(--font-heading); font-weight: 700; color: #1e293b; font-size: 20px;">Other Nearby Branches</h4>
-                                                    <p class="mb-0 text-muted" style="font-size: 13px;">Find more branches of <?php echo htmlentities($bank_ref); ?> in this region MICR Code</p>
-                                                </div>
-                                            </div>
+                <div class="col-md-4 mb-3">
+                    <div class="p-3 rounded-lg border h-100" style="background: #f8fafc; border-radius: 14px;">
+                        <div class="font-weight-bold text-primary mb-1" style="font-size: 15px;">
+                            <i class="fas fa-2 mr-1"></i> Middle 3 Digits (Bank Code)
+                        </div>
+                        <div class="text-dark font-weight-bold" style="font-family: var(--font-code); font-size: 14px;">e.g. 002 (SBI), 240 (HDFC)</div>
+                        <div class="text-muted small mt-1">Uniquely identifies the banking institution according to Reserve Bank of India assignment.</div>
+                    </div>
+                </div>
 
-                                            <?php if($very_near_res['count'] > 0) { ?>
-                                                <h6 class="text-uppercase text-muted font-weight-bold mb-3" style="font-size: 11px; letter-spacing: 1px;">In <?php echo htmlentities($city_ref); ?> District</h6>
-                                                <div class="row mb-4">
-                                                    <?php foreach($very_near_res['data'] as $rel) { ?>
-                                                        <div class="col-lg-3 col-md-4 col-6 mb-3">
-                                                            <a href="<?php echo $base_url; ?>bank-micr?micrcode=<?php echo $rel['micr']; ?>" class="d-block p-3 text-center text-decoration-none" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                                                <div style="font-weight: 700; color: #3b82f6; font-size: 15px;"><?php echo htmlentities($rel['branch']); ?></div>
-                                                                <div class="text-muted" style="font-size: 12px; font-weight: 600;"><?php echo htmlentities($rel['micr']); ?></div>
-                                                            </a>
-                                                        </div>
-                                                    <?php } ?>
-                                                </div>
-                                            <?php } ?>
+                <div class="col-md-4 mb-3">
+                    <div class="p-3 rounded-lg border h-100" style="background: #f8fafc; border-radius: 14px;">
+                        <div class="font-weight-bold text-warning mb-1" style="font-size: 15px;">
+                            <i class="fas fa-3 mr-1"></i> Last 3 Digits (Branch Code)
+                        </div>
+                        <div class="text-dark font-weight-bold" style="font-family: var(--font-code); font-size: 14px;">e.g. 005 (Main Branch)</div>
+                        <div class="text-muted small mt-1">Specific branch location code in that particular city where the bank account is registered.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                            <?php if($nearby_res['count'] > 0) { ?>
-                                                <h6 class="text-uppercase text-muted font-weight-bold mb-3" style="font-size: 11px; letter-spacing: 1px;">Other Branches in <?php echo htmlentities($state_ref); ?></h6>
-                                                <div class="row">
-                                                    <?php foreach($nearby_res['data'] as $rel) { ?>
-                                                        <div class="col-lg-3 col-md-4 col-6 mb-3">
-                                                            <a href="<?php echo $base_url; ?>bank-micr?micrcode=<?php echo $rel['micr']; ?>" class="d-block p-3 text-center text-decoration-none" style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; transition: all 0.2s ease;">
-                                                                <div style="font-weight: 700; color: #64748b; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlentities($rel['branch']); ?></div>
-                                                                <div class="text-muted" style="font-size: 11px;"><?php echo htmlentities($rel['city2']); ?> - <?php echo htmlentities($rel['micr']); ?></div>
-                                                            </a>
-                                                        </div>
-                                                    <?php } ?>
-                                                </div>
-                                            <?php } ?>
-                                        </div>
-                    <?php
-                                    }
-                                }
-                                else
-                                {
-                    ?>
-                                    <div class="alert mt-4" style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: var(--radius-md); padding: 15px 20px;"> 
-                                        <i class="fas fa-exclamation-circle mr-2"></i> Sorry! No results found for MICR Code <b> <?php echo htmlentities($micrcode); ?> </b>
-                                    </div>
-                    <?php
-                                }
-                            }
-                        }
-                    ?>
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
+    </div>
+</div>
 
-<?php require_once ('includes/footer.php'); ?> 
+<!-- Toast Notification -->
+<div id="bankToast" class="bank-toast">
+    <i class="fas fa-check-circle text-success" style="font-size: 18px;"></i>
+    <span id="bankToastMsg">Copied to clipboard!</span>
+</div>
+
+<?php require_once('includes/footer.php'); ?>
+
 <script>
-    $(document).ready(function() {
-        $('#micrcode_table').DataTable({
-            responsive: true,
-            paging: true,
-            searching: true,
-            ordering: true,
-            pageLength: 10
-        });
-    });
-</script>
+    function copyText(text, msg) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast(msg || 'Copied to clipboard!');
+            });
+        } else {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(msg || 'Copied to clipboard!');
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+    }
 
+    function showToast(msg) {
+        var toast = document.getElementById('bankToast');
+        var msgEl = document.getElementById('bankToastMsg');
+        if (toast && msgEl) {
+            msgEl.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    }
+</script>
+</body>
+</html>

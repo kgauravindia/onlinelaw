@@ -1,4 +1,8 @@
 <?php
+/**
+ * Online Law - Developer API Hub & Documentation
+ * RESTful JSON APIs for Bank IFSC, MICR, Pincode, GST HSN/SAC, MCA Companies, and NIC Codes
+ */
 require_once ('includes/function.php');
 
 // --- API Logic with Access Control & Security ---
@@ -166,7 +170,7 @@ if (!empty($api_key_input) && isset($_REQUEST['action'])) {
         $today_count = isset($day_calls['data'][0]['total']) ? intval($day_calls['data'][0]['total']) : 0;
         if ($today_count >= $rate_limit_day) {
             $send_api_response(429, [
-                'status' => 'error',
+                'status' => 'error', 
                 'message' => "Daily API quota limit exceeded ({$rate_limit_day} requests/day). Quota resets at midnight UTC."
             ], $key_id, $api_key_input);
         }
@@ -179,7 +183,7 @@ if (!empty($api_key_input) && isset($_REQUEST['action'])) {
         $min_count = isset($min_calls['data'][0]['total']) ? intval($min_calls['data'][0]['total']) : 0;
         if ($min_count >= $rate_limit_min) {
             $send_api_response(429, [
-                'status' => 'error',
+                'status' => 'error', 
                 'message' => "Rate limit exceeded ({$rate_limit_min} requests/minute). Please slow down your requests."
             ], $key_id, $api_key_input);
         }
@@ -269,7 +273,6 @@ if (!empty($api_key_input) && isset($_REQUEST['action'])) {
                 $safe_q = addslashes($q);
                 $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (cin = '$safe_q' OR cin LIKE '%$safe_q%' OR company_name LIKE '%$safe_q%') LIMIT 50");
                 if ($res['count'] > 0) {
-                    // Enrich with NIC info
                     foreach ($res['data'] as &$row) {
                         $row['nic_details'] = get_nic_details($row['cin'] ?: $row['activity_code']);
                     }
@@ -318,12 +321,12 @@ if (!empty($api_key_input) && isset($_REQUEST['action'])) {
 }
 
 // --- Internal API Stats Handler ---
-if(isset($_REQUEST['check_usage'])) {
+if (isset($_REQUEST['check_usage'])) {
     header('Content-Type: application/json');
     $key = trim($_REQUEST['check_usage']);
     $safe_key = addslashes($key);
     $res = direct_sql("SELECT website_name, usage_count, is_active, valid_until FROM api_keys WHERE api_key = '$safe_key' LIMIT 1");
-    if($res['count'] > 0) {
+    if ($res['count'] > 0) {
         echo json_encode(['status' => 'success', 'data' => $res['data'][0]]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'API Key not found or invalid.']);
@@ -336,344 +339,305 @@ $stats = direct_sql("SELECT COUNT(*) as total_keys, SUM(usage_count) as total_ca
 $total_keys = $stats['data'][0]['total_keys'] ?? 0;
 $total_calls = $stats['data'][0]['total_calls'] ?? 0;
 
-$page_title = "Developer API Documentation | Bank IFSC & Pincode JSON API India - Online Law";
-$meta_desc = "Integrate real-time Bank IFSC, PIN Code, and GST HSN/SAC data into your apps with the Online Law Developer API. Fast, reliable RESTful JSON endpoints for Indian datasets.";
+$page_title = "Developer API Documentation | Bank IFSC, PIN Code & NIC JSON API - Online Law";
+$meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companies, and NIC 2025 activity data into your apps with the Online Law Developer REST API.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Meta Tag -->
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="<?php echo $meta_desc; ?>">
-<meta name="keywords" content="Developer API India, Bank IFSC API JSON, Pincode API for website, GST HSN API service, Indian Financial Data API, Free REST API India, Passport Office API">
-<meta name="author" content="OfferPlant">
-<title><?php echo $page_title; ?></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
+    <meta name="keywords" content="Developer API India, Bank IFSC API JSON, Pincode API for website, GST HSN API service, Indian Financial Data API, Free REST API India, Passport Office API, NIC API">
+    <meta name="author" content="OfferPlant">
+    <title><?php echo htmlspecialchars($page_title); ?></title>
 
-<?php require_once ('includes/header.php'); ?> 
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Custom Documentation Styles -->
-<style>
-    :root {
-        --doc-bg: #f8fafc;
-        --sidebar-bg: #ffffff;
-        --code-bg: #1e293b;
-        --code-accent: #38bdf8;
-    }
-    
-    .api-container {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 40px;
-        gap: 30px;
-    }
-    
-    .api-sidebar {
-        flex: 0 0 280px;
-        position: sticky;
-        top: 20px;
-        height: min-content;
-        background: var(--sidebar-bg);
-        border-radius: var(--radius-lg);
-        padding: 25px;
-        box-shadow: var(--shadow-md);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .api-content {
-        flex: 1;
-        min-width: 300px;
-        background: #ffffff;
-        border-radius: var(--radius-lg);
-        padding: 40px;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .sidebar-link {
-        display: block;
-        padding: 10px 15px;
-        color: #64748b;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.2s;
-        margin-bottom: 5px;
-    }
-    
-    .sidebar-link:hover, .sidebar-link.active {
-        background: #f1f5f9;
-        color: var(--primary-color);
-        text-decoration: none;
-    }
-    
-    .api-section {
-        margin-bottom: 60px;
-        scroll-margin-top: 40px;
-    }
-    
-    .api-section h2 {
-        font-family: var(--font-heading);
-        font-weight: 800;
-        color: var(--text-main);
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f1f5f9;
-        font-size: 28px;
-    }
-    
-    .method-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        background: var(--primary-color);
-        color: white;
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 12px;
-        margin-right: 10px;
-    }
-    
-    .endpoint-url {
-        background: #f1f5f9;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-family: 'Courier New', Courier, monospace;
-        font-weight: 600;
-        color: #0f172a;
-        word-break: break-all;
-        margin: 15px 0;
-        border: 1px solid #e2e8f0;
-    }
-    
-    .code-block {
-        background: var(--code-bg);
-        border-radius: 12px;
-        padding: 20px;
-        margin: 20px 0;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .code-block pre {
-        margin: 0;
-        color: #f8fafc;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-    
-    .code-header {
-        position: absolute;
-        top: 0;
-        right: 0;
-        padding: 8px 15px;
-        background: rgba(255,255,255,0.1);
-        color: rgba(255,255,255,0.6);
-        font-size: 11px;
-        text-transform: uppercase;
-        border-bottom-left-radius: 8px;
-    }
-    
-    .param-table {
-        width: 100%;
-        margin: 20px 0;
-        border-collapse: separate;
-        border-spacing: 0;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    
-    .param-table th {
-        background: #f8fafc;
-        padding: 12px 15px;
-        text-align: left;
-        font-weight: 600;
-        color: #475569;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .param-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #f1f5f9;
-        color: #64748b;
-        font-size: 14px;
-    }
-    
-    .param-name {
-        font-family: monospace;
-        color: var(--primary-color);
-        font-weight: 700;
-    }
-    
-    .param-required {
-        color: #ef4444;
-        font-size: 11px;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-    
-    @media (max-width: 991px) {
-        .api-sidebar {
-            flex: 1 1 100%;
-            position: relative;
-            top: 0;
+    <style>
+        :root {
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+            --code-bg: #0b1120;
         }
-    }
-</style>
 
-<!-- Banner Section Start -->
-<section class="bg-img-3 overlay p-0 full-row" style="padding: 20px 0 !important;">
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="banner-text text-center">
-					<h2 class="text-white banner-tittle position-relative mb-1" style="font-family: var(--font-heading) !important; font-size: 32px; margin: 0;">Developer API</h2>
-					<ul class="list-inline mt-2 mb-0" style="color: #cbd5e1; font-family: var(--font-body); font-size: 15px;">
-						<li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: rgba(255,255,255,0.8); text-decoration: none;">Home</a></li>
-						<li class="list-inline-item mx-2">/</li>
-						<li class="list-inline-item" style="color: #fff; font-weight: 500;">API Documentation</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
-<!-- Banner Section End --> 
+        body {
+            font-family: var(--font-main) !important;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
 
-<div class="full-row bg-body py-80" style="padding: 60px 0; background-color: #f8fafc;">
-    <div class="container">
-        <div class="api-container">
-            <!-- Sidebar Navigation -->
-            <aside class="api-sidebar">
-                <h5 class="mb-4" style="font-weight: 800; color: var(--text-main);">Documentation</h5>
-                <a href="#introduction" class="sidebar-link active">Introduction</a>
-                <a href="#authentication" class="sidebar-link">Authentication</a>
-                <a href="#bank-ifsc" class="sidebar-link">Bank IFSC API</a>
-                <a href="#pincode" class="sidebar-link">Pincode API</a>
-                <a href="#hsn-sac" class="sidebar-link">HSN/SAC API</a>
-                <a href="#passport" class="sidebar-link">Passport API</a>
-                <a href="#integration" class="sidebar-link">Integration (WP/JS)</a>
-                <a href="#errors" class="sidebar-link">Error Codes</a>
-                
-                <div class="mt-5 p-3 rounded" style="background: rgba(var(--primary-rgb), 0.05); border: 1px dashed rgba(var(--primary-rgb), 0.2);">
-                    <p class="small mb-0 text-muted">Need a custom API? Contact us at <a href="mailto:<?php echo $inst_email; ?>" class="text-primary"><?php echo $inst_email; ?></a></p>
+        /* Hero Banner */
+        .api-hero-section {
+            background-color: #030712 !important;
+            background: radial-gradient(135% 100% at 50% 0%, #030712 0%, #0f172a 45%, #1e1b4b 100%) !important;
+            padding: 56px 0 65px 0;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .api-glow-orb-1 {
+            position: absolute;
+            width: 480px;
+            height: 480px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, transparent 70%);
+            top: -120px;
+            left: -80px;
+            pointer-events: none;
+            filter: blur(55px);
+        }
+        .api-glow-orb-2 {
+            position: absolute;
+            width: 480px;
+            height: 480px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, transparent 70%);
+            bottom: -100px;
+            right: -60px;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        .api-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            color: #67e8f9;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.15);
+        }
+
+        .hero-title-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #67e8f9 40%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-sidebar {
+            position: sticky;
+            top: 24px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 22px 18px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        }
+        .doc-sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none !important;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+        .doc-sidebar a:hover {
+            background: #f0fdf4;
+            color: #059669;
+            transform: translateX(3px);
+        }
+        .doc-sidebar a.active {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+            color: #2563eb;
+        }
+
+        .endpoint-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+            scroll-margin-top: 30px;
+        }
+
+        .method-badge {
+            font-family: var(--font-code);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .endpoint-url-box {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: var(--font-code);
+            font-size: 13.5px;
+            margin: 14px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            overflow-x: auto;
+        }
+
+        .code-block-box {
+            background: #0b1120;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 18px;
+            margin: 16px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+        .code-block-box pre {
+            margin: 0;
+            color: #e2e8f0;
+            font-family: var(--font-code);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .copy-btn-api {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .copy-btn-api:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<?php require_once('includes/header.php'); ?>
+
+<!-- Hero Section -->
+<section class="api-hero-section">
+    <div class="api-glow-orb-1"></div>
+    <div class="api-glow-orb-2"></div>
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-10 col-12">
+                <div class="api-badge-pill mb-3">
+                    <i class="fas fa-terminal mr-1.5"></i> RESTFUL JSON API &bull; DEVELOPER HUB
                 </div>
-            </aside>
-            
-            <!-- Main Content -->
-            <main class="api-content">
-                <!-- Introduction -->
-                <section id="introduction" class="api-section">
-                    <h2>Introduction</h2>
-                    <p class="lead" style="color: #64748b; font-size: 18px; line-height: 1.6;">
-                        Welcome to the <strong>Online Law REST API</strong>. Our API provides developers with programmatic access to comprehensive datasets including Bank IFSC codes, Indian Post Office Pincodes, and GST HSN/SAC classifications.
+                <h1 class="hero-title-gradient mb-2 font-weight-bold" style="font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.5px;">
+                    Developer API Documentation
+                </h1>
+                <p class="text-white-50 mb-3" style="font-size: 15.5px; max-width: 720px; margin: 0 auto; line-height: 1.7;">
+                    High-performance, secure RESTful JSON endpoints for Indian Bank IFSC/MICR, PIN Codes, GST HSN/SAC, MCA Company Incorporations, and NIC 2025 Activity Codes.
+                </p>
+                <ul class="list-inline mb-0" style="color: #94a3b8; font-size: 13.5px;">
+                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
+                    <li class="list-inline-item mx-2 text-muted">/</li>
+                    <li class="list-inline-item text-white font-weight-bold">Developer API</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- API Content Layout -->
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Links -->
+            <div class="col-lg-3 col-12 mb-4 mb-lg-0">
+                <div class="doc-sidebar">
+                    <div class="text-dark font-weight-bold mb-3 pb-2 border-bottom" style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-book mr-1.5 text-primary"></i> API Overview
+                    </div>
+                    <a href="#intro" class="active"><i class="fas fa-info-circle mr-1.5"></i> Introduction</a>
+                    <a href="#auth"><i class="fas fa-key mr-1.5"></i> Authentication</a>
+                    <a href="#bank-ifsc"><i class="fas fa-landmark mr-1.5"></i> Bank IFSC &amp; MICR</a>
+                    <a href="#pincode"><i class="fas fa-map-pin mr-1.5"></i> PIN Code API</a>
+                    <a href="#hsn-sac"><i class="fas fa-file-invoice-dollar mr-1.5"></i> GST HSN &amp; SAC</a>
+                    <a href="#nic"><i class="fas fa-sitemap mr-1.5"></i> NIC 2025 Codes</a>
+                    <a href="#company"><i class="fas fa-building mr-1.5"></i> MCA Company Search</a>
+                    <a href="#passport"><i class="fas fa-passport mr-1.5"></i> Passport Office API</a>
+                    <a href="#errors"><i class="fas fa-exclamation-triangle mr-1.5"></i> Error Codes</a>
+
+                    <div class="mt-4 p-3 rounded" style="background: #eff6ff; border: 1px dashed #bfdbfe;">
+                        <div class="small font-weight-bold text-primary mb-1">Live Platform Stats:</div>
+                        <div class="small text-muted">&bull; <strong><?php echo number_format($total_calls); ?>+</strong> Requests Served</div>
+                        <div class="small text-muted">&bull; <strong><?php echo number_format($total_keys); ?>+</strong> Active Developers</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Documentation -->
+            <div class="col-lg-9 col-12">
+
+                <!-- Section: Introduction -->
+                <div class="endpoint-card" id="intro">
+                    <h3 class="font-weight-bold text-dark mb-2" style="font-size: 22px;">Introduction</h3>
+                    <p style="font-size: 14.5px; color: #475569; line-height: 1.7;">
+                        The <strong>Online Law REST API</strong> provides programmatic access to authoritative public datasets across India. Integrate instant Bank branch validation, PIN code resolution, and MCA corporate lookups directly into your onboarding forms, accounting software, or web applications.
                     </p>
-                    
-                    <!-- Live Stats Dashboard -->
-                    <div class="row mt-4 mb-5">
-                        <div class="col-md-6 mb-3">
-                            <div class="p-4 text-center" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 16px; border: 1px solid #bfdbfe;">
-                                <div style="font-size: 32px; font-weight: 800; color: #1e40af;"><?php echo number_format($total_calls); ?>+</div>
-                                <div style="font-size: 14px; font-weight: 600; color: #60a5fa; text-transform: uppercase; letter-spacing: 1px;">Requests Served</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="p-4 text-center" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 16px; border: 1px solid #bbf7d0;">
-                                <div style="font-size: 32px; font-weight: 800; color: #166534;"><?php echo number_format($total_keys); ?>+</div>
-                                <div style="font-size: 14px; font-weight: 600; color: #4ade80; text-transform: uppercase; letter-spacing: 1px;">Active Developers</div>
-                            </div>
-                        </div>
+                    <div class="endpoint-url-box">
+                        <span><strong>Base Endpoint:</strong> <code><?php echo $base_url; ?>api.php</code></span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php', this)"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+
+                <!-- Section: Authentication -->
+                <div class="endpoint-card" id="auth">
+                    <h3 class="font-weight-bold text-dark mb-2" style="font-size: 22px;">Authentication</h3>
+                    <p style="font-size: 14.5px; color: #475569; line-height: 1.7;">
+                        Authenticate your requests by passing your API Key via URL parameter (<code>?api_key=...</code>), Request Header (<code>X-API-Key: ...</code>), or Bearer Authorization header.
+                    </p>
+                    <div class="p-3 rounded mb-3" style="background: #f1f5f9; border: 1px solid #e2e8f0;">
+                        <span class="text-muted small d-block">PUBLIC SANDBOX KEY:</span>
+                        <code style="font-family: var(--font-code); font-size: 15px; font-weight: 700; color: #2563eb;"><?php echo $api_key ?: 'olaw_public_sandbox'; ?></code>
                     </div>
 
-                    <p style="color: #64748b; font-size: 15px; line-height: 1.7;">
-                        All API responses are returned in standard JSON format. The API is designed to be easy to integrate into your existing applications, websites, or business workflows.
-                    </p>
-                    
-                    <div class="alert alert-info mt-4" style="border-radius: 12px; border: none; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;">
-                        <i class="fas fa-link mr-2 text-primary"></i> Base Endpoint: <code style="background: #fff; padding: 2px 8px; border-radius: 4px;"><?php echo $base_url; ?>api.php</code>
-                    </div>
-                </section>
-                
-                <!-- Authentication -->
-                <section id="authentication" class="api-section">
-                    <h2>Authentication</h2>
-                    <p style="color: #64748b; font-size: 15px; mb-4">To access the API, you must include your API Key in every request as a query parameter. You can track your usage in real-time below.</p>
-                    
-                    <!-- Usage Checker -->
-                    <div class="p-4 mb-4 rounded-lg" style="background: #ffffff; border: 2px solid var(--primary-color); border-style: dashed; border-radius: 16px;">
-                        <h6 class="mb-3" style="font-weight: 700;">Check Your API Usage</h6>
+                    <!-- Usage Tracker -->
+                    <div class="p-3 rounded" style="background: #ffffff; border: 1px solid #cbd5e1;">
+                        <h6 class="font-weight-bold mb-2 text-dark" style="font-size: 14px;">Check API Key Quota &amp; Status:</h6>
                         <div class="row">
-                            <div class="col-md-9 mb-2">
-                                <input type="text" id="usage_key" class="form-control" style="height: 45px; border-radius: 8px;" placeholder="Enter your API Key here...">
+                            <div class="col-md-9 mb-2 mb-md-0">
+                                <input type="text" id="usage_key" class="form-control" style="height: 42px; font-size: 14px;" placeholder="Enter your API Key...">
                             </div>
                             <div class="col-md-3">
-                                <button onclick="checkUsage()" class="btn btn-primary w-100" style="height: 45px; border-radius: 8px;">Check</button>
+                                <button onclick="checkUsage()" class="btn btn-primary w-100 font-weight-bold" style="height: 42px;">Check</button>
                             </div>
                         </div>
-                        <div id="usage_result" class="mt-3 small" style="display: none;"></div>
+                        <div id="usage_result" class="mt-2 small" style="display: none;"></div>
                     </div>
+                </div>
 
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">api_key</span> <span class="param-required">*</span></td>
-                                <td>String</td>
-                                <td>Your unique API access key.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <div class="p-4 rounded-lg" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                        <span class="text-muted small d-block mb-1">DEFAULT PUBLIC KEY:</span>
-                        <code style="font-size: 16px; font-weight: 700; color: #64748b;"><?php echo $api_key; ?></code>
+                <!-- Section: Bank IFSC -->
+                <div class="endpoint-card" id="bank-ifsc">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px;">Bank IFSC &amp; MICR Lookup</h3>
+                        <span class="method-badge">GET</span>
                     </div>
-                </section>
-                
-                <!-- Bank IFSC API -->
-                <section id="bank-ifsc" class="api-section">
-                    <h2>Bank IFSC API</h2>
-                    <p style="color: #64748b;">Retrieve detailed bank branch information using an 11-digit IFSC code.</p>
-                    
-                    <div class="endpoint-url">
-                        <span class="method-badge">GET</span> <?php echo $base_url; ?>api.php?api_key=...&action=bank-ifsc&ifsc=SBIN0000001
+                    <p class="text-muted small mb-2">Lookup official bank name, branch address, state, district, and MICR code.</p>
+                    <div class="endpoint-url-box">
+                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=bank-ifsc&amp;ifsc=SBIN0000001</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=bank-ifsc&ifsc=SBIN0000001', this)"><i class="fas fa-copy"></i></button>
                     </div>
-                    
-                    <h5>Request Parameters</h5>
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Param</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">action</span></td>
-                                <td>Yes</td>
-                                <td>Must be <code>bank-ifsc</code></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">ifsc</span></td>
-                                <td>Yes</td>
-                                <td>11-Digit Alphanumeric IFSC Code</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <h5>Sample Response</h5>
-                    <div class="code-block">
-                        <div class="code-header">JSON</div>
-                        <pre>
-{
+                    <h6 class="font-weight-bold mt-3 mb-2" style="font-size: 13.5px;">Sample Response:</h6>
+                    <div class="code-block-box">
+                        <pre>{
   "status": "success",
   "data": {
     "bank": "STATE BANK OF INDIA",
@@ -683,316 +647,116 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, and GST HSN/SAC data into
     "city1": "ADONI",
     "city2": "KURNOOL",
     "state": "ANDHRA PRADESH",
-    "phone": "220133"
+    "micr": "518002102"
   }
-}
-                        </pre>
+}</pre>
                     </div>
-                </section>
-                
-                <!-- Pincode API -->
-                <section id="pincode" class="api-section">
-                    <h2>Pincode API</h2>
-                    <p style="color: #64748b;">Search for post office details and localities associated with a specific 6-digit Pincode.</p>
-                    
-                    <div class="endpoint-url">
-                        <span class="method-badge">GET</span> <?php echo $base_url; ?>api.php?api_key=...&action=pincode&pincode=841301
+                </div>
+
+                <!-- Section: PIN Code -->
+                <div class="endpoint-card" id="pincode">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px;">PIN Code &amp; Post Office API</h3>
+                        <span class="method-badge">GET</span>
                     </div>
-                    
-                    <h5>Request Parameters</h5>
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Param</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">action</span></td>
-                                <td>Yes</td>
-                                <td>Must be <code>pincode</code></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">pincode</span></td>
-                                <td>Yes</td>
-                                <td>6-Digit Indian Pincode</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-                
-                <!-- HSN API -->
-                <section id="hsn-sac" class="api-section">
-                    <h2>GST HSN/SAC API</h2>
-                    <p style="color: #64748b;">Search for GST Goods (HSN) and Services (SAC) classifications and rates.</p>
-                    
-                    <div class="endpoint-url">
-                        <span class="method-badge">GET</span> <?php echo $base_url; ?>api.php?api_key=...&action=hsn-sac&q=1001
+                    <p class="text-muted small mb-2">Resolve 6-digit Indian PIN codes to post office names, districts, states, and circles.</p>
+                    <div class="endpoint-url-box">
+                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=pincode&amp;pincode=110001</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=pincode&pincode=110001', this)"><i class="fas fa-copy"></i></button>
                     </div>
-                    
-                    <h5>Request Parameters</h5>
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Param</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">action</span></td>
-                                <td>Yes</td>
-                                <td>Must be <code>hsn-sac</code></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">q</span></td>
-                                <td>Yes</td>
-                                <td>Code or Keyword (e.g. Rice, 1001, Cleaning)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
+                </div>
 
-                <!-- Passport API -->
-                <section id="passport" class="api-section">
-                    <h2>Passport Office API</h2>
-                    <p style="color: #64748b;">Locate Passport Seva Kendras (PSK), Post Office Passport Seva Kendras (POPSK), and Regional Passport Offices (RPO).</p>
-                    
-                    <div class="endpoint-url">
-                        <span class="method-badge">GET</span> <?php echo $base_url; ?>api.php?api_key=...&action=passport&q=Patna
+                <!-- Section: GST HSN/SAC -->
+                <div class="endpoint-card" id="hsn-sac">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px;">GST HSN &amp; SAC Classification</h3>
+                        <span class="method-badge">GET</span>
                     </div>
-                    
-                    <h5>Request Parameters</h5>
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Param</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">action</span></td>
-                                <td>Yes</td>
-                                <td>Must be <code>passport</code></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">q</span></td>
-                                <td>Yes</td>
-                                <td>Office Name, RPO, or State (e.g. Patna, Bihar, PSK)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <h5>Sample Response</h5>
-                    <div class="code-block">
-                        <div class="code-header">JSON</div>
-                        <pre>
-{
-  "status": "success",
-  "data": [
-    {
-      "name": "PSK PATNA",
-      "rpo": "PATNA",
-      "state": "Bihar",
-      "address": "Gala Diamond Building, Exhibition Road, Patna",
-      "phone": "0612-1234567"
-    }
-  ]
-}
-                        </pre>
+                    <p class="text-muted small mb-2">Search Harmonized System Nomenclature (HSN) and Service Accounting Codes (SAC).</p>
+                    <div class="endpoint-url-box">
+                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=hsn-sac&amp;q=998311</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=hsn-sac&q=998311', this)"><i class="fas fa-copy"></i></button>
                     </div>
-                </section>
-                
-                <!-- Integration Examples -->
-                <section id="integration" class="api-section">
-                    <h2>Integration Examples</h2>
-                    <p style="color: #64748b;">Easily integrate our data into your website or WordPress blog using the snippets below.</p>
-                    
-                    <ul class="nav nav-tabs mb-4" id="apiTabs" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="js-tab" data-toggle="tab" href="#js-code" role="tab" style="border: none; font-weight: 600; color: #64748b; padding: 10px 20px;">Vanilla JavaScript (AJAX)</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="php-tab" data-toggle="tab" href="#php-code" role="tab" style="border: none; font-weight: 600; color: #64748b; padding: 10px 20px;">PHP (cURL)</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="wp-tab" data-toggle="tab" href="#wp-code" role="tab" style="border: none; font-weight: 600; color: #64748b; padding: 10px 20px;">WordPress</a>
-                        </li>
-                    </ul>
+                </div>
 
-                    <div class="tab-content">
-                        <!-- JS Tab -->
-                        <div class="tab-pane fade show active" id="js-code" role="tabpanel">
-                            <div class="code-block">
-                                <div class="code-header">JavaScript (Fetch)</div>
-                                <pre>
-const apiKey = 'YOUR_API_KEY';
-const ifsc = 'SBIN0000001';
-
-fetch(`<?php echo $base_url; ?>api.php?api_key=${apiKey}&action=pincode&pincode=${pin}`)
-  .then(response => response.json())
-  .then(data => {
-    if(data.status === 'success') {
-      console.log('Office Name:', data.data[0].office_name);
-      console.log('District:', data.data[0].district_name);
-    } else {
-      console.error('Error:', data.message);
-    }
-  });
-                                </pre>
-                            </div>
-                        </div>
-
-                        <!-- PHP Tab -->
-                        <div class="tab-pane fade" id="php-code" role="tabpanel">
-                            <div class="code-block">
-                                <div class="code-header">PHP (cURL)</div>
-                                <pre>
-&lt;?php
-$apiKey = 'YOUR_API_KEY';
-$url = "<?php echo $base_url; ?>api.php?api_key=$apiKey&action=pincode&pincode=800001";
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$response = curl_exec($ch);
-curl_close($ch);
-
-$data = json_decode($response, true);
-if ($data['status'] === 'success') {
-    echo "Office: " . $data['data'][0]['office_name'];
-}
-?&gt;
-                                </pre>
-                            </div>
-                        </div>
-
-                        <!-- WordPress Tab -->
-                        <div class="tab-pane fade" id="wp-code" role="tabpanel">
-                            <div class="code-block">
-                                <div class="code-header">WordPress (wp_remote_get)</div>
-                                <pre>
-// Add this to your functions.php or a custom plugin
-function get_legal_data_from_olaw($pincode) {
-    $api_key = 'YOUR_API_KEY';
-    $url = "<?php echo $base_url; ?>api.php?api_key=$api_key&action=pincode&pincode=$pincode";
-    
-    $response = wp_remote_get($url);
-    if (is_wp_error($response)) return false;
-    
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-    
-    return ($data['status'] === 'success') ? $data['data'] : false;
-}
-                                </pre>
-                            </div>
-                        </div>
+                <!-- Section: NIC 2025 -->
+                <div class="endpoint-card" id="nic">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h3 class="font-weight-bold text-dark mb-0" style="font-size: 20px;">NIC 2025 Activity Code API</h3>
+                        <span class="method-badge">GET</span>
                     </div>
-                </section>
-
-                <!-- Errors -->
-                <section id="errors" class="api-section">
-                    <h2>Error Codes</h2>
-                    <p style="color: #64748b;">Our API uses standard response patterns to indicate errors.</p>
-                    
-                    <div class="code-block">
-                        <div class="code-header">Error Example</div>
-                        <pre>
-{
-  "status": "error",
-  "message": "Invalid API Key"
-}
-                        </pre>
+                    <p class="text-muted small mb-2">Decode 5-digit National Industrial Classification codes for SPICe+ &amp; Udyam registration.</p>
+                    <div class="endpoint-url-box">
+                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=nic&amp;code=62011</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=nic&code=62011', this)"><i class="fas fa-copy"></i></button>
                     </div>
-                    
-                    <table class="param-table">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Message Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>Invalid API Key</code></td>
-                                <td>The provided API key is incorrect or missing.</td>
-                            </tr>
-                            <tr>
-                                <td><code>No record found</code></td>
-                                <td>No data matches your query parameters.</td>
-                            </tr>
-                            <tr>
-                                <td><code>Invalid action</code></td>
-                                <td>The action parameter doesn't match a supported endpoint.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </main>
+                </div>
+
+                <!-- Section: Errors -->
+                <div class="endpoint-card" id="errors">
+                    <h3 class="font-weight-bold text-dark mb-2" style="font-size: 20px;">Standard Error Responses</h3>
+                    <p style="font-size: 14px; color: #475569;">The API returns standard HTTP status codes along with JSON error payloads:</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered small">
+                            <thead style="background: #f1f5f9;">
+                                <tr><th>Code</th><th>Reason</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>401</code></td><td>Unauthorized</td><td>Missing or invalid API key</td></tr>
+                                <tr><td><code>403</code></td><td>Forbidden</td><td>API key suspended, expired, or unauthorized endpoint/IP</td></tr>
+                                <tr><td><code>404</code></td><td>Not Found</td><td>No matching data records found</td></tr>
+                                <tr><td><code>429</code></td><td>Too Many Requests</td><td>Exceeded RPM rate limit or daily request quota</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<?php require_once ('includes/footer.php'); ?> 
+<?php require_once('includes/footer.php'); ?>
 
-<!-- Active Link Highlight -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const links = document.querySelectorAll('.sidebar-link');
-        const sections = document.querySelectorAll('.api-section');
-        
-        function changeActiveLink() {
-            let index = sections.length;
-            while(--index && window.scrollY + 100 < sections[index].offsetTop) {}
-            
-            links.forEach((link) => link.classList.remove('active'));
-            links[index].classList.add('active');
-        }
-
-        changeActiveLink();
-        window.addEventListener('scroll', changeActiveLink);
+function copyText(text, btn) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(function() {
+        var original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+        setTimeout(function() { btn.innerHTML = original; }, 1500);
     });
+}
 
-    function checkUsage() {
-        const key = document.getElementById('usage_key').value;
-        const resultDiv = document.getElementById('usage_result');
-        if(!key) return alert('Please enter an API Key');
-        
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<span class="text-muted">Checking database...</span>';
-        
-        fetch(`?check_usage=${encodeURIComponent(key)}`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    const statusClass = data.data.is_active == 1 ? 'text-success' : 'text-danger';
-                    const statusText = data.data.is_active == 1 ? 'Active' : 'Inactive';
-                    resultDiv.innerHTML = `
-                        <div class="alert mt-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                            <div class="row">
-                                <div class="col-6"><strong>Website:</strong><br>${data.data.website_name}</div>
-                                <div class="col-6"><strong>Status:</strong><br><span class="${statusClass}">${statusText}</span></div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-6"><strong>Total Calls:</strong><br><span class="text-primary font-weight-bold" style="font-size: 18px;">${data.data.usage_count}</span></div>
-                                <div class="col-6"><strong>Valid Until:</strong><br>${data.data.valid_until || 'No expiry'}</div>
-                            </div>
-                        </div>`;
-                } else {
-                    resultDiv.innerHTML = `<div class="alert alert-danger mt-2">${data.message}</div>`;
-                }
-            })
-            .catch(err => {
-                resultDiv.innerHTML = '<div class="alert alert-danger mt-2">Error connecting to server.</div>';
-            });
-    }
+function checkUsage() {
+    const key = document.getElementById('usage_key').value.trim();
+    const resultDiv = document.getElementById('usage_result');
+    if (!key) return alert('Please enter an API Key');
+    
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<span class="text-muted">Querying database...</span>';
+    
+    fetch(`api.php?check_usage=${encodeURIComponent(key)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const statusClass = data.data.is_active == 1 ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
+                const statusText = data.data.is_active == 1 ? 'Active' : 'Inactive';
+                resultDiv.innerHTML = `
+                    <div class="alert mt-2 p-2 border" style="background: #f8fafc;">
+                        <div><strong>Website:</strong> ${data.data.website_name || 'Public Sandbox'}</div>
+                        <div><strong>Status:</strong> <span class="${statusClass}">${statusText}</span></div>
+                        <div><strong>Total Calls:</strong> <span class="text-primary font-weight-bold">${data.data.usage_count}</span></div>
+                        <div><strong>Valid Until:</strong> ${data.data.valid_until || 'Lifetime'}</div>
+                    </div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger mt-2 p-2">${data.message}</div>`;
+            }
+        })
+        .catch(err => {
+            resultDiv.innerHTML = '<div class="alert alert-danger mt-2 p-2">Error connecting to server.</div>';
+        });
+}
 </script>
-
 </body>
 </html>

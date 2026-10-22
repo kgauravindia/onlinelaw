@@ -945,6 +945,15 @@ footer a:hover {
     transform: translateX(4px);
 }
 
+.footer-service-item {
+    transition: var(--transition-smooth);
+}
+
+.footer-service-item:hover {
+    color: #38bdf8 !important;
+    text-decoration: underline !important;
+}
+
 .social-media-2 a {
     background-color: rgba(255, 255, 255, 0.06) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -969,3 +978,55 @@ footer a:hover {
 .color-panel {
     display: none !important;
 }
+
+/* ==========================================================================
+   Google AdSense Modern Responsive Containers
+   ========================================================================== */
+.law-ad-wrapper {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 20px 14px 14px 14px;
+    margin: 24px auto;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.law-ad-tag {
+    position: absolute;
+    top: 4px;
+    left: 12px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    user-select: none;
+    pointer-events: none;
+}
+
+.law-ad-horizontal {
+    max-width: 970px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.law-ad-rectangle {
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.law-ad-incontent {
+    max-width: 880px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.law-ad-multiplex {
+    max-width: 100%;
+}
+

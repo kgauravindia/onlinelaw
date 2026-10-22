@@ -23,40 +23,42 @@
 	
 	// Running the code when the document is ready
     $(document).ready(function() {
-		$('#slider').layerSlider({
-			sliderVersion: '6.0.0',
-			type: 'fullwidth',
-			responsiveUnder: 0,
-			layersContainer: 1200,
-			maxRatio: 1,
-			parallaxScrollReverse: true,
-			hideUnder: 0,
-			hideOver: 100000,
-			skin: 'outline',
-			showBarTimer: true,
-			thumbnailNavigation: 'disabled',
-			allowRestartOnResize: true,
-			skinsPath: 'skins/',
-			height: 800
-		});
-		
-		$('#slider1').layerSlider({
-			sliderVersion: '6.5.0b1',
-			type: 'fullsize',
-			allowFullscreen: false,
-			maxRatio: 1,
-			parallaxCenterLayers: 'top',
-			hideUnder: 567,
-			skin: 'v6',
-			globalBGImage: 'images/attorny.jpg',
-			navPrevNext: false,
-			hoverPrevNext: false,
-			navStartStop: false,
-			navButtons: false,
-			showCircleTimer: false,
-			allowRestartOnResize: true,
-			skinsPath: 'skins/'
-		});
+		if ($.fn.layerSlider) {
+			$('#slider').layerSlider({
+				sliderVersion: '6.0.0',
+				type: 'fullwidth',
+				responsiveUnder: 0,
+				layersContainer: 1200,
+				maxRatio: 1,
+				parallaxScrollReverse: true,
+				hideUnder: 0,
+				hideOver: 100000,
+				skin: 'outline',
+				showBarTimer: true,
+				thumbnailNavigation: 'disabled',
+				allowRestartOnResize: true,
+				skinsPath: 'skins/',
+				height: 800
+			});
+			
+			$('#slider1').layerSlider({
+				sliderVersion: '6.5.0b1',
+				type: 'fullsize',
+				allowFullscreen: false,
+				maxRatio: 1,
+				parallaxCenterLayers: 'top',
+				hideUnder: 567,
+				skin: 'v6',
+				globalBGImage: 'images/attorny.jpg',
+				navPrevNext: false,
+				hoverPrevNext: false,
+				navStartStop: false,
+				navButtons: false,
+				showCircleTimer: false,
+				allowRestartOnResize: true,
+				skinsPath: 'skins/'
+			});
+		}
 	});
 	
 	

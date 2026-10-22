@@ -24,6 +24,7 @@
 
     $cin_param = isset($_GET['cin']) ? trim($_GET['cin']) : '';
     $q_param = isset($_GET['q']) ? trim($_GET['q']) : '';
+    $type_param = isset($_GET['type']) ? strtoupper(trim($_GET['type'])) : (isset($_GET['entity_type']) ? strtoupper(trim($_GET['entity_type'])) : '');
     $category_param = isset($_GET['category']) ? strtoupper(trim($_GET['category'])) : '';
     $activity_param = isset($_GET['activity']) ? trim($_GET['activity']) : '';
     $date_param = isset($_GET['date']) ? trim($_GET['date']) : '';
@@ -34,10 +35,18 @@
     $offset = ($page - 1) * $limit;
     $is_admin = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
 
+    // Normalize type and category if aliased
+    if (empty($type_param) && !empty($category_param)) {
+        if (in_array($category_param, ['PVT_LTD', 'PVT-LTD', 'PTC', 'PUBLIC_LTD', 'PUBLIC-LTD', 'PLC', 'OPC', 'SECTION_8', 'SECTION-8', 'SEC8', 'NPL'])) {
+            $type_param = $category_param;
+            $category_param = '';
+        }
+    }
+
     $single_company = null;
     $canonical_url = $base_url . "company-incorporation";
-    $page_title = "New Company Incorporations in India | Indian Companies, LLPs & Foreign Companies - Online Law";
-    $meta_desc = "Search newly registered companies and LLPs in India. Browse daily and monthly company incorporations (Indian Companies, LLP, Foreign Companies) from official MCA records.";
+    $page_title = "New Company Incorporations in India | Pvt Ltd, Public Ltd, OPC, Section 8, LLPs - Online Law";
+    $meta_desc = "Search newly registered companies in India: Private Limited (Pvt Ltd), Public Limited, One Person Companies (OPC), Section 8 Non-profits, LLPs & Foreign Entities from official MCA records.";
 
     if (!empty($cin_param)) {
         $single_company = resolve_company_incorporation($cin_param);
@@ -48,7 +57,7 @@
         }
     }
 
-    $has_search = (!empty($q_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param));
+    $has_search = (!empty($q_param) || !empty($type_param) || !empty($category_param) || !empty($activity_param) || !empty($date_param) || !empty($month_param));
 
     // Fetch related companies when viewing a single company without separate search filters
     $related_companies = ['count' => 0, 'data' => []];
@@ -69,7 +78,7 @@
     $total_companies = 0;
     $total_pages = 0;
 
-    // Only query database for search results when a query or filter is active
+    // Query database for search results when a query or filter is active
     if ($has_search) {
         $where = [$is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')"];
         if (!empty($q_param)) {
@@ -97,6 +106,35 @@
             $act_pad = str_pad($s_act, 2, '0', STR_PAD_LEFT);
             $where[] = "(activity_code = '$s_act' OR activity_code = '$act_pad')";
         }
+        if (!empty($type_param)) {
+            switch ($type_param) {
+                case 'PVT_LTD':
+                case 'PVT-LTD':
+                case 'PTC':
+                    $where[] = "(cin LIKE '%PTC%' OR (company_name LIKE '%PRIVATE LIMITED%' AND company_name NOT LIKE '%(OPC)%'))";
+                    break;
+                case 'PUBLIC_LTD':
+                case 'PUBLIC-LTD':
+                case 'PLC':
+                    $where[] = "(cin LIKE '%PLC%' OR (company_name LIKE '%LIMITED' AND company_name NOT LIKE '%PRIVATE LIMITED%'))";
+                    break;
+                case 'OPC':
+                    $where[] = "(cin LIKE '%OPC%' OR company_name LIKE '%(OPC)%' OR company_name LIKE '% OPC %')";
+                    break;
+                case 'SECTION_8':
+                case 'SECTION-8':
+                case 'SEC8':
+                case 'NPL':
+                    $where[] = "(cin LIKE '%NPL%' OR cin LIKE '%GAP%' OR cin LIKE '%GPL%' OR company_name LIKE '%SECTION 8%' OR company_name LIKE '%SECTION-8%' OR company_name LIKE '%FOUNDATION%' OR company_name LIKE '%ASSOCIATION%')";
+                    break;
+                case 'LLP':
+                    $where[] = "(category = 'LLP' OR cin LIKE '%LLP%' OR company_name LIKE '%LLP%')";
+                    break;
+                case 'FOREIGN':
+                    $where[] = "(category = 'FOREIGN' OR cin LIKE 'F%')";
+                    break;
+            }
+        }
         if (!empty($category_param) && in_array($category_param, ['INDIAN', 'LLP', 'FOREIGN'])) {
             $where[] = "category = '$category_param'";
         }
@@ -118,17 +156,126 @@
         $companies_list = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY registration_date DESC, id DESC LIMIT $offset, $limit");
     }
 
-    // Stats breakdown (Active companies only)
-    $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') GROUP BY category");
-    $stats = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0, 'TOTAL' => 0];
-    if ($stats_res['count'] > 0) {
-        foreach ($stats_res['data'] as $s) {
-            $cat = strtoupper($s['category']);
-            if (isset($stats[$cat])) {
-                $stats[$cat] = (int)$s['cnt'];
-            }
-            $stats['TOTAL'] += (int)$s['cnt'];
+    // Stats breakdown (Cached for 24 hours to eliminate 4-second full-table scan across 1M rows)
+    $cached_stats_raw = function_exists('get_setting') ? get_setting('company_stats_cache', '') : '';
+    $stats = null;
+    if (!empty($cached_stats_raw)) {
+        $decoded = json_decode($cached_stats_raw, true);
+        if ($decoded && isset($decoded['time']) && (time() - $decoded['time'] < 86400)) {
+            $stats = $decoded['data'];
         }
+    }
+
+    if (!$stats) {
+        $stats = [
+            'INDIAN' => 698172,
+            'LLP' => 265278,
+            'FOREIGN' => 12951,
+            'TOTAL' => 976401,
+            'PVT_LTD' => 615190,
+            'PUBLIC_LTD' => 16882,
+            'OPC' => 43131,
+            'SECTION_8' => 45580
+        ];
+        $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') GROUP BY category");
+        if ($stats_res['count'] > 0) {
+            $tot = 0;
+            foreach ($stats_res['data'] as $s) {
+                $cat = strtoupper($s['category']);
+                if (isset($stats[$cat])) {
+                    $stats[$cat] = (int)$s['cnt'];
+                }
+                $tot += (int)$s['cnt'];
+            }
+            $stats['TOTAL'] = $tot;
+        }
+        if (function_exists('set_setting')) {
+            set_setting('company_stats_cache', json_encode(['time' => time(), 'data' => $stats]));
+        }
+    }
+
+    // Helper: Determine exact entity type and visual styling for any company record
+    function get_company_entity_type_info($comp) {
+        $cin = strtoupper(trim($comp['cin'] ?? ''));
+        $name = strtoupper(trim($comp['company_name'] ?? ''));
+        $cat = strtoupper(trim($comp['category'] ?? ''));
+        $class = strtoupper(trim($comp['class'] ?? ''));
+        
+        // 1. Foreign Company
+        if ($cat === 'FOREIGN' || str_starts_with($cin, 'F')) {
+            return [
+                'type_key' => 'FOREIGN',
+                'label' => 'Foreign Company (FCIN)',
+                'short_label' => 'Foreign Entity',
+                'badge_class' => 'company-badge-foreign',
+                'badge_style' => 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;',
+                'card_class' => 'card-foreign',
+                'icon' => 'fas fa-globe'
+            ];
+        }
+        
+        // 2. LLP (Limited Liability Partnership)
+        if ($cat === 'LLP' || str_contains($cin, 'LLP') || str_contains($name, 'LLP') || str_contains($name, 'LIMITED LIABILITY PARTNERSHIP')) {
+            return [
+                'type_key' => 'LLP',
+                'label' => 'Limited Liability Partnership (LLPIN)',
+                'short_label' => 'LLP',
+                'badge_class' => 'company-badge-llp',
+                'badge_style' => 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;',
+                'card_class' => 'card-llp',
+                'icon' => 'fas fa-handshake'
+            ];
+        }
+        
+        // 3. One Person Company (OPC)
+        if (str_contains($cin, 'OPC') || str_contains($name, '(OPC)') || str_contains($name, ' OPC ') || str_contains($class, 'OPC') || str_contains($class, 'ONE PERSON')) {
+            return [
+                'type_key' => 'OPC',
+                'label' => 'One Person Company (OPC)',
+                'short_label' => 'OPC (One Person)',
+                'badge_class' => 'company-badge-opc',
+                'badge_style' => 'background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;',
+                'card_class' => 'card-opc',
+                'icon' => 'fas fa-user-tie'
+            ];
+        }
+        
+        // 4. Section 8 Company (Non-profit / NGO / Foundation)
+        if (str_contains($cin, 'NPL') || str_contains($cin, 'GAP') || str_contains($cin, 'GPL') || str_contains($name, 'SECTION 8') || str_contains($name, 'SECTION-8') || str_contains($name, 'FOUNDATION') || str_contains($class, 'SECTION 8') || str_contains($class, 'NON-PROFIT')) {
+            return [
+                'type_key' => 'SECTION_8',
+                'label' => 'Section 8 Company (NGO / Non-Profit)',
+                'short_label' => 'Section 8 (NGO)',
+                'badge_class' => 'company-badge-sec8',
+                'badge_style' => 'background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;',
+                'card_class' => 'card-sec8',
+                'icon' => 'fas fa-hand-holding-heart'
+            ];
+        }
+        
+        // 5. Public Limited Company (PLC / Ltd)
+        if (str_contains($cin, 'PLC') || (str_ends_with($name, 'LIMITED') && !str_contains($name, 'PRIVATE LIMITED')) || str_contains($class, 'PUBLIC')) {
+            return [
+                'type_key' => 'PUBLIC_LTD',
+                'label' => 'Public Limited Company (PLC)',
+                'short_label' => 'Public Ltd',
+                'badge_class' => 'company-badge-public',
+                'badge_style' => 'background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe;',
+                'card_class' => 'card-public',
+                'icon' => 'fas fa-landmark'
+            ];
+        }
+        
+        // 6. Private Limited Company (PTC / Pvt Ltd - Default for Indian Companies)
+        return [
+            'type_key' => 'PVT_LTD',
+            'label' => 'Private Limited Company (Pvt Ltd)',
+            'short_label' => 'Pvt Ltd',
+            'badge_class' => 'company-badge-indian',
+            'badge_style' => 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;',
+            'card_class' => 'card-pvt',
+            'icon' => 'fas fa-building'
+        ];
     }
 
     // State / ROC Code Map
@@ -172,8 +319,8 @@
 
     // Company Class Map
     $class_map = [
-        'PTC' => 'Private Limited Company',
-        'PLC' => 'Public Limited Company',
+        'PTC' => 'Private Limited Company (Pvt Ltd)',
+        'PLC' => 'Public Limited Company (Public Ltd)',
         'FTC' => 'Subsidiary of a Foreign Company',
         'GAP' => 'General Association (Private Sec 8)',
         'GPL' => 'General Association (Public Sec 8)',
@@ -257,71 +404,94 @@ $company_schema = [
         --incorp-primary: #2563eb;
         --incorp-primary-hover: #1d4ed8;
         --incorp-primary-light: #eff6ff;
-        --incorp-dark: #0f172a;
+        --incorp-dark: #0b1329;
         --incorp-slate: #1e293b;
         --incorp-emerald: #059669;
         --incorp-amber: #d97706;
         --incorp-rose: #e11d48;
         --incorp-purple: #7c3aed;
+        --incorp-teal: #0d9488;
         --incorp-border: #e2e8f0;
         --incorp-border-light: #f1f5f9;
         --incorp-card-bg: #ffffff;
+        --incorp-radius: 18px;
+        --incorp-shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.04);
+        --incorp-shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        --incorp-shadow-lg: 0 20px 40px -12px rgba(15, 23, 42, 0.12);
     }
 
-    /* Category Badges */
-    .company-badge-indian { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 700; }
-    .company-badge-llp { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 700; }
-    .company-badge-foreign { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 700; }
+    /* Entity Type Badges */
+    .company-badge-indian { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 700; border-radius: 8px; }
+    .company-badge-pvt { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 700; border-radius: 8px; }
+    .company-badge-public { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-weight: 700; border-radius: 8px; }
+    .company-badge-opc { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; font-weight: 700; border-radius: 8px; }
+    .company-badge-sec8 { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; font-weight: 700; border-radius: 8px; }
+    .company-badge-llp { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 700; border-radius: 8px; }
+    .company-badge-foreign { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 700; border-radius: 8px; }
     
-    /* Modern Banner Styling */
+    /* Modern Hero Banner */
     .hero-incorp-banner {
-        background: radial-gradient(circle at 20% 20%, #1e293b 0%, #0f172a 100%);
-        color: #ffffff;
+        background-color: #0b1120 !important;
+        background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%) !important;
+        color: #ffffff !important;
         position: relative;
         overflow: hidden;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: clamp(45px, 6vw, 75px) 0 clamp(65px, 8vw, 95px);
     }
     .hero-incorp-banner::before {
         content: '';
         position: absolute;
-        width: 450px;
-        height: 450px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
-        top: -120px;
-        right: -80px;
-        border-radius: 50%;
-        filter: blur(40px);
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 24px 24px;
+        opacity: 0.7;
         pointer-events: none;
     }
-    .hero-incorp-banner::after {
-        content: '';
+    .incorp-glow-orb-1 {
         position: absolute;
-        width: 380px;
-        height: 380px;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%);
-        bottom: -100px;
-        left: -80px;
+        width: 550px;
+        height: 550px;
         border-radius: 50%;
-        filter: blur(50px);
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(99, 102, 241, 0) 70%);
+        top: -140px;
+        left: -120px;
         pointer-events: none;
+        animation: pulseOrbIncorp 8s ease-in-out infinite alternate;
+    }
+    .incorp-glow-orb-2 {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.22) 0%, rgba(14, 165, 233, 0) 70%);
+        bottom: -160px;
+        right: -100px;
+        pointer-events: none;
+        animation: pulseOrbIncorp 10s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes pulseOrbIncorp {
+        0% { transform: scale(1) translate(0, 0); }
+        100% { transform: scale(1.15) translate(20px, 15px); }
     }
 
     .hero-pill-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         color: #93c5fd;
-        padding: 6px 16px;
+        padding: 7px 18px;
         border-radius: 50px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.8px;
         text-transform: uppercase;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        margin-bottom: 14px;
     }
     .hero-pulse-dot {
         width: 8px;
@@ -338,43 +508,115 @@ $company_schema = [
         100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
-    .hero-gradient-headline {
-        background: linear-gradient(135deg, #ffffff 30%, #93c5fd 100%);
+    .hero-incorp-headline {
+        color: #ffffff;
+        font-size: clamp(28px, 4.2vw, 42px);
+        font-weight: 800;
+        letter-spacing: -0.6px;
+        line-height: 1.25;
+        margin-bottom: 12px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    .hero-incorp-headline .headline-highlight {
+        background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    /* Stats Quick Ribbon in Hero */
-    .hero-stat-pill {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
-        border-radius: 14px;
-        padding: 10px 20px;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    .hero-incorp-subtitle {
+        max-width: 760px;
+        margin: 0 auto 24px auto;
+        font-size: 15.5px;
+        line-height: 1.6;
+        color: #cbd5e1 !important;
     }
-    .hero-stat-pill:hover {
-        background: rgba(255, 255, 255, 0.12);
-        transform: translateY(-2px);
-        border-color: rgba(255, 255, 255, 0.25);
+    .hero-incorp-subtitle strong {
+        color: #ffffff !important;
+    }
+
+    /* Stats Quick Ribbon in Hero */
+    .hero-stats-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        max-width: 1040px;
+        margin: 0 auto;
+    }
+    .hero-stat-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1.5px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 12px 14px;
+        text-decoration: none !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+    .hero-stat-card::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+    .hero-stat-card:hover {
+        background: rgba(30, 41, 59, 0.95);
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.5);
+    }
+    .hero-stat-card.stat-all:hover::before { background: #60a5fa; }
+    .hero-stat-card.stat-pvt:hover::before { background: #3b82f6; }
+    .hero-stat-card.stat-public:hover::before { background: #a855f7; }
+    .hero-stat-card.stat-opc:hover::before { background: #22c55e; }
+    .hero-stat-card.stat-sec8:hover::before { background: #ec4899; }
+    .hero-stat-card.stat-llp:hover::before { background: #14b8a6; }
+    .hero-stat-card.stat-foreign:hover::before { background: #f59e0b; }
+
+    .hero-stat-card .stat-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: block;
+    }
+    .hero-stat-card .stat-value {
+        color: #ffffff !important;
+        font-size: 16.5px;
+        font-weight: 800;
+        margin-top: 4px;
+        line-height: 1.2;
     }
 
     /* Elevated Search Console */
     .search-console-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        border-radius: 22px;
+        box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.04);
+        margin-top: -55px;
+        position: relative;
+        z-index: 20;
         transition: all 0.3s ease;
     }
     .search-console-card:hover {
         border-color: #cbd5e1;
-        box-shadow: 0 16px 35px -8px rgba(15, 23, 42, 0.12);
     }
 
     .form-control-custom {
-        height: 48px;
-        border-radius: 12px;
+        height: 50px;
+        border-radius: 14px;
         border: 1.5px solid #e2e8f0;
         font-size: 14px;
         font-weight: 500;
@@ -385,16 +627,58 @@ $company_schema = [
     .form-control-custom:focus {
         background-color: #ffffff;
         border-color: var(--incorp-primary);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+    }
+
+    /* Quick Filter Chips */
+    .quick-chips-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+    }
+    .quick-chips-container::-webkit-scrollbar {
+        display: none;
+    }
+    .quick-chip {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        background: #f1f5f9;
+        color: #334155;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 30px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-decoration: none !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        flex-shrink: 0;
+    }
+    .quick-chip:hover {
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #93c5fd;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
+    }
+    .quick-chip.active {
+        background: #2563eb;
+        color: #ffffff !important;
+        border-color: #2563eb;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
     /* Company Card Elevated (Grid View) */
     .company-card-elevated {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 18px;
+        border-radius: 20px;
         transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.02);
+        box-shadow: var(--incorp-shadow-sm);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -408,32 +692,33 @@ $company_schema = [
         top: 0;
         left: 0;
         right: 0;
-        height: 3.5px;
+        height: 4px;
         background: linear-gradient(90deg, #2563eb, #60a5fa);
         opacity: 0;
         transition: opacity 0.25s ease;
     }
-    .company-card-elevated.card-llp::before {
-        background: linear-gradient(90deg, #059669, #34d399);
-    }
-    .company-card-elevated.card-foreign::before {
-        background: linear-gradient(90deg, #d97706, #fbbf24);
-    }
+    .company-card-elevated.card-pvt::before { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .company-card-elevated.card-public::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+    .company-card-elevated.card-opc::before { background: linear-gradient(90deg, #16a34a, #4ade80); }
+    .company-card-elevated.card-sec8::before { background: linear-gradient(90deg, #db2777, #f472b6); }
+    .company-card-elevated.card-llp::before { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
+    .company-card-elevated.card-foreign::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
+    
     .company-card-elevated:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 18px 32px -8px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(15, 23, 42, 0.04);
+        transform: translateY(-6px);
+        box-shadow: var(--incorp-shadow-lg);
         border-color: #cbd5e1;
     }
     .company-card-elevated:hover::before {
         opacity: 1;
     }
 
-    /* Modern Spec Tiles for Details View */
+    /* Spec Tiles for Details View */
     .spec-tile {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 16px 18px;
+        border-radius: 18px;
+        padding: 18px 20px;
         transition: all 0.25s ease;
         height: 100%;
         display: flex;
@@ -444,11 +729,14 @@ $company_schema = [
     .spec-tile:hover {
         background: #f8fafc;
         border-color: #cbd5e1;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
     }
 
     /* Nav Pills Modern */
+    .nav-pills-modern {
+        gap: 6px;
+    }
     .nav-pills-modern .nav-link {
         color: #475569;
         font-family: inherit;
@@ -456,11 +744,9 @@ $company_schema = [
         font-size: 13.5px;
         border-radius: 30px;
         padding: 8px 18px;
-        margin-right: 6px;
-        margin-bottom: 6px;
         background: #ffffff;
         border: 1.5px solid #e2e8f0;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -469,26 +755,28 @@ $company_schema = [
         color: var(--incorp-primary);
         border-color: var(--incorp-primary);
         background: #eff6ff;
+        transform: translateY(-1px);
     }
     .nav-pills-modern .nav-link.active {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff !important;
         border-color: transparent;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
     }
 
     /* View Switcher */
     .view-switch-btn {
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
+        border-radius: 12px;
         border: 1.5px solid #e2e8f0;
         background: #ffffff;
         color: #64748b;
         transition: all 0.2s ease;
+        text-decoration: none !important;
     }
     .view-switch-btn.active, .view-switch-btn:hover {
         background: #eff6ff;
@@ -500,133 +788,308 @@ $company_schema = [
     .infographic-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 26px 22px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        border-radius: 22px;
+        padding: 28px 24px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         height: 100%;
         position: relative;
         overflow: hidden;
     }
     .infographic-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 26px -6px rgba(15, 23, 42, 0.08);
+        transform: translateY(-5px);
+        box-shadow: 0 16px 30px -8px rgba(15, 23, 42, 0.1);
         border-color: #cbd5e1;
     }
 
     /* CIN Anatomy Visual Diagram */
     .cin-anatomy-diagram {
-        background: radial-gradient(circle at 80% 20%, #1e293b 0%, #0f172a 100%);
+        background: radial-gradient(ellipse at top, #1e293b 0%, #0b1329 100%);
         color: #ffffff;
-        border-radius: 22px;
-        padding: 34px 28px;
+        border-radius: 24px;
+        padding: 36px 30px;
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 25px 45px -12px rgba(15, 23, 42, 0.5);
     }
     .cin-segment-pill {
         display: inline-block;
-        padding: 6px 14px;
-        border-radius: 8px;
+        padding: 8px 16px;
+        border-radius: 10px;
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         font-weight: 800;
-        font-size: 18px;
+        font-size: 19px;
         letter-spacing: 1.5px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s ease;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: default;
     }
     .cin-segment-pill:hover {
-        transform: scale(1.06);
+        transform: translateY(-3px) scale(1.06);
     }
 
     /* Toast notification */
     .law-toast {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: #0f172a;
+        bottom: 28px;
+        right: 28px;
+        background: #0b1329;
         color: #ffffff;
-        padding: 12px 20px;
-        border-radius: 12px;
-        font-size: 13.5px;
+        padding: 14px 22px;
+        border-radius: 14px;
+        font-size: 14px;
         font-weight: 600;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.4);
         z-index: 999999;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         opacity: 0;
         transform: translateY(20px);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: none;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
     }
     .law-toast.show {
         opacity: 1;
         transform: translateY(0);
     }
 
-    /* Quick Filter Badges */
-    .quick-chip {
-        display: inline-flex;
-        align-items: center;
-        background: #f1f5f9;
-        color: #334155;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 5px 12px;
-        font-size: 12.5px;
-        font-weight: 600;
-        text-decoration: none !important;
-        transition: all 0.2s ease;
-    }
-    .quick-chip:hover {
-        background: #eff6ff;
-        color: #2563eb;
-        border-color: #bfdbfe;
-        transform: translateY(-1px);
-    }
-
     /* Breadcrumbs Modern */
     .incorp-breadcrumb {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.7);
-        margin-bottom: 14px;
+        flex-wrap: wrap;
+        gap: 6px 8px;
+        font-size: 13.5px;
+        color: #94a3b8;
+        margin-bottom: 16px;
     }
     .incorp-breadcrumb a {
-        color: rgba(255, 255, 255, 0.85);
+        color: #cbd5e1;
         text-decoration: none;
+        font-weight: 500;
         transition: color 0.2s;
     }
     .incorp-breadcrumb a:hover {
         color: #ffffff;
         text-decoration: underline;
     }
+    .incorp-breadcrumb span.current-page {
+        color: #ffffff;
+        font-weight: 600;
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+    }
 
     /* Pagination Modern */
     .pagination-modern .page-link {
-        border-radius: 10px;
-        margin: 0 3px;
-        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin: 0 4px;
+        border: 1.5px solid #e2e8f0;
         color: #334155;
         font-weight: 600;
-        padding: 8px 16px;
+        padding: 10px 18px;
         transition: all 0.2s ease;
     }
     .pagination-modern .page-item.active .page-link {
         background: #2563eb;
         border-color: #2563eb;
         color: #ffffff;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
     }
     .pagination-modern .page-link:hover:not(.active) {
         background: #eff6ff;
-        border-color: #bfdbfe;
+        border-color: #93c5fd;
         color: #2563eb;
+    }
+
+    /* ==========================================================================
+       MOBILE RESPONSIVENESS & TOUCH OPTIMIZATIONS
+       ========================================================================== */
+    @media (max-width: 991px) {
+        .hero-incorp-banner {
+            padding: 38px 0 52px 0 !important;
+        }
+        .search-console-card {
+            margin-top: -32px;
+            padding: 20px !important;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .hero-incorp-banner {
+            padding: 28px 0 42px 0 !important;
+        }
+        .hero-incorp-headline {
+            font-size: 23px !important;
+            letter-spacing: -0.3px;
+        }
+        .hero-incorp-subtitle {
+            font-size: 13.5px !important;
+            line-height: 1.55;
+            margin-bottom: 16px !important;
+        }
+        .hero-pill-badge {
+            font-size: 10px !important;
+            padding: 5px 12px !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        /* Stats Ribbon: Horizontal Native App Touch Scroll on Mobile */
+        .hero-stats-wrapper {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            gap: 8px !important;
+            padding: 4px 12px 14px 12px !important;
+            margin: 0 -15px !important;
+            scrollbar-width: none;
+        }
+        .hero-stats-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+        .hero-stat-card {
+            min-width: 118px !important;
+            flex: 0 0 auto !important;
+            scroll-snap-align: start;
+            padding: 10px 10px !important;
+            border-radius: 14px !important;
+        }
+        .hero-stat-card .stat-label {
+            font-size: 9.5px !important;
+        }
+        .hero-stat-card .stat-value {
+            font-size: 14.5px !important;
+        }
+
+        /* Search Console Card */
+        .search-console-card {
+            margin-top: -24px;
+            padding: 16px 14px !important;
+            border-radius: 18px !important;
+        }
+        .form-control-custom {
+            height: 46px !important;
+            font-size: 13.5px !important;
+        }
+
+        /* Quick Filter Chips */
+        .quick-chips-container {
+            padding-bottom: 6px !important;
+            margin: 0 -10px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+        .quick-chip {
+            padding: 5px 12px !important;
+            font-size: 12px !important;
+        }
+
+        /* Nav Pills Filter */
+        .nav-pills-modern {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 6px !important;
+            margin: 0 -10px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+            scrollbar-width: none;
+        }
+        .nav-pills-modern::-webkit-scrollbar {
+            display: none;
+        }
+        .nav-pills-modern .nav-link {
+            white-space: nowrap !important;
+            font-size: 12px !important;
+            padding: 7px 14px !important;
+            flex-shrink: 0;
+        }
+
+        /* Action Buttons on Single Company Detail */
+        .w-100-mobile {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+        }
+        .w-100-mobile .btn {
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 13px !important;
+            padding: 9px 8px !important;
+            border-radius: 10px !important;
+        }
+
+        /* Spec Tiles (Single Company) */
+        .spec-tile {
+            padding: 12px 12px !important;
+            border-radius: 14px !important;
+        }
+        .spec-tile strong, .spec-tile span {
+            font-size: 12.5px !important;
+        }
+
+        /* CIN Anatomy & Segments */
+        .cin-anatomy-diagram {
+            padding: 20px 14px !important;
+            border-radius: 18px !important;
+        }
+        .cin-segment-pill {
+            padding: 5px 8px !important;
+            font-size: 14px !important;
+            letter-spacing: 0.8px !important;
+        }
+
+        /* Infographic metrics cards */
+        .infographic-card {
+            padding: 18px 12px !important;
+            border-radius: 16px !important;
+        }
+        .infographic-card .h4 {
+            font-size: 18px !important;
+        }
+
+        /* Toast notification */
+        .law-toast {
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            font-size: 12.5px;
+            padding: 10px 14px;
+        }
+
+        /* Pagination Modern */
+        .pagination-modern .page-link {
+            padding: 8px 12px !important;
+            font-size: 13px !important;
+            margin: 0 2px !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .company-card-elevated {
+            padding: 16px !important;
+            border-radius: 16px !important;
+        }
+        .company-card-elevated h5 {
+            font-size: 15px !important;
+            min-height: auto !important;
+        }
+        .incorp-breadcrumb span.current-page {
+            max-width: 180px;
+        }
     }
 </style>
 
@@ -635,10 +1098,14 @@ $company_schema = [
 <!-- ==========================================================================
      HERO MODERN BANNER SECTION
      ========================================================================== -->
-<section class="hero-incorp-banner" style="padding: clamp(36px, 5vw, 64px) 0 clamp(48px, 6vw, 76px) 0;">
+<section class="hero-incorp-banner">
+    <!-- Animated Glow Orbs -->
+    <div class="incorp-glow-orb-1"></div>
+    <div class="incorp-glow-orb-2"></div>
+
 	<div class="container position-relative" style="z-index: 2;">
 		<div class="row justify-content-center">
-			<div class="col-lg-10 col-12 text-center">
+			<div class="col-lg-11 col-12 text-center">
                 
                 <!-- Breadcrumbs -->
                 <div class="d-flex justify-content-center">
@@ -648,43 +1115,55 @@ $company_schema = [
                         <?php if ($single_company): ?>
                             <a href="<?php echo $base_url; ?>company-incorporation">Company Incorporations</a>
                             <span>/</span>
-                            <span class="text-white font-weight-semibold"><?php echo htmlspecialchars(mb_strimwidth($single_company['company_name'], 0, 32, '...')); ?></span>
+                            <span class="current-page"><?php echo htmlspecialchars(mb_strimwidth($single_company['company_name'], 0, 32, '...')); ?></span>
                         <?php else: ?>
-                            <span class="text-white font-weight-semibold">Company Incorporations</span>
+                            <span class="current-page">Company Incorporations</span>
                         <?php endif; ?>
                     </nav>
                 </div>
 
-				<div class="hero-pill-badge mb-3">
+				<div class="hero-pill-badge">
 					<span class="hero-pulse-dot"></span>
 					<span>OFFICIAL MCA CORPORATE REGISTRY • REAL-TIME 2026</span>
 				</div>
 
-				<h1 class="hero-gradient-headline mb-2" style="font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -0.5px;">
-					Indian Company &amp; LLP Incorporations
+				<h1 class="hero-incorp-headline">
+					Indian Corporate Registry &amp; <span class="headline-highlight">Incorporations</span>
 				</h1>
-				<p style="max-width: 680px; margin: 0 auto; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.85);">
-					Instant search, legal verification, and registration specs for Indian Private/Public Companies, LLPs, and Foreign Entities from official MCA records.
+				<p class="hero-incorp-subtitle">
+					Direct search and legal due diligence for <strong>Private Limited</strong>, <strong>Public Limited</strong>, <strong>OPC</strong>, <strong>Section 8</strong>, <strong>LLPs</strong> &amp; <strong>Foreign Companies</strong> registered with the Ministry of Corporate Affairs (MCA).
 				</p>
 
-                <!-- Quick Hero Stats Ribbon -->
-                <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-4 pt-1">
-                    <div class="hero-stat-pill">
-                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">TOTAL INCORPORATED</small>
-                        <strong class="text-white" style="font-size: 15px;"><?php echo number_format($stats['TOTAL']); ?>+</strong>
-                    </div>
-                    <div class="hero-stat-pill">
-                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">INDIAN COMPANIES</small>
-                        <strong class="text-primary" style="color: #93c5fd !important; font-size: 15px;"><?php echo number_format($stats['INDIAN']); ?></strong>
-                    </div>
-                    <div class="hero-stat-pill">
-                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">REGISTERED LLPs</small>
-                        <strong class="text-success" style="color: #6ee7b7 !important; font-size: 15px;"><?php echo number_format($stats['LLP']); ?></strong>
-                    </div>
-                    <div class="hero-stat-pill">
-                        <small class="text-white-50 d-block font-weight-bold" style="font-size: 11px;">FOREIGN ENTITIES</small>
-                        <strong class="text-warning" style="color: #fcd34d !important; font-size: 15px;"><?php echo number_format($stats['FOREIGN']); ?></strong>
-                    </div>
+                <!-- Quick Hero Stats Ribbon (7 Responsive Modular Cards) -->
+                <div class="hero-stats-wrapper mt-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation" class="hero-stat-card stat-all">
+                        <span class="stat-label text-white-50">TOTAL REGISTRY</span>
+                        <span class="stat-value text-white"><?php echo number_format($stats['TOTAL']); ?>+</span>
+                    </a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=pvt-ltd" class="hero-stat-card stat-pvt">
+                        <span class="stat-label" style="color: #93c5fd;"><i class="fas fa-building mr-1"></i> PVT LTD</span>
+                        <span class="stat-value"><?php echo number_format($stats['PVT_LTD']); ?></span>
+                    </a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=public-ltd" class="hero-stat-card stat-public">
+                        <span class="stat-label" style="color: #c4b5fd;"><i class="fas fa-landmark mr-1"></i> PUBLIC LTD</span>
+                        <span class="stat-value"><?php echo number_format($stats['PUBLIC_LTD']); ?></span>
+                    </a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=opc" class="hero-stat-card stat-opc">
+                        <span class="stat-label" style="color: #86efac;"><i class="fas fa-user-tie mr-1"></i> OPC</span>
+                        <span class="stat-value"><?php echo number_format($stats['OPC']); ?></span>
+                    </a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=section-8" class="hero-stat-card stat-sec8">
+                        <span class="stat-label" style="color: #f472b6;"><i class="fas fa-hand-holding-heart mr-1"></i> SECTION 8</span>
+                        <span class="stat-value"><?php echo number_format($stats['SECTION_8']); ?></span>
+                    </a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=llp" class="hero-stat-card stat-llp">
+                        <span class="stat-label" style="color: #5eead4;"><i class="fas fa-handshake mr-1"></i> LLPs</span>
+                        <span class="stat-value"><?php echo number_format($stats['LLP']); ?></span>
+                    </a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=foreign" class="hero-stat-card stat-foreign">
+                        <span class="stat-label" style="color: #fde047;"><i class="fas fa-globe mr-1"></i> FOREIGN</span>
+                        <span class="stat-value"><?php echo number_format($stats['FOREIGN']); ?></span>
+                    </a>
                 </div>
 
 			</div>
@@ -696,7 +1175,7 @@ $company_schema = [
 <!-- ==========================================================================
      MAIN BODY & SEARCH CONSOLE
      ========================================================================== -->
-<div class="full-row py-4" style="background-color: #f8fafc; margin-top: -36px; position: relative; z-index: 10;">
+<div class="full-row py-4" style="background-color: #f8fafc; position: relative; z-index: 10;">
 	<div class="container">
 
         <!-- Unified Search & Filter Console -->
@@ -705,7 +1184,9 @@ $company_schema = [
                 <div class="row align-items-end">
                     <div class="col-lg-4 col-md-12 mb-3 mb-lg-0">
                         <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-search mr-1 text-primary"></i> Company Name, CIN, or Keyword</label>
-                        <input type="text" name="q" class="form-control form-control-custom" placeholder="e.g. Tata, Infosys, U47713DC2026PTC474566..." value="<?php echo htmlspecialchars($q_param); ?>">
+                        <div class="position-relative">
+                            <input type="text" name="q" class="form-control form-control-custom" placeholder="e.g. Tata, Infosys, U47713DC2026PTC474566..." value="<?php echo htmlspecialchars($q_param); ?>">
+                        </div>
                     </div>
                     <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
                         <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-industry mr-1 text-warning"></i> NIC 2025 Industry Sector</label>
@@ -748,40 +1229,48 @@ $company_schema = [
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
-                        <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-filter mr-1 text-primary"></i> Category</label>
-                        <select name="category" class="form-control form-control-custom">
-                            <option value="">All Categories</option>
-                            <option value="INDIAN" <?php echo ($category_param === 'INDIAN') ? 'selected' : ''; ?>>Indian Companies</option>
-                            <option value="LLP" <?php echo ($category_param === 'LLP') ? 'selected' : ''; ?>>LLPs</option>
-                            <option value="FOREIGN" <?php echo ($category_param === 'FOREIGN') ? 'selected' : ''; ?>>Foreign Companies</option>
+                        <label class="small font-weight-bold text-muted mb-1.5"><i class="fas fa-layer-group mr-1 text-primary"></i> Entity Type</label>
+                        <select name="type" class="form-control form-control-custom">
+                            <option value="">All Entity Types</option>
+                            <option value="pvt-ltd" <?php echo ($type_param === 'PVT_LTD' || $type_param === 'PVT-LTD' || $type_param === 'PTC') ? 'selected' : ''; ?>>Private Limited (Pvt Ltd)</option>
+                            <option value="public-ltd" <?php echo ($type_param === 'PUBLIC_LTD' || $type_param === 'PUBLIC-LTD' || $type_param === 'PLC') ? 'selected' : ''; ?>>Public Limited (Public Ltd)</option>
+                            <option value="opc" <?php echo ($type_param === 'OPC') ? 'selected' : ''; ?>>One Person Company (OPC)</option>
+                            <option value="section-8" <?php echo ($type_param === 'SECTION_8' || $type_param === 'SECTION-8' || $type_param === 'SEC8' || $type_param === 'NPL') ? 'selected' : ''; ?>>Section 8 (NGO / Non-Profit)</option>
+                            <option value="llp" <?php echo ($type_param === 'LLP' || $category_param === 'LLP') ? 'selected' : ''; ?>>LLP Entities</option>
+                            <option value="foreign" <?php echo ($type_param === 'FOREIGN' || $category_param === 'FOREIGN') ? 'selected' : ''; ?>>Foreign Companies</option>
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
                         <label class="small font-weight-bold text-muted mb-1.5"><i class="far fa-calendar-alt mr-1 text-primary"></i> Reg. Date</label>
                         <input type="date" name="date" class="form-control form-control-custom" value="<?php echo htmlspecialchars($date_param); ?>">
                     </div>
-                    <div class="col-lg-1 col-md-6">
-                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0 d-flex align-items-center justify-content-center shadow-sm" style="height: 48px; border-radius: 12px;" title="Search Records">
-                            <i class="fas fa-search"></i>
+                    <div class="col-lg-1 col-md-12">
+                        <button type="submit" class="btn btn-primary btn-block font-weight-bold p-0 d-flex align-items-center justify-content-center shadow-sm" style="height: 50px; border-radius: 14px;" title="Search Records">
+                            <i class="fas fa-search fa-lg mr-2 mr-lg-0"></i>
+                            <span class="d-inline d-lg-none">Search Incorporations</span>
                         </button>
                     </div>
                 </div>
             </form>
 
-            <!-- Quick Filter Chips -->
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2.5 border-top" style="border-color: #f1f5f9 !important;">
-                <span class="small text-muted font-weight-bold mr-1"><i class="fas fa-bolt text-warning mr-1"></i> Quick Lookups:</span>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=62" class="quick-chip"><i class="fas fa-laptop-code text-primary mr-1"></i> Software &amp; IT (62)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=47" class="quick-chip"><i class="fas fa-shopping-cart text-danger mr-1"></i> Retail &amp; E-Com (47)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=86" class="quick-chip"><i class="fas fa-heartbeat text-danger mr-1"></i> Healthcare (86)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=68" class="quick-chip"><i class="fas fa-city text-warning mr-1"></i> Real Estate (68)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=35" class="quick-chip"><i class="fas fa-bolt text-warning mr-1"></i> Solar &amp; Power (35)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?activity=85" class="quick-chip"><i class="fas fa-graduation-cap text-info mr-1"></i> Education (85)</a>
-                <a href="<?php echo $base_url; ?>company-incorporation?category=LLP" class="quick-chip"><i class="fas fa-handshake text-success mr-1"></i> LLPs</a>
+            <!-- Quick Filter Chips Horizontal Bar -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top" style="border-color: #f1f5f9 !important;">
+                <div class="quick-chips-container flex-grow-1">
+                    <span class="small text-muted font-weight-bold mr-1 d-inline-flex align-items-center"><i class="fas fa-bolt text-warning mr-1"></i> Quick Filters:</span>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=pvt-ltd" class="quick-chip <?php echo ($type_param === 'PVT_LTD' || $type_param === 'PVT-LTD' || $type_param === 'PTC') ? 'active' : ''; ?>"><i class="fas fa-building text-primary mr-1.5"></i> Pvt Ltd</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=public-ltd" class="quick-chip <?php echo ($type_param === 'PUBLIC_LTD' || $type_param === 'PUBLIC-LTD' || $type_param === 'PLC') ? 'active' : ''; ?>"><i class="fas fa-landmark mr-1.5" style="color: #7c3aed;"></i> Public Ltd</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=opc" class="quick-chip <?php echo ($type_param === 'OPC') ? 'active' : ''; ?>"><i class="fas fa-user-tie text-success mr-1.5"></i> OPC</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=section-8" class="quick-chip <?php echo ($type_param === 'SECTION_8' || $type_param === 'SECTION-8' || $type_param === 'SEC8' || $type_param === 'NPL') ? 'active' : ''; ?>"><i class="fas fa-hand-holding-heart mr-1.5" style="color: #db2777;"></i> Section 8 (NGO)</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=llp" class="quick-chip <?php echo ($type_param === 'LLP' || $category_param === 'LLP') ? 'active' : ''; ?>"><i class="fas fa-handshake text-teal mr-1.5" style="color: #0d9488;"></i> LLPs</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=foreign" class="quick-chip <?php echo ($type_param === 'FOREIGN' || $category_param === 'FOREIGN') ? 'active' : ''; ?>"><i class="fas fa-globe text-warning mr-1.5"></i> Foreign</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?activity=62" class="quick-chip <?php echo ($activity_param == '62') ? 'active' : ''; ?>"><i class="fas fa-laptop-code text-primary mr-1.5"></i> Software &amp; IT (62)</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?activity=47" class="quick-chip <?php echo ($activity_param == '47') ? 'active' : ''; ?>"><i class="fas fa-shopping-cart text-danger mr-1.5"></i> Retail &amp; E-Com (47)</a>
+                    <a href="<?php echo $base_url; ?>company-incorporation?activity=86" class="quick-chip <?php echo ($activity_param == '86') ? 'active' : ''; ?>"><i class="fas fa-heartbeat text-danger mr-1.5"></i> Healthcare (86)</a>
+                </div>
                 
                 <?php if ($has_search): ?>
-                <a href="<?php echo $base_url; ?>company-incorporation" class="badge badge-danger px-3 py-1.5 text-white font-weight-semibold ml-auto" style="border-radius: 20px; font-size: 12px;">
-                    <i class="fas fa-times mr-1"></i> Clear Search
+                <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-sm btn-outline-danger font-weight-bold px-3 py-1.5 text-nowrap" style="border-radius: 20px; font-size: 12px;">
+                    <i class="fas fa-times mr-1"></i> Reset Filters
                 </a>
                 <?php endif; ?>
             </div>
@@ -809,133 +1298,152 @@ $company_schema = [
             <?php if ($single_company): ?>
             <?php 
                 $parsedCin = parseCINDetails($single_company['cin'], $state_roc_map, $class_map);
-                $badgeClass = 'company-badge-indian';
-                if ($single_company['category'] === 'LLP') $badgeClass = 'company-badge-llp';
-                if ($single_company['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+                $typeInfo = get_company_entity_type_info($single_company);
+                $badgeClass = $typeInfo['badge_class'];
+                $badgeIcon = $typeInfo['icon'];
 
                 // Resolve full NIC 2025 classification
                 $nic_info = get_nic_details($single_company['cin'] ?: $single_company['activity_code']);
             ?>
 
             <?php if ($is_admin): ?>
-            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2.5 px-3.5 shadow-sm border-0" style="border-radius: 14px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc;">
+            <div class="alert alert-dark d-flex flex-wrap justify-content-between align-items-center mb-3 py-2.5 px-3.5 shadow-sm border-0" style="border-radius: 16px; background: linear-gradient(135deg, #0b1329 0%, #1e293b 100%); color: #f8fafc;">
                 <div class="d-flex align-items-center flex-wrap gap-2">
-                    <span class="badge badge-warning text-dark font-weight-bold px-2.5 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> Admin View</span>
+                    <span class="badge badge-warning text-dark font-weight-bold px-2.5 py-1" style="border-radius: 8px;"><i class="fas fa-user-shield mr-1"></i> Admin View</span>
                     <span class="small text-light">Status: <strong class="<?php echo (strtoupper($single_company['status'] ?? '') === 'BLOCK') ? 'text-danger' : 'text-success'; ?>"><?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?></strong></span>
                     <span class="small text-muted">&bull;</span>
                     <span class="small text-muted font-monospace">ID #<?php echo $single_company['id']; ?></span>
                 </div>
                 <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0" style="gap: 8px;">
                     <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $single_company['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-3 shadow-sm" style="border-radius: 20px; background: #f59e0b; border: none;">
-                        <i class="fas fa-edit mr-1"></i> Edit Company in Admin
+                        <i class="fas fa-edit mr-1"></i> Edit Company
                     </a>
                     <a href="<?php echo $base_url; ?>admin/manage_companies.php?q=<?php echo urlencode($single_company['cin']); ?>" target="_blank" class="btn btn-sm btn-outline-light px-3" style="border-radius: 20px;">
-                        <i class="fas fa-list mr-1"></i> Manage in Admin
+                        <i class="fas fa-list mr-1"></i> Manage
                     </a>
                 </div>
             </div>
             <?php endif; ?>
 
-            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5" style="border-radius: 22px;">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3.5 border-bottom mb-4">
+            <div class="bg-white rounded-xl shadow-md border mb-4 p-4 p-md-5" style="border-radius: 24px;">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 pb-4 border-bottom mb-4">
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge <?php echo $badgeClass; ?> px-3 py-1 text-uppercase rounded-pill" style="font-size: 11.5px;">
-                                <?php echo htmlspecialchars($single_company['category']); ?> COMPANY
+                        <div class="d-flex align-items-center gap-2 mb-2.5">
+                            <span class="badge <?php echo $badgeClass; ?> px-3 py-1.5 text-uppercase rounded-pill d-inline-flex align-items-center" style="font-size: 12px; font-weight: 700;">
+                                <i class="<?php echo $badgeIcon; ?> mr-1.5"></i> <?php echo htmlspecialchars($typeInfo['label']); ?>
                             </span>
                             <?php if (strtoupper($single_company['status'] ?? '') === 'BLOCK'): ?>
-                                <span class="badge badge-danger px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #fef2f2; color: #b91c1c; font-size: 11.5px;">
+                                <span class="badge badge-danger px-3 py-1.5 rounded-pill text-uppercase font-weight-bold" style="background: #fef2f2; color: #b91c1c; font-size: 11.5px;">
                                     <i class="fas fa-ban mr-1"></i> BLOCKED (Hidden from Public)
                                 </span>
+                            <?php elseif (strtoupper($single_company['status'] ?? '') === 'STRUCK_OFF' || strtoupper($single_company['status'] ?? '') === 'STRUCK OFF'): ?>
+                                <span class="badge badge-warning px-3 py-1.5 rounded-pill text-uppercase font-weight-bold" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11.5px;">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i> STRUCK OFF / DISSOLVED
+                                </span>
                             <?php else: ?>
-                                <span class="badge badge-success px-3 py-1 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857; font-size: 11.5px;">
+                                <span class="badge badge-success px-3 py-1.5 rounded-pill text-uppercase font-weight-bold" style="background: #ecfdf5; color: #047857; font-size: 11.5px;">
                                     <i class="fas fa-check-circle mr-1"></i> <?php echo htmlspecialchars($single_company['status'] ?: 'ACTIVE'); ?>
                                 </span>
                             <?php endif; ?>
                         </div>
-                        <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(22px, 3.5vw, 30px); letter-spacing: -0.3px;">
+                        <h2 class="font-weight-bold text-dark mb-2" style="font-size: clamp(22px, 3.5vw, 32px); letter-spacing: -0.5px; line-height: 1.3;">
                             <?php echo htmlspecialchars($single_company['company_name']); ?>
                         </h2>
-                        <div class="text-muted small mt-1.5 d-flex align-items-center flex-wrap gap-1">
+                        <div class="text-muted small d-flex align-items-center flex-wrap gap-2">
                             <span>Corporate Identification Number:</span> 
-                            <code class="font-weight-bold text-primary font-monospace fs-6 px-2.5 py-0.5 rounded ml-1" style="background: #eff6ff; font-size: 14px; border: 1px solid #dbeafe;"><?php echo htmlspecialchars($single_company['cin']); ?></code>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-primary ml-2 font-weight-semibold" onclick="copyToClipboard('<?php echo htmlspecialchars($single_company['cin']); ?>', 'CIN');" title="Copy CIN to Clipboard">
-                                <i class="far fa-copy"></i> Copy
-                            </button>
+                            <span class="d-inline-flex align-items-center px-3 py-1 rounded-pill" style="background: #eff6ff; border: 1.5px solid #bfdbfe;">
+                                <code class="font-weight-bold text-primary font-monospace fs-6 mr-2" style="font-size: 14px;"><?php echo htmlspecialchars($single_company['cin']); ?></code>
+                                <button type="button" class="btn btn-sm btn-link p-0 text-primary font-weight-semibold" onclick="copyToClipboard('<?php echo htmlspecialchars($single_company['cin']); ?>', 'CIN');" title="Copy CIN to Clipboard">
+                                    <i class="far fa-copy"></i>
+                                </button>
+                            </span>
                         </div>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold" style="border-radius: 12px;" title="File a complaint or data removal request">
-                            <i class="fas fa-flag mr-1"></i> Complain (Delete Data)
-                        </a>
-                        <button type="button" class="btn btn-light border font-weight-bold" onclick="window.print();" style="border-radius: 12px;">
+                    <div class="d-flex flex-wrap gap-2 mt-3 mt-lg-0 w-100-mobile">
+                        <button type="button" class="btn btn-primary font-weight-bold px-3.5" onclick="copyToClipboard('<?php echo htmlspecialchars($single_company['cin']); ?>', 'CIN');" style="border-radius: 12px;">
+                            <i class="far fa-copy mr-1"></i> Copy CIN
+                        </button>
+                        <button type="button" class="btn btn-light border font-weight-bold px-3" onclick="window.print();" style="border-radius: 12px;">
                             <i class="fas fa-print mr-1"></i> Print / PDF
                         </button>
-                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-secondary font-weight-bold" style="border-radius: 12px;">
-                            <i class="fas fa-arrow-left mr-1"></i> Back to All
+                        <a href="<?php echo $base_url; ?>contact?type=removal&cin=<?php echo urlencode($single_company['cin']); ?>&name=<?php echo urlencode($single_company['company_name']); ?>" class="btn btn-outline-danger font-weight-bold px-3" style="border-radius: 12px;" title="File a complaint or data removal request">
+                            <i class="fas fa-flag mr-1"></i> Complain
+                        </a>
+                        <a href="<?php echo $base_url; ?>company-incorporation" class="btn btn-outline-secondary font-weight-bold px-3" style="border-radius: 12px;">
+                            <i class="fas fa-arrow-left mr-1"></i> All Records
                         </a>
                     </div>
                 </div>
 
+                <?php if (strtoupper($single_company['status'] ?? '') === 'STRUCK_OFF' || strtoupper($single_company['status'] ?? '') === 'STRUCK OFF'): ?>
+                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4 p-3" style="background: #fffbeb; border-left: 4px solid #f59e0b !important; border-radius: 14px; color: #92400e;">
+                        <i class="fas fa-exclamation-triangle fa-2x mr-3 text-warning"></i>
+                        <div>
+                            <strong class="d-block mb-1" style="font-size: 15px;">Statutory Notice: Company Struck Off by ROC / MCA</strong>
+                            <span class="small" style="line-height: 1.5; display: block;">This corporate entity has been published under the official MCA Struck Off report and has been struck off / dissolved from the Register of Companies under Section 248 of the Companies Act, 2013.</span>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Clean 6-Tile Key-Value Data Specs Grid -->
                 <div class="row">
-                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="col-lg-4 col-md-6 col-6 mb-3">
                         <div class="spec-tile">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="text-primary"><i class="fas fa-layer-group"></i></span>
-                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Class of Company</small>
+                            <div class="d-flex align-items-center gap-2 mb-1.5">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-primary" style="width: 28px; height: 28px; background: #eff6ff;"><i class="fas fa-layer-group" style="font-size: 13px;"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Class</small>
                             </div>
                             <strong class="text-dark" style="font-size: 14.5px;"><?php echo htmlspecialchars($single_company['class'] ?: 'N/A'); ?></strong>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="col-lg-4 col-md-6 col-6 mb-3">
                         <div class="spec-tile">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="text-info"><i class="fas fa-tag"></i></span>
-                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Company Type</small>
+                            <div class="d-flex align-items-center gap-2 mb-1.5">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 28px; height: 28px; background: #f5f3ff; color: #7c3aed;"><i class="fas fa-tag" style="font-size: 13px;"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Type</small>
                             </div>
                             <strong class="text-dark" style="font-size: 14.5px;"><?php echo htmlspecialchars($single_company['company_type'] ?: 'N/A'); ?></strong>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="col-lg-4 col-md-6 col-6 mb-3">
                         <div class="spec-tile">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="text-danger"><i class="fas fa-map-marker-alt"></i></span>
+                            <div class="d-flex align-items-center gap-2 mb-1.5">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-danger" style="width: 28px; height: 28px; background: #fff1f2;"><i class="fas fa-map-marker-alt" style="font-size: 13px;"></i></span>
                                 <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">RoC Jurisdiction</small>
                             </div>
-                            <strong class="text-dark" style="font-size: 14.5px;"><?php echo $parsedCin ? htmlspecialchars($parsedCin['state_name']) : 'Registrar of Companies'; ?></strong>
+                            <strong class="text-dark" style="font-size: 14.5px;"><?php echo $parsedCin ? htmlspecialchars($parsedCin['state_name']) : 'RoC'; ?></strong>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="col-lg-4 col-md-6 col-6 mb-3">
                         <div class="spec-tile">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="text-warning"><i class="fas fa-industry"></i></span>
-                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Activity / NIC Code</small>
+                            <div class="d-flex align-items-center gap-2 mb-1.5">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-warning" style="width: 28px; height: 28px; background: #fefce8;"><i class="fas fa-industry" style="font-size: 13px;"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Activity / NIC</small>
                             </div>
                             <strong class="text-dark" style="font-size: 14.5px;">
-                                Division <?php echo htmlspecialchars($single_company['activity_code'] ?: 'N/A'); ?>
+                                Div <?php echo htmlspecialchars($single_company['activity_code'] ?: 'N/A'); ?>
                                 <?php if (!empty($nic_info['division']['title'])): ?>
-                                    <span class="text-primary font-weight-normal small ml-1">&bull; <?php echo htmlspecialchars(mb_strimwidth($nic_info['division']['title'], 0, 30, '...')); ?></span>
+                                    <span class="text-primary font-weight-normal small ml-1">&bull; <?php echo htmlspecialchars(mb_strimwidth($nic_info['division']['title'], 0, 24, '...')); ?></span>
                                 <?php endif; ?>
                             </strong>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="col-lg-4 col-md-6 col-6 mb-3">
                         <div class="spec-tile">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="text-secondary"><i class="fas fa-archive"></i></span>
+                            <div class="d-flex align-items-center gap-2 mb-1.5">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-secondary" style="width: 28px; height: 28px; background: #f1f5f9;"><i class="fas fa-archive" style="font-size: 13px;"></i></span>
                                 <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Batch Month</small>
                             </div>
                             <strong class="text-dark" style="font-size: 14.5px;"><?php echo htmlspecialchars($single_company['report_month'] ?: 'N/A'); ?></strong>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6 col-12 mb-3">
+                    <div class="col-lg-4 col-md-6 col-6 mb-3">
                         <div class="spec-tile">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="text-success"><i class="fas fa-shield-alt"></i></span>
-                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">MCA Registry Status</small>
+                            <div class="d-flex align-items-center gap-2 mb-1.5">
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle text-success" style="width: 28px; height: 28px; background: #ecfdf5;"><i class="fas fa-shield-alt" style="font-size: 13px;"></i></span>
+                                <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Status</small>
                             </div>
-                            <span class="text-success font-weight-bold" style="font-size: 14.5px;"><i class="fas fa-check-circle mr-1"></i> Active / Registered</span>
+                            <span class="text-success font-weight-bold" style="font-size: 14.5px;"><i class="fas fa-check-circle mr-1"></i> Active</span>
                         </div>
                     </div>
                 </div>
@@ -950,31 +1458,31 @@ $company_schema = [
                         <span class="badge badge-light border text-muted small">MoSPI NIC 2025 Standard</span>
                     </div>
 
-                    <div class="p-3.5 rounded-lg border bg-light" style="border-radius: 14px;">
+                    <div class="p-4 rounded-xl border bg-light" style="border-radius: 16px;">
                         <div class="row">
                             <?php if (!empty($nic_info['section'])): ?>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-6 mb-2.5">
                                 <small class="text-muted d-block font-weight-bold">SECTION <?php echo htmlspecialchars($nic_info['section']['code']); ?>:</small>
                                 <span class="font-weight-semibold text-dark"><?php echo htmlspecialchars($nic_info['section']['title']); ?></span>
                             </div>
                             <?php endif; ?>
 
                             <?php if (!empty($nic_info['division'])): ?>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-6 mb-2.5">
                                 <small class="text-muted d-block font-weight-bold">DIVISION <?php echo htmlspecialchars($nic_info['division']['code']); ?>:</small>
                                 <span class="font-weight-semibold text-primary"><?php echo htmlspecialchars($nic_info['division']['title']); ?></span>
                             </div>
                             <?php endif; ?>
 
                             <?php if (!empty($nic_info['group'])): ?>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-6 mb-2.5">
                                 <small class="text-muted d-block font-weight-bold">GROUP <?php echo htmlspecialchars($nic_info['group']['code']); ?>:</small>
                                 <span class="font-weight-semibold text-dark"><?php echo htmlspecialchars($nic_info['group']['title']); ?></span>
                             </div>
                             <?php endif; ?>
 
                             <?php if (!empty($nic_info['class'])): ?>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-6 mb-2.5">
                                 <small class="text-muted d-block font-weight-bold">CLASS <?php echo htmlspecialchars($nic_info['class']['code']); ?>:</small>
                                 <span class="font-weight-semibold text-dark"><?php echo htmlspecialchars($nic_info['class']['title']); ?></span>
                             </div>
@@ -1016,7 +1524,7 @@ $company_schema = [
 
                 <!-- MCA Disclaimer Note -->
                 <div class="mt-4 pt-3 border-top">
-                    <div class="alert alert-light border mb-0 p-3" style="background: #f8fafc; border-color: #e2e8f0; border-radius: 14px;">
+                    <div class="alert alert-light border mb-0 p-3.5" style="background: #f8fafc; border-color: #e2e8f0; border-radius: 16px;">
                         <div class="d-flex align-items-start gap-2">
                             <i class="fas fa-shield-alt text-secondary mt-1 mr-2" style="font-size: 1.1rem;"></i>
                             <div class="small text-muted" style="line-height: 1.6; width: 100%;">
@@ -1039,35 +1547,49 @@ $company_schema = [
                  SEARCH RESULTS VIEW (GRID / TABLE)
                  ================================================================= -->
             <?php if ($has_search): ?>
-
-            <!-- Category Nav Pills Filter & View Switcher -->
+            <!-- Category & Entity Nav Pills Filter & View Switcher -->
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-                <ul class="nav nav-pills nav-pills-modern m-0 p-0">
+                <ul class="nav nav-pills nav-pills-modern m-0 p-0 flex-wrap">
                     <li class="nav-item">
-                        <a class="nav-link <?php echo empty($category_param) ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
-                            <i class="fas fa-th-large"></i> All Search Results <span class="badge badge-light ml-1"><?php echo number_format($total_companies); ?></span>
+                        <a class="nav-link <?php echo (empty($category_param) && empty($type_param)) ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-th-large mr-1"></i> All Results <span class="badge badge-light ml-1" style="font-size: 11px;"><?php echo number_format($total_companies); ?></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($category_param === 'INDIAN') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?category=INDIAN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
-                            <i class="fas fa-building"></i> Indian Companies
+                        <a class="nav-link <?php echo ($type_param === 'PVT_LTD' || $type_param === 'PVT-LTD' || $type_param === 'PTC') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?type=pvt-ltd&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-building mr-1 text-primary"></i> Pvt Ltd
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($category_param === 'LLP') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?category=LLP&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
-                            <i class="fas fa-handshake"></i> LLPs
+                        <a class="nav-link <?php echo ($type_param === 'PUBLIC_LTD' || $type_param === 'PUBLIC-LTD' || $type_param === 'PLC') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?type=public-ltd&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-landmark mr-1" style="color: #7c3aed;"></i> Public Ltd
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($category_param === 'FOREIGN') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?category=FOREIGN&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
-                            <i class="fas fa-globe"></i> Foreign Companies
+                        <a class="nav-link <?php echo ($type_param === 'OPC') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?type=opc&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-user-tie mr-1 text-success"></i> OPC
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($type_param === 'SECTION_8' || $type_param === 'SECTION-8' || $type_param === 'SEC8' || $type_param === 'NPL') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?type=section-8&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-hand-holding-heart mr-1" style="color: #db2777;"></i> Section 8
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($type_param === 'LLP' || $category_param === 'LLP') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?type=llp&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-handshake mr-1" style="color: #0d9488;"></i> LLPs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo ($type_param === 'FOREIGN' || $category_param === 'FOREIGN') ? 'active' : ''; ?>" href="<?php echo $base_url; ?>company-incorporation?type=foreign&q=<?php echo urlencode($q_param); ?><?php echo !empty($activity_param) ? '&activity='.$activity_param : ''; ?><?php echo !empty($date_param) ? '&date='.$date_param : ''; ?>">
+                            <i class="fas fa-globe mr-1 text-warning"></i> Foreign
                         </a>
                     </li>
                 </ul>
 
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-none d-md-flex align-items-center gap-1">
-                        <span class="small text-muted mr-2">Layout:</span>
+                        <span class="small text-muted mr-2 font-weight-semibold">Layout:</span>
                         <?php 
                             $gridQuery = $_GET; $gridQuery['view'] = 'grid';
                             $tableQuery = $_GET; $tableQuery['view'] = 'table';
@@ -1087,12 +1609,12 @@ $company_schema = [
 
                 <?php if ($view_mode === 'table'): ?>
                     <!-- Table View Mode -->
-                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden" style="border-radius: 18px;">
+                    <div class="bg-white rounded-xl shadow-sm border mb-4 overflow-hidden" style="border-radius: 20px;">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Category</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Entity Type</th>
                                         <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Company Name</th>
                                         <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">CIN / LLPIN</th>
                                         <th class="border-0 px-4 py-3 small text-uppercase font-weight-bold text-muted">Class &amp; Type</th>
@@ -1104,32 +1626,37 @@ $company_schema = [
                                 <tbody>
                                     <?php foreach ($companies_list['data'] as $comp): ?>
                                         <?php
-                                        $badgeClass = 'company-badge-indian';
-                                        if ($comp['category'] === 'LLP') $badgeClass = 'company-badge-llp';
-                                        if ($comp['category'] === 'FOREIGN') $badgeClass = 'company-badge-foreign';
+                                        $typeInfo = get_company_entity_type_info($comp);
+                                        $badgeClass = $typeInfo['badge_class'];
+                                        $badgeIcon = $typeInfo['icon'];
 
                                         $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                                         $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
                                         $comp_href = company_url($comp);
                                         ?>
                                         <tr>
-                                            <td class="px-4 py-3 align-middle">
-                                                <span class="badge <?php echo $badgeClass; ?> px-2 py-1 text-uppercase" style="font-size: 10.5px;">
-                                                    <?php echo htmlspecialchars($comp['category']); ?>
+                                            <td class="px-4 py-3.5 align-middle">
+                                                <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase d-inline-flex align-items-center" style="font-size: 11px;">
+                                                    <i class="<?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($typeInfo['short_label']); ?>
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-3 align-middle font-weight-bold">
-                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none">
+                                            <td class="px-4 py-3.5 align-middle font-weight-bold">
+                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="text-dark text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--incorp-primary)';" onmouseout="this.style.color='#0f172a';">
                                                     <?php echo htmlspecialchars($comp['company_name']); ?>
                                                 </a>
                                             </td>
-                                            <td class="px-4 py-3 align-middle">
-                                                <code class="font-weight-bold text-primary font-monospace"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                            <td class="px-4 py-3.5 align-middle">
+                                                <span class="d-inline-flex align-items-center">
+                                                    <code class="font-weight-bold text-primary font-monospace mr-1.5"><?php echo htmlspecialchars($comp['cin']); ?></code>
+                                                    <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="copyToClipboard('<?php echo htmlspecialchars($comp['cin']); ?>', 'CIN');" title="Copy CIN">
+                                                        <i class="far fa-copy"></i>
+                                                    </button>
+                                                </span>
                                             </td>
-                                            <td class="px-4 py-3 align-middle small text-muted">
+                                            <td class="px-4 py-3.5 align-middle small text-muted">
                                                 <?php echo htmlspecialchars($comp['class'] ?: '-'); ?>
                                             </td>
-                                            <td class="px-4 py-3 align-middle small">
+                                            <td class="px-4 py-3.5 align-middle small">
                                                 <?php if (!empty($comp['activity_code'])): ?>
                                                     <span class="badge badge-light border text-dark" title="<?php echo htmlspecialchars($act_title); ?>">
                                                         NIC <?php echo htmlspecialchars($comp['activity_code']); ?>
@@ -1141,15 +1668,15 @@ $company_schema = [
                                                     -
                                                 <?php endif; ?>
                                             </td>
-                                            <td class="px-4 py-3 align-middle small text-muted">
+                                            <td class="px-4 py-3.5 align-middle small text-muted font-weight-medium">
                                                 <?php echo !empty($comp['registration_date']) ? date('d M Y', strtotime($comp['registration_date'])) : '-'; ?>
                                             </td>
-                                            <td class="px-4 py-3 align-middle text-right text-nowrap">
-                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
-                                                    View
+                                            <td class="px-4 py-3.5 align-middle text-right text-nowrap">
+                                                <a href="<?php echo htmlspecialchars($comp_href); ?>" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 10px;">
+                                                    View &rarr;
                                                 </a>
                                                 <?php if ($is_admin): ?>
-                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 8px;" title="Edit in Admin">
+                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
                                                 <?php endif; ?>
@@ -1165,18 +1692,10 @@ $company_schema = [
                     <div class="row">
                         <?php foreach ($companies_list['data'] as $comp): ?>
                             <?php
-                            $badgeClass = 'company-badge-indian';
-                            $cardExtraClass = '';
-                            $badgeIcon = 'fa-building';
-                            if ($comp['category'] === 'LLP') {
-                                $badgeClass = 'company-badge-llp';
-                                $cardExtraClass = 'card-llp';
-                                $badgeIcon = 'fa-handshake';
-                            } elseif ($comp['category'] === 'FOREIGN') {
-                                $badgeClass = 'company-badge-foreign';
-                                $cardExtraClass = 'card-foreign';
-                                $badgeIcon = 'fa-globe';
-                            }
+                            $typeInfo = get_company_entity_type_info($comp);
+                            $badgeClass = $typeInfo['badge_class'];
+                            $badgeIcon = $typeInfo['icon'];
+                            $cardExtraClass = $typeInfo['card_class'];
 
                             $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                             $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
@@ -1186,8 +1705,8 @@ $company_schema = [
                                 <div class="company-card-elevated <?php echo $cardExtraClass; ?> p-4 w-100">
                                     <div>
                                         <div class="d-flex justify-content-between align-items-center mb-2.5">
-                                            <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase" style="font-size: 11px;">
-                                                <i class="fas <?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($comp['category']); ?>
+                                            <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase d-inline-flex align-items-center" style="font-size: 11px;">
+                                                <i class="<?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($typeInfo['short_label']); ?>
                                             </span>
                                             <span class="small text-muted font-weight-medium">
                                                 <i class="far fa-calendar-alt mr-1"></i>
@@ -1310,18 +1829,10 @@ $company_schema = [
                 <div class="row">
                     <?php foreach ($related_companies['data'] as $comp): ?>
                         <?php
-                        $badgeClass = 'company-badge-indian';
-                        $cardExtraClass = '';
-                        $badgeIcon = 'fa-building';
-                        if ($comp['category'] === 'LLP') {
-                            $badgeClass = 'company-badge-llp';
-                            $cardExtraClass = 'card-llp';
-                            $badgeIcon = 'fa-handshake';
-                        } elseif ($comp['category'] === 'FOREIGN') {
-                            $badgeClass = 'company-badge-foreign';
-                            $cardExtraClass = 'card-foreign';
-                            $badgeIcon = 'fa-globe';
-                        }
+                        $typeInfo = get_company_entity_type_info($comp);
+                        $badgeClass = $typeInfo['badge_class'];
+                        $badgeIcon = $typeInfo['icon'];
+                        $cardExtraClass = $typeInfo['card_class'];
 
                         $card_nic = get_nic_details($comp['cin'] ?: $comp['activity_code']);
                         $act_title = !empty($card_nic['primary_title']) ? $card_nic['primary_title'] : '';
@@ -1331,8 +1842,8 @@ $company_schema = [
                             <div class="company-card-elevated <?php echo $cardExtraClass; ?> p-4 w-100">
                                 <div>
                                     <div class="d-flex justify-content-between align-items-center mb-2.5">
-                                        <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase" style="font-size: 11px;">
-                                            <i class="fas <?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($comp['category']); ?>
+                                        <span class="badge <?php echo $badgeClass; ?> px-2.5 py-1 text-uppercase d-inline-flex align-items-center" style="font-size: 11px;">
+                                            <i class="<?php echo $badgeIcon; ?> mr-1"></i> <?php echo htmlspecialchars($typeInfo['short_label']); ?>
                                         </span>
                                         <span class="small text-muted font-weight-medium">
                                             <i class="far fa-calendar-alt mr-1"></i>
@@ -1484,43 +1995,61 @@ $company_schema = [
                 </div>
             </div>
 
-            <!-- Infographic 2: Statistical Live Overview Metrics -->
+            <!-- Infographic 2: Statistical Live Overview Metrics (6 Distinct Entity Types) -->
             <div class="row mb-5">
-                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
-                    <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #eff6ff; color: #2563eb; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=pvt-ltd" class="infographic-card text-center text-decoration-none d-block">
+                        <div class="tool-icon-squircle mx-auto mb-2.5" style="background: #eff6ff; color: #2563eb; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
                             <i class="fas fa-building fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-dark mb-1"><?php echo number_format($stats['TOTAL']); ?>+</div>
-                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Total Incorporated</div>
-                    </div>
+                        <div class="h4 font-weight-bold text-primary mb-1"><?php echo number_format($stats['PVT_LTD']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Pvt Ltd (PTC)</div>
+                    </a>
                 </div>
-                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
-                    <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #f0fdf4; color: #15803d; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
-                            <i class="fas fa-city fa-lg"></i>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=public-ltd" class="infographic-card text-center text-decoration-none d-block">
+                        <div class="tool-icon-squircle mx-auto mb-2.5" style="background: #f5f3ff; color: #7c3aed; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-landmark fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-success mb-1"><?php echo number_format($stats['INDIAN']); ?></div>
-                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Indian Companies (CIN)</div>
-                    </div>
+                        <div class="h4 font-weight-bold mb-1" style="color: #7c3aed;"><?php echo number_format($stats['PUBLIC_LTD']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Public Ltd (PLC)</div>
+                    </a>
                 </div>
-                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
-                    <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #ecfdf5; color: #047857; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=opc" class="infographic-card text-center text-decoration-none d-block">
+                        <div class="tool-icon-squircle mx-auto mb-2.5" style="background: #f0fdf4; color: #16a34a; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-user-tie fa-lg"></i>
+                        </div>
+                        <div class="h4 font-weight-bold text-success mb-1"><?php echo number_format($stats['OPC']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">One Person (OPC)</div>
+                    </a>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=section-8" class="infographic-card text-center text-decoration-none d-block">
+                        <div class="tool-icon-squircle mx-auto mb-2.5" style="background: #fdf2f8; color: #db2777; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
+                            <i class="fas fa-hand-holding-heart fa-lg"></i>
+                        </div>
+                        <div class="h4 font-weight-bold mb-1" style="color: #db2777;"><?php echo number_format($stats['SECTION_8']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Section 8 (NGO)</div>
+                    </a>
+                </div>
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=llp" class="infographic-card text-center text-decoration-none d-block">
+                        <div class="tool-icon-squircle mx-auto mb-2.5" style="background: #ecfdf5; color: #0d9488; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
                             <i class="fas fa-handshake fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-dark mb-1"><?php echo number_format($stats['LLP']); ?></div>
+                        <div class="h4 font-weight-bold mb-1" style="color: #0d9488;"><?php echo number_format($stats['LLP']); ?></div>
                         <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">LLPs (LLPIN)</div>
-                    </div>
+                    </a>
                 </div>
-                <div class="col-lg-3 col-6 mb-4 mb-lg-0">
-                    <div class="infographic-card text-center">
-                        <div class="tool-icon-squircle mx-auto mb-3" style="background: #fffbeb; color: #b45309; width: 54px; height: 54px; display: inline-flex; align-items: center; justify-content: center; border-radius: 16px;">
+                <div class="col-lg-2 col-md-4 col-6 mb-4">
+                    <a href="<?php echo $base_url; ?>company-incorporation?type=foreign" class="infographic-card text-center text-decoration-none d-block">
+                        <div class="tool-icon-squircle mx-auto mb-2.5" style="background: #fffbeb; color: #d97706; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px;">
                             <i class="fas fa-globe fa-lg"></i>
                         </div>
-                        <div class="h3 font-weight-bold text-warning mb-1"><?php echo number_format($stats['FOREIGN']); ?></div>
-                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Foreign Entities (FCIN)</div>
-                    </div>
+                        <div class="h4 font-weight-bold text-warning mb-1"><?php echo number_format($stats['FOREIGN']); ?></div>
+                        <div class="text-muted small font-weight-bold text-uppercase" style="font-size: 11px;">Foreign (FCIN)</div>
+                    </a>
                 </div>
             </div>
 
@@ -1619,45 +2148,72 @@ $company_schema = [
                     </h3>
                 </div>
                 <div class="table-responsive mt-3">
-                    <table class="table table-bordered mb-0" style="border-color: #e2e8f0;">
+                    <table class="table table-bordered mb-0" style="border-color: #e2e8f0; font-size: 13px;">
                         <thead class="bg-light">
                             <tr>
-                                <th class="text-dark font-weight-bold">Feature</th>
-                                <th class="text-primary font-weight-bold">Private Limited Company</th>
-                                <th class="text-success font-weight-bold">Limited Liability Partnership</th>
-                                <th class="text-warning font-weight-bold">Foreign Company Branch/Subsidiary</th>
+                                <th class="text-dark font-weight-bold" style="min-width: 140px;">Feature</th>
+                                <th class="font-weight-bold text-primary" style="min-width: 160px;"><i class="fas fa-building mr-1"></i> Private Limited</th>
+                                <th class="font-weight-bold text-dark" style="min-width: 160px; color: #0284c7;"><i class="fas fa-landmark mr-1"></i> Public Limited</th>
+                                <th class="font-weight-bold" style="min-width: 160px; color: #7c3aed;"><i class="fas fa-user-tie mr-1"></i> OPC</th>
+                                <th class="font-weight-bold text-success" style="min-width: 160px;"><i class="fas fa-hands-helping mr-1"></i> Section 8 (NGO)</th>
+                                <th class="font-weight-bold text-dark" style="min-width: 160px; color: #0d9488;"><i class="fas fa-handshake mr-1"></i> LLP</th>
+                                <th class="font-weight-bold text-warning" style="min-width: 160px;"><i class="fas fa-globe mr-1"></i> Foreign Entity</th>
                             </tr>
                         </thead>
-                        <tbody class="small text-muted">
+                        <tbody class="text-muted">
                             <tr>
-                                <td class="font-weight-bold text-dark">Identifier Format</td>
-                                <td>21-digit CIN (e.g. <code>U47713DC2026PTC474566</code>)</td>
-                                <td>Alphanumeric LLPIN (e.g. <code>AAA-1234</code>)</td>
-                                <td>FCIN (Foreign Company ID)</td>
+                                <td class="font-weight-bold text-dark">CIN / Code Suffix</td>
+                                <td><code>PTC</code></td>
+                                <td><code>PLC</code></td>
+                                <td><code>OPC</code> / <code>PTC</code></td>
+                                <td><code>NPL</code> / <code>GAP</code> / <code>GPL</code></td>
+                                <td>LLPIN (e.g. <code>AAA-1234</code>)</td>
+                                <td><code>FTC</code> / FCIN</td>
                             </tr>
                             <tr>
                                 <td class="font-weight-bold text-dark">Governing Law</td>
                                 <td>Companies Act, 2013</td>
+                                <td>Companies Act, 2013 &amp; SEBI (if listed)</td>
+                                <td>Companies Act, 2013</td>
+                                <td>Companies Act, 2013 (Sec 8)</td>
                                 <td>LLP Act, 2008</td>
-                                <td>Companies Act &amp; RBI FEMA Guidelines</td>
+                                <td>Companies Act &amp; RBI FEMA</td>
                             </tr>
                             <tr>
-                                <td class="font-weight-bold text-dark">Minimum Members</td>
-                                <td>2 Shareholders &amp; 2 Directors</td>
-                                <td>2 Designated Partners</td>
-                                <td>1 Authorized Indian Representative</td>
+                                <td class="font-weight-bold text-dark">Min. Members / Directors</td>
+                                <td>2 Members / 2 Directors</td>
+                                <td>7 Members / 3 Directors</td>
+                                <td>1 Member / 1 Director</td>
+                                <td>2 Members / 2 Directors</td>
+                                <td>2 Partners</td>
+                                <td>1 Indian Rep.</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-dark">Profit Distribution</td>
+                                <td>Dividends permitted</td>
+                                <td>Dividends permitted</td>
+                                <td>Dividends permitted</td>
+                                <td><span class="badge badge-danger">Strictly Prohibited</span></td>
+                                <td>Profit share to partners</td>
+                                <td>Repatriable subject to RBI</td>
                             </tr>
                             <tr>
                                 <td class="font-weight-bold text-dark">Liability Protection</td>
-                                <td>Limited to unpaid share capital</td>
-                                <td>Limited to agreed contribution</td>
-                                <td>Limited / Foreign Parent Liability</td>
+                                <td>Limited to unpaid capital</td>
+                                <td>Limited to share value</td>
+                                <td>Limited to share capital</td>
+                                <td>Limited by shares/guarantee</td>
+                                <td>Limited to partner contribution</td>
+                                <td>Parent company liability</td>
                             </tr>
                             <tr>
                                 <td class="font-weight-bold text-dark">Annual MCA Filings</td>
-                                <td>AOC-4 (Accounts), MGT-7 (Return), DIR-3 KYC</td>
-                                <td>Form 8 (Statement of Accounts), Form 11 (Return)</td>
-                                <td>Form FC-3 &amp; Annual Financials</td>
+                                <td>AOC-4, MGT-7, DIR-3 KYC</td>
+                                <td>AOC-4, MGT-7, Secretarial Audit</td>
+                                <td>AOC-4, MGT-7A (simplified)</td>
+                                <td>AOC-4, MGT-7, Annual Returns</td>
+                                <td>Form 8 &amp; Form 11</td>
+                                <td>Form FC-3 &amp; Financials</td>
                             </tr>
                         </tbody>
                     </table>

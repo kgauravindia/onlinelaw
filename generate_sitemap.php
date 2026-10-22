@@ -29,7 +29,9 @@ function generate_main_sitemap_xml($base = null) {
         'nic' => ['priority' => '0.9', 'changefreq' => 'daily'],
         'pincode' => ['priority' => '0.9', 'changefreq' => 'daily'],
         'pincode-by-locality' => ['priority' => '0.9', 'changefreq' => 'daily'],
+        'pincode-finder' => ['priority' => '0.9', 'changefreq' => 'daily'],
         'bank-ifsc' => ['priority' => '0.9', 'changefreq' => 'daily'],
+        'bank-finder' => ['priority' => '0.9', 'changefreq' => 'daily'],
         'bank-ifsc-by-branch-name' => ['priority' => '0.9', 'changefreq' => 'daily'],
         'bank-micr' => ['priority' => '0.9', 'changefreq' => 'daily'],
         'gst-hsn-sac' => ['priority' => '0.9', 'changefreq' => 'daily'],
@@ -59,22 +61,50 @@ function generate_main_sitemap_xml($base = null) {
 
 function generate_pincode_sitemap_xml($base = null) {
     if (!$base) $base = get_sitemap_base_url();
-    $sql = "SELECT DISTINCT pincode FROM pincode WHERE pincode IS NOT NULL AND pincode != ''";
+    $sql = "SELECT DISTINCT pincode FROM pincode WHERE pincode IS NOT NULL AND pincode != '' ORDER BY pincode ASC";
     $res = direct_sql($sql);
-    $count = 0;
+    $total = 0;
+    $sitemaps = [];
     if ($res['count'] > 0) {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
-        foreach ($res['data'] as $row) {
-            $pin = $row['pincode'];
-            $url = $base . "pincode/" . $pin;
-            $xml .= "\t<url>\n\t\t<loc>" . htmlspecialchars($url) . "</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
+        $total = $res['count'];
+        $chunk_size = 45000;
+        $chunks = array_chunk($res['data'], $chunk_size);
+
+        foreach ($chunks as $index => $chunk) {
+            $part = $index + 1;
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            
+            if ($part == 1) {
+                $xml .= "\t<url>\n\t\t<loc>" . $base . "pincode</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
+                $xml .= "\t<url>\n\t\t<loc>" . $base . "pincode-by-locality</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>0.9</priority>\n\t</url>\n";
+            }
+
+            foreach ($chunk as $row) {
+                $pin = $row['pincode'];
+                $url = $base . "pincode/" . $pin;
+                $xml .= "\t<url>\n\t\t<loc>" . htmlspecialchars($url) . "</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
+            }
+            $xml .= '</urlset>';
+            $filename = "sitemap-pincode-part$part.xml";
+            file_put_contents(__DIR__ . '/' . $filename, $xml);
+            $sitemaps[] = $filename;
         }
-        $xml .= '</urlset>';
-        file_put_contents(__DIR__ . '/sitemap-pincode.xml', $xml);
-        $count = $res['count'];
+
+        if (count($sitemaps) > 1) {
+            $xml_index = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            $xml_index .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            foreach ($sitemaps as $map) {
+                $map_url = $base . $map;
+                $xml_index .= "\t<sitemap>\n\t\t<loc>" . htmlspecialchars($map_url) . "</loc>\n\t\t<lastmod>" . date('Y-m-d') . "</lastmod>\n\t</sitemap>\n";
+            }
+            $xml_index .= '</sitemapindex>';
+            file_put_contents(__DIR__ . '/sitemap-pincode.xml', $xml_index);
+        } else {
+            file_put_contents(__DIR__ . '/sitemap-pincode.xml', file_get_contents(__DIR__ . '/sitemap-pincode-part1.xml'));
+        }
     }
-    return ['count' => $count, 'file' => 'sitemap-pincode.xml', 'message' => "PIN Code sitemap generated with $count URLs."];
+    return ['count' => $total, 'file' => 'sitemap-pincode.xml', 'message' => "PIN Code sitemap generated with $total URLs across " . (count($sitemaps) ?: 1) . " part(s)."];
 }
 
 function generate_passport_sitemap_xml($base = null) {
@@ -272,38 +302,57 @@ function generate_nic_sitemap_xml($base = null) {
     return ['count' => $total, 'file' => 'sitemap-nic.xml', 'message' => "NIC 2025 sitemap generated with $total URLs."];
 }
 
-function generate_company_sitemap_xml($base = null) {
+function generate_company_category_sitemap_xml($category_key, $base = null) {
     if (!$base) $base = get_sitemap_base_url();
-    $sql = "SELECT DISTINCT cin, company_name FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND cin IS NOT NULL AND cin != '' ORDER BY cin ASC";
+    
+    $cat_upper = strtoupper($category_key);
+    $file_prefix = '';
+    $cat_name = '';
+    
+    if ($cat_upper === 'LLP') {
+        $where_cat = "UPPER(category) = 'LLP'";
+        $file_prefix = 'sitemap-company-llp';
+        $cat_name = 'LLP Entities';
+    } elseif ($cat_upper === 'FOREIGN') {
+        $where_cat = "UPPER(category) = 'FOREIGN'";
+        $file_prefix = 'sitemap-company-foreign';
+        $cat_name = 'Foreign Companies';
+    } else { // INDIAN / Default
+        $where_cat = "(UPPER(category) = 'INDIAN' OR category IS NULL OR category = '')";
+        $file_prefix = 'sitemap-company';
+        $cat_name = 'Indian Companies';
+    }
+    
+    $sql = "SELECT DISTINCT cin, company_name FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND $where_cat AND cin IS NOT NULL AND cin != '' ORDER BY cin ASC";
     $res = direct_sql($sql);
     $total = 0;
+    $sitemaps = [];
+    
     if ($res['count'] > 0) {
         $total = $res['count'];
         $chunk_size = 45000;
         $chunks = array_chunk($res['data'], $chunk_size);
-        $sitemaps = [];
-
+        
         foreach ($chunks as $index => $chunk) {
             $part = $index + 1;
             $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
             $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
             
-            if ($part == 1) {
+            if ($part == 1 && ($cat_upper === 'INDIAN' || $cat_upper === 'ALL')) {
                 $xml .= "\t<url>\n\t\t<loc>" . $base . "company-incorporation</loc>\n\t\t<changefreq>daily</changefreq>\n\t\t<priority>1.0</priority>\n\t</url>\n";
             }
-
+            
             foreach ($chunk as $row) {
                 $slug = company_slug($row['company_name'], $row['cin']);
                 $url = $base . "company-incorporation/" . $slug;
                 $xml .= "\t<url>\n\t\t<loc>" . htmlspecialchars($url) . "</loc>\n\t\t<changefreq>monthly</changefreq>\n\t\t<priority>0.8</priority>\n\t</url>\n";
             }
             $xml .= '</urlset>';
-            $filename = "sitemap-company-part$part.xml";
+            $filename = "{$file_prefix}-part$part.xml";
             file_put_contents(__DIR__ . '/' . $filename, $xml);
             $sitemaps[] = $filename;
         }
-
-        // If multiple parts, create index file sitemap-company.xml
+        
         if (count($sitemaps) > 1) {
             $xml_index = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
             $xml_index .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
@@ -312,19 +361,57 @@ function generate_company_sitemap_xml($base = null) {
                 $xml_index .= "\t<sitemap>\n\t\t<loc>" . htmlspecialchars($map_url) . "</loc>\n\t\t<lastmod>" . date('Y-m-d') . "</lastmod>\n\t</sitemap>\n";
             }
             $xml_index .= '</sitemapindex>';
-            file_put_contents(__DIR__ . '/sitemap-company.xml', $xml_index);
-        } else {
-            // Single part rename/copy to sitemap-company.xml
-            file_put_contents(__DIR__ . '/sitemap-company.xml', file_get_contents(__DIR__ . '/sitemap-company-part1.xml'));
+            file_put_contents(__DIR__ . "/{$file_prefix}.xml", $xml_index);
+        } elseif (count($sitemaps) === 1) {
+            file_put_contents(__DIR__ . "/{$file_prefix}.xml", file_get_contents(__DIR__ . "/{$sitemaps[0]}"));
         }
     }
-    return ['count' => $total + 1, 'file' => 'sitemap-company.xml', 'message' => "Company Incorporation sitemap generated with " . ($total + 1) . " URLs across " . count($sitemaps ?? [1]) . " part(s) (Company Name + CIN slugs)."];
+    
+    return [
+        'count' => $total,
+        'file' => "{$file_prefix}.xml",
+        'parts_count' => count($sitemaps),
+        'message' => "{$cat_name} sitemap generated with {$total} URLs across " . (count($sitemaps) ?: 0) . " part(s)."
+    ];
+}
+
+function generate_company_indian_sitemap_xml($base = null) {
+    return generate_company_category_sitemap_xml('INDIAN', $base);
+}
+
+function generate_company_llp_sitemap_xml($base = null) {
+    return generate_company_category_sitemap_xml('LLP', $base);
+}
+
+function generate_company_foreign_sitemap_xml($base = null) {
+    return generate_company_category_sitemap_xml('FOREIGN', $base);
+}
+
+function generate_company_sitemap_xml($base = null) {
+    $res_ind = generate_company_indian_sitemap_xml($base);
+    $res_llp = generate_company_llp_sitemap_xml($base);
+    $res_for = generate_company_foreign_sitemap_xml($base);
+    
+    return [
+        'count' => $res_ind['count'] + $res_llp['count'] + $res_for['count'],
+        'file' => 'sitemap-company.xml',
+        'results' => [
+            'indian' => $res_ind,
+            'llp' => $res_llp,
+            'foreign' => $res_for
+        ],
+        'message' => "All Company sitemaps generated (Indian: {$res_ind['count']}, LLP: {$res_llp['count']}, Foreign: {$res_for['count']})."
+    ];
 }
 
 function generate_all_sitemaps_unified($base = null) {
     if (!$base) $base = get_sitemap_base_url();
     $results = [];
     $results['main'] = generate_main_sitemap_xml($base);
+    $results['company_indian'] = generate_company_indian_sitemap_xml($base);
+    $results['company_llp'] = generate_company_llp_sitemap_xml($base);
+    $results['company_foreign'] = generate_company_foreign_sitemap_xml($base);
+    $results['company'] = generate_company_sitemap_xml($base);
     $results['pincode'] = generate_pincode_sitemap_xml($base);
     $results['passport'] = generate_passport_sitemap_xml($base);
     $results['ifsc'] = generate_ifsc_sitemap_xml($base);
@@ -332,7 +419,6 @@ function generate_all_sitemaps_unified($base = null) {
     $results['gst'] = generate_gst_sitemap_xml($base);
     $results['acts'] = generate_acts_sitemap_xml($base);
     $results['nic'] = generate_nic_sitemap_xml($base);
-    $results['company'] = generate_company_sitemap_xml($base);
     return $results;
 }
 

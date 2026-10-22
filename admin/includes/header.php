@@ -100,6 +100,9 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
             <a href="manage_sitemap.php" class="nav-link-custom <?php echo ($current_page == 'manage_sitemap.php') ? 'active' : ''; ?>" title="Sitemap & SEO Engine">
                 <i class="fas fa-sitemap"></i> <span>Sitemap Manager</span>
             </a>
+            <a href="manage_settings.php" class="nav-link-custom <?php echo ($current_page == 'manage_settings.php') ? 'active' : ''; ?>" title="Site Settings &amp; Analytics">
+                <i class="fas fa-sliders-h"></i> <span>Site Settings &amp; Analytics</span>
+            </a>
             <a href="manage_users.php" class="nav-link-custom <?php echo in_array($current_page, ['manage_users.php', 'edit_user.php']) ? 'active' : ''; ?>" title="Platform Users">
                 <i class="fas fa-users"></i> <span>Users</span>
             </a>
