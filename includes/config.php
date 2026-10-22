@@ -90,7 +90,7 @@ $dev_by ="OfferPlant";
 $dev_url ="http://offerplant.com";
 $dev_email ="ask@offerplant.com";
 $dev_contact ="+91 9431 42 6600";
-$api_key ='a9dcc62d6078b881d318aca0ead65ab5'; //MyAdvIndia@2020
+$api_key = '';
 
 $host_name ='localhost';
 if(isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost') {

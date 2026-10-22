@@ -604,9 +604,11 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
                     <p style="font-size: 14.5px; color: #475569; line-height: 1.7;">
                         Authenticate your requests by passing your API Key via URL parameter (<code>?api_key=...</code>), Request Header (<code>X-API-Key: ...</code>), or Bearer Authorization header.
                     </p>
-                    <div class="p-3 rounded mb-3" style="background: #f1f5f9; border: 1px solid #e2e8f0;">
-                        <span class="text-muted small d-block">PUBLIC SANDBOX KEY:</span>
-                        <code style="font-family: var(--font-code); font-size: 15px; font-weight: 700; color: #2563eb;"><?php echo $api_key ?: 'olaw_public_sandbox'; ?></code>
+                    <div class="p-3 rounded mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <span class="text-muted small d-block mb-1 font-weight-bold text-uppercase"><i class="fas fa-shield-alt text-primary mr-1"></i> API Key Access</span>
+                        <p class="mb-0 text-muted" style="font-size: 13.5px; line-height: 1.6;">
+                            A valid API key is required for authentication. Replace <code>YOUR_API_KEY</code> with your assigned access key in requests. Contact your system administrator to generate or manage API keys.
+                        </p>
                     </div>
 
                     <!-- Usage Tracker -->
@@ -632,8 +634,8 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
                     </div>
                     <p class="text-muted small mb-2">Lookup official bank name, branch address, state, district, and MICR code.</p>
                     <div class="endpoint-url-box">
-                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=bank-ifsc&amp;ifsc=SBIN0000001</span>
-                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=bank-ifsc&ifsc=SBIN0000001', this)"><i class="fas fa-copy"></i></button>
+                        <span><?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&amp;action=bank-ifsc&amp;ifsc=SBIN0000001</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&action=bank-ifsc&ifsc=SBIN0000001', this)"><i class="fas fa-copy"></i></button>
                     </div>
                     <h6 class="font-weight-bold mt-3 mb-2" style="font-size: 13.5px;">Sample Response:</h6>
                     <div class="code-block-box">
@@ -661,8 +663,8 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
                     </div>
                     <p class="text-muted small mb-2">Resolve 6-digit Indian PIN codes to post office names, districts, states, and circles.</p>
                     <div class="endpoint-url-box">
-                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=pincode&amp;pincode=110001</span>
-                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=pincode&pincode=110001', this)"><i class="fas fa-copy"></i></button>
+                        <span><?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&amp;action=pincode&amp;pincode=110001</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&action=pincode&pincode=110001', this)"><i class="fas fa-copy"></i></button>
                     </div>
                 </div>
 
@@ -674,8 +676,8 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
                     </div>
                     <p class="text-muted small mb-2">Search Harmonized System Nomenclature (HSN) and Service Accounting Codes (SAC).</p>
                     <div class="endpoint-url-box">
-                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=hsn-sac&amp;q=998311</span>
-                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=hsn-sac&q=998311', this)"><i class="fas fa-copy"></i></button>
+                        <span><?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&amp;action=hsn-sac&amp;q=998311</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&action=hsn-sac&q=998311', this)"><i class="fas fa-copy"></i></button>
                     </div>
                 </div>
 
@@ -687,8 +689,8 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
                     </div>
                     <p class="text-muted small mb-2">Decode 5-digit National Industrial Classification codes for SPICe+ &amp; Udyam registration.</p>
                     <div class="endpoint-url-box">
-                        <span><?php echo $base_url; ?>api.php?api_key=...&amp;action=nic&amp;code=62011</span>
-                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=<?php echo $api_key; ?>&action=nic&code=62011', this)"><i class="fas fa-copy"></i></button>
+                        <span><?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&amp;action=nic&amp;code=62011</span>
+                        <button class="copy-btn-api" onclick="copyText('<?php echo $base_url; ?>api.php?api_key=YOUR_API_KEY&action=nic&code=62011', this)"><i class="fas fa-copy"></i></button>
                     </div>
                 </div>
 
