@@ -24,6 +24,16 @@ mysqli_query($con, "CREATE TABLE IF NOT EXISTS `contact` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// Auto-upgrade contact table schema with email reply tracking columns
+$col_check = mysqli_query($con, "SHOW COLUMNS FROM `contact` LIKE 'reply_message'");
+if ($col_check && mysqli_num_rows($col_check) == 0) {
+    mysqli_query($con, "ALTER TABLE `contact` 
+        ADD COLUMN `reply_message` text NULL AFTER `message`,
+        ADD COLUMN `reply_subject` varchar(255) NULL AFTER `reply_message`,
+        ADD COLUMN `replied_at` datetime NULL AFTER `reply_subject`,
+        ADD COLUMN `replied_by` varchar(100) NULL AFTER `replied_at`");
+}
+
 // Helper to build query URL with preserved parameters
 function get_contact_page_url($target_page, $custom_limit = null) {
     $params = $_GET;
@@ -113,6 +123,138 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_action'])) {
     if (isset($_POST['redirect_limit'])) $_REQUEST['limit'] = $_POST['redirect_limit'];
     if (isset($_POST['redirect_p'])) $_REQUEST['p'] = $_POST['redirect_p'];
     
+    header("Location: " . get_contact_redirect_url());
+    exit();
+}
+
+// Handle Send Email Reply to Contact Inquiry
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_contact_email_reply') {
+    $contact_id = intval($_POST['contact_id'] ?? 0);
+    $recipient_email = trim($_POST['recipient_email'] ?? '');
+    $email_subject = trim($_POST['email_subject'] ?? '');
+    $reply_message = trim($_POST['reply_message'] ?? '');
+    $auto_resolve = isset($_POST['auto_resolve']) && $_POST['auto_resolve'] == '1';
+    $send_bcc = isset($_POST['send_bcc']) && $_POST['send_bcc'] == '1';
+
+    if ($contact_id > 0 && !empty($recipient_email) && filter_var($recipient_email, FILTER_VALIDATE_EMAIL) && !empty($reply_message)) {
+        // Fetch original contact record
+        $inq_res = direct_sql("SELECT * FROM contact WHERE id = $contact_id LIMIT 1");
+        if (!empty($inq_res['count']) && $inq_res['count'] > 0) {
+            $inq = $inq_res['data'][0];
+            $sender_name = $inq['name'] ?? 'User';
+            $orig_msg = $inq['message'] ?? '';
+            $orig_area = $inq['area'] ?? 'Inquiry';
+
+            if (empty($email_subject)) {
+                $email_subject = "Re: Your Inquiry to Online Law (#$contact_id)";
+            }
+
+            // High-deliverability branded HTML Email Template
+            $from_mail = !empty($noreply_email) ? $noreply_email : 'care@olaw.in';
+            $support_mail = !empty($inst_email) ? $inst_email : 'care@olaw.in';
+            $company_name = !empty($inst_name) ? $inst_name : 'Online Law';
+
+            $html_content = "
+            <!DOCTYPE html>
+            <html lang='en'>
+            <head>
+                <meta charset='utf-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f1f5f9; margin: 0; padding: 24px 12px; }
+                    .email-wrapper { max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+                    .email-header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1d4ed8 100%); color: #ffffff; padding: 32px 28px; text-align: left; }
+                    .email-header h2 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #ffffff; }
+                    .email-header p { margin: 0; color: #93c5fd; font-size: 13.5px; }
+                    .email-body { padding: 30px 28px; color: #334155; font-size: 15px; }
+                    .salutation { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 18px; }
+                    .reply-text { font-size: 15px; color: #1e293b; white-space: pre-line; line-height: 1.7; margin-bottom: 24px; padding: 18px 20px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; }
+                    .quote-header { font-size: 12px; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-bottom: 8px; }
+                    .quote-box { background: #ffffff; border-left: 3px solid #94a3b8; padding: 14px 18px; color: #64748b; font-size: 13.5px; margin-bottom: 24px; border-radius: 0 8px 8px 0; border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+                    .email-footer { background: #f8fafc; padding: 22px 28px; border-top: 1px solid #e2e8f0; font-size: 12.5px; color: #64748b; line-height: 1.7; }
+                    .email-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
+                </style>
+            </head>
+            <body>
+                <div class='email-wrapper'>
+                    <div class='email-header'>
+                        <h2>{$company_name} &bull; Response Desk</h2>
+                        <p>Inquiry Ticket Reference #{$contact_id} &bull; " . htmlspecialchars($orig_area) . "</p>
+                    </div>
+                    <div class='email-body'>
+                        <div class='salutation'>Dear " . htmlspecialchars($sender_name) . ",</div>
+                        <p>Thank you for contacting <strong>{$company_name}</strong>. Our administration desk has reviewed your submission and provided the following official response:</p>
+                        
+                        <div class='reply-text'>" . nl2br(htmlspecialchars($reply_message)) . "</div>
+
+                        <div class='quote-header'>Reference &mdash; Your Original Submission:</div>
+                        <div class='quote-box'>
+                            <em>\"" . nl2br(htmlspecialchars($orig_msg)) . "\"</em>
+                        </div>
+
+                        <p style='margin-bottom: 0;'>If you have any further questions or require additional clarifications, feel free to reply directly to this email or reach our support team at <a href='mailto:{$support_mail}' style='color: #2563eb; text-decoration: none; font-weight: 600;'>{$support_mail}</a>.</p>
+                    </div>
+                    <div class='email-footer'>
+                        <strong>{$company_name}</strong> &bull; India's Open Legal &amp; Corporate Directory Platform<br>
+                        Address: {$inst_address1}, {$inst_address2}<br>
+                        Official Helpdesk: <a href='mailto:{$support_mail}'>{$support_mail}</a> &bull; Web: <a href='{$inst_url}'>{$inst_domain}</a>
+                    </div>
+                </div>
+            </body>
+            </html>
+            ";
+
+            // Standard HTML Email Headers
+            $headers = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $headers .= "From: {$company_name} <{$from_mail}>\r\n";
+            $headers .= "Reply-To: {$company_name} <{$support_mail}>\r\n";
+            if ($send_bcc && !empty($support_mail)) {
+                $headers .= "Bcc: {$support_mail}\r\n";
+            }
+            $headers .= "X-Mailer: PHP/" . phpversion();
+
+            // Dispatch email via mail()
+            $mail_sent = @mail($recipient_email, $email_subject, $html_content, $headers);
+
+            // Record Reply into Database
+            $safe_reply = mysqli_real_escape_string($con, $reply_message);
+            $safe_subj = mysqli_real_escape_string($con, $email_subject);
+            $admin_user = mysqli_real_escape_string($con, strval($_SESSION['user_id'] ?? 'Admin'));
+            $status_update_sql = $auto_resolve ? ", status = 'RESOLVED'" : "";
+
+            mysqli_query($con, "UPDATE contact SET 
+                reply_message = '$safe_reply',
+                reply_subject = '$safe_subj',
+                replied_at = NOW(),
+                replied_by = '$admin_user',
+                updated_at = NOW()
+                $status_update_sql
+                WHERE id = $contact_id");
+
+            unset($_SESSION['unread_contact_count']);
+
+            if ($mail_sent) {
+                $_SESSION['flash_msg'] = "Email reply sent successfully to " . htmlspecialchars($recipient_email) . ($auto_resolve ? " and inquiry marked as RESOLVED." : ".");
+                $_SESSION['flash_type'] = "success";
+            } else {
+                $_SESSION['flash_msg'] = "Reply saved to inquiry #{$contact_id}, but the server mail transport reported an issue delivering to " . htmlspecialchars($recipient_email) . ". (Tip: Ensure sendmail/SMTP is active on server).";
+                $_SESSION['flash_type'] = "warning";
+            }
+        } else {
+            $_SESSION['flash_msg'] = "Inquiry record #$contact_id not found.";
+            $_SESSION['flash_type'] = "danger";
+        }
+    } else {
+        $_SESSION['flash_msg'] = "Please provide a valid recipient email address and response message.";
+        $_SESSION['flash_type'] = "danger";
+    }
+
+    if (isset($_POST['redirect_tab'])) $_REQUEST['tab'] = $_POST['redirect_tab'];
+    if (isset($_POST['redirect_q'])) $_REQUEST['q'] = $_POST['redirect_q'];
+    if (isset($_POST['redirect_limit'])) $_REQUEST['limit'] = $_POST['redirect_limit'];
+    if (isset($_POST['redirect_p'])) $_REQUEST['p'] = $_POST['redirect_p'];
+
     header("Location: " . get_contact_redirect_url());
     exit();
 }
@@ -295,7 +437,7 @@ require_once('includes/header.php');
                             <th class="px-4 py-3 border-0" style="width: 150px;">Category</th>
                             <th class="px-4 py-3 border-0">Message &amp; Extraction</th>
                             <th class="px-4 py-3 border-0" style="width: 130px;">Status</th>
-                            <th class="px-4 py-3 border-0 text-right" style="width: 170px;">Actions</th>
+                            <th class="px-4 py-3 border-0 text-right" style="width: 220px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -333,6 +475,13 @@ require_once('includes/header.php');
                                         <?php if (!empty($row['mobile'])): ?>
                                             <div class="small"><a href="tel:<?php echo htmlspecialchars($row['mobile']); ?>" class="text-muted"><i class="fas fa-phone mr-1 text-success"></i> <?php echo htmlspecialchars($row['mobile']); ?></a></div>
                                         <?php endif; ?>
+                                        <?php if (!empty($row['replied_at'])): ?>
+                                            <div class="mt-1">
+                                                <span class="badge badge-primary px-2 py-0.5 text-white" style="font-size: 10.5px; border-radius: 10px;" title="Replied on <?php echo date('d M Y, h:i A', strtotime($row['replied_at'])); ?> by <?php echo htmlspecialchars($row['replied_by'] ?? 'Admin'); ?>">
+                                                    <i class="fas fa-reply mr-1"></i> Replied <?php echo date('d M', strtotime($row['replied_at'])); ?>
+                                                </span>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-4 py-3">
                                         <?php if ($is_complaint): ?>
@@ -359,6 +508,15 @@ require_once('includes/header.php');
                                                 </a>
                                             </div>
                                         <?php endif; ?>
+
+                                        <?php if (!empty($row['reply_message'])): ?>
+                                            <div class="mt-2 p-2 rounded small" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
+                                                <div class="font-weight-bold d-flex align-items-center justify-content-between">
+                                                    <span><i class="fas fa-check-circle mr-1 text-success"></i> Sent Email Reply (<?php echo !empty($row['replied_at']) ? date('d M Y, h:i A', strtotime($row['replied_at'])) : ''; ?>):</span>
+                                                </div>
+                                                <div class="text-muted mt-1 font-italic" style="white-space: pre-line; max-height: 70px; overflow-y: auto;"><?php echo htmlspecialchars($row['reply_message']); ?></div>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-4 py-3">
                                         <?php 
@@ -376,13 +534,35 @@ require_once('includes/header.php');
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <div class="btn-group btn-group-sm">
+                                            <?php if (!empty($row['email'])): ?>
+                                                <button type="button" class="btn btn-primary font-weight-bold btn-reply-contact" 
+                                                    data-id="<?php echo $row['id']; ?>"
+                                                    data-name="<?php echo htmlspecialchars($row['name']); ?>"
+                                                    data-email="<?php echo htmlspecialchars($row['email']); ?>"
+                                                    data-mobile="<?php echo htmlspecialchars($row['mobile']); ?>"
+                                                    data-area="<?php echo htmlspecialchars($row['area']); ?>"
+                                                    data-message="<?php echo htmlspecialchars($row['message']); ?>"
+                                                    data-cin="<?php echo htmlspecialchars($cin_match); ?>"
+                                                    data-replied="<?php echo !empty($row['replied_at']) ? '1' : '0'; ?>"
+                                                    data-last-reply="<?php echo htmlspecialchars($row['reply_message'] ?? ''); ?>"
+                                                    data-last-subject="<?php echo htmlspecialchars($row['reply_subject'] ?? ''); ?>"
+                                                    data-last-replied-at="<?php echo !empty($row['replied_at']) ? date('d M Y, h:i A', strtotime($row['replied_at'])) : ''; ?>"
+                                                    title="Reply via Email">
+                                                    <i class="fas fa-reply mr-1"></i> Reply
+                                                </button>
+                                            <?php else: ?>
+                                                <button type="button" class="btn btn-outline-secondary" disabled title="No email address provided by sender">
+                                                    <i class="fas fa-envelope-slash"></i>
+                                                </button>
+                                            <?php endif; ?>
+
                                             <?php if (strtoupper($row['status'] ?? '') !== 'RESOLVED'): ?>
                                                 <a href="manage_contact.php?id=<?php echo $row['id']; ?>&update_status=RESOLVED<?php echo ($tab !== 'all') ? '&tab='.urlencode($tab) : ''; ?><?php echo (!empty($q)) ? '&q='.urlencode($q) : ''; ?><?php echo ($limit != 20) ? '&limit='.urlencode($limit) : ''; ?><?php echo ($page > 1) ? '&p='.urlencode($page) : ''; ?>" class="btn btn-outline-success font-weight-bold" title="Mark as Resolved">
-                                                    <i class="fas fa-check"></i> Resolve
+                                                    <i class="fas fa-check"></i>
                                                 </a>
                                             <?php else: ?>
                                                 <a href="manage_contact.php?id=<?php echo $row['id']; ?>&update_status=NEW<?php echo ($tab !== 'all') ? '&tab='.urlencode($tab) : ''; ?><?php echo (!empty($q)) ? '&q='.urlencode($q) : ''; ?><?php echo ($limit != 20) ? '&limit='.urlencode($limit) : ''; ?><?php echo ($page > 1) ? '&p='.urlencode($page) : ''; ?>" class="btn btn-outline-secondary" title="Reopen as New">
-                                                    Reopen
+                                                    <i class="fas fa-redo"></i>
                                                 </a>
                                             <?php endif; ?>
                                             <a href="manage_contact.php?del=<?php echo $row['id']; ?><?php echo ($tab !== 'all') ? '&tab='.urlencode($tab) : ''; ?><?php echo (!empty($q)) ? '&q='.urlencode($q) : ''; ?><?php echo ($limit != 20) ? '&limit='.urlencode($limit) : ''; ?><?php echo ($page > 1) ? '&p='.urlencode($page) : ''; ?>" onclick="return confirm('Delete this inquiry permanently?');" class="btn btn-outline-danger" title="Delete Inquiry">
@@ -521,6 +701,168 @@ require_once('includes/header.php');
 
     </div>
 </form>
+
+<!-- Email Reply Modal -->
+<div class="modal fade" id="replyContactModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-lg, 16px); overflow: hidden;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1d4ed8 100%); padding: 18px 24px;">
+                <div class="d-flex align-items-center">
+                    <div class="mr-3" style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fas fa-reply"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold mb-0 text-white" id="replyModalLabel" style="font-size: 1.15rem;">
+                            Reply to Inquiry <span id="modalInquiryIdBadge" class="badge badge-light text-primary font-weight-bold ml-1"></span>
+                        </h5>
+                        <p class="mb-0 text-white-50 small">Official email dispatch to sender from <?php echo htmlspecialchars($noreply_email ?: 'care@olaw.in'); ?></p>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <form method="POST" action="manage_contact.php" id="replyContactForm">
+                <input type="hidden" name="action" value="send_contact_email_reply">
+                <input type="hidden" name="contact_id" id="modalContactIdInput" value="">
+                <input type="hidden" name="redirect_tab" value="<?php echo htmlspecialchars($tab); ?>">
+                <input type="hidden" name="redirect_q" value="<?php echo htmlspecialchars($q); ?>">
+                <input type="hidden" name="redirect_limit" value="<?php echo htmlspecialchars($limit); ?>">
+                <input type="hidden" name="redirect_p" value="<?php echo htmlspecialchars($page); ?>">
+
+                <div class="modal-body p-4" style="background: #ffffff;">
+                    
+                    <!-- Sender & Inquiry Summary Strip -->
+                    <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <div class="row small align-items-center">
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <span class="text-muted d-block font-weight-bold text-uppercase" style="font-size: 11px;">Sender Name:</span>
+                                <strong class="text-dark font-weight-bold" id="modalSenderNameDisplay">-</strong>
+                            </div>
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <span class="text-muted d-block font-weight-bold text-uppercase" style="font-size: 11px;">Mobile / Phone:</span>
+                                <span class="text-dark font-weight-500" id="modalSenderMobileDisplay">-</span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted d-block font-weight-bold text-uppercase" style="font-size: 11px;">Inquiry Area:</span>
+                                <span class="badge badge-primary px-2.5 py-1 font-weight-bold" id="modalSenderCategoryDisplay">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Original Message -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="small text-muted font-weight-bold text-uppercase mb-0">
+                                <i class="fas fa-quote-left mr-1 text-primary"></i> Original Message Received:
+                            </label>
+                            <a class="small text-primary font-weight-bold" data-toggle="collapse" href="#modalOriginalMessageCollapse" role="button" aria-expanded="true" aria-controls="modalOriginalMessageCollapse">
+                                Toggle Details
+                            </a>
+                        </div>
+                        <div class="collapse show" id="modalOriginalMessageCollapse">
+                            <div class="p-3 rounded small text-dark" id="modalOriginalMessageText" style="background: #f8fafc; border-left: 3px solid #3b82f6; max-height: 120px; overflow-y: auto; white-space: pre-line; line-height: 1.55; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                                -
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Previous Reply Notice (shown if already replied) -->
+                    <div id="modalPreviousReplyBox" class="alert alert-info border-0 p-3 mb-3 d-none" style="border-radius: var(--radius-sm, 8px); background: #eff6ff; border-left: 4px solid #2563eb !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <strong class="text-primary small font-weight-bold">
+                                <i class="fas fa-history mr-1"></i> Previously Replied on <span id="modalPreviousRepliedAt"></span>
+                            </strong>
+                            <a class="small text-primary font-weight-bold" data-toggle="collapse" href="#modalPreviousReplyCollapse" role="button">
+                                View Previous Sent Reply
+                            </a>
+                        </div>
+                        <div class="collapse" id="modalPreviousReplyCollapse">
+                            <div class="p-2 mt-2 bg-white rounded border small text-dark font-italic" id="modalPreviousReplyText" style="white-space: pre-line; max-height: 100px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Template Dropdown -->
+                    <div class="form-group mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="quickTemplateSelect" class="small font-weight-bold text-uppercase text-muted mb-0">
+                                <i class="fas fa-magic mr-1 text-primary"></i> Load Response Template:
+                            </label>
+                            <span class="badge badge-light text-muted border font-weight-normal">Auto-populates subject &amp; message</span>
+                        </div>
+                        <select id="quickTemplateSelect" class="custom-select custom-select-sm" style="height: 38px; font-size: 0.88rem; border-radius: var(--radius-sm, 8px);">
+                            <option value="">-- Choose a standard template or compose custom reply --</option>
+                            <option value="data_removal">1. Company Delisting / Data Removal - Confirmed &amp; Completed</option>
+                            <option value="need_docs">2. Company Delisting / Data Removal - Proof &amp; Documents Required</option>
+                            <option value="general_help">3. General Public Civic Data &amp; Platform Guidance</option>
+                            <option value="api_inquiry">4. Developer REST API Hub &amp; Integration Access</option>
+                            <option value="blank">5. Blank / Clear Template</option>
+                        </select>
+                    </div>
+
+                    <!-- Recipient Email & Subject -->
+                    <div class="form-row mb-3">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <label for="modalRecipientEmail" class="small font-weight-bold text-dark mb-1">
+                                Recipient Email Address <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light text-muted"><i class="fas fa-envelope"></i></span>
+                                </div>
+                                <input type="email" name="recipient_email" id="modalRecipientEmail" class="form-control" required style="height: 38px; font-size: 0.88rem;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modalEmailSubject" class="small font-weight-bold text-dark mb-1">
+                                Email Subject Line <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="email_subject" id="modalEmailSubject" class="form-control form-control-sm" required style="height: 38px; font-size: 0.88rem;" placeholder="Re: Your Inquiry to Online Law">
+                        </div>
+                    </div>
+
+                    <!-- Reply Message Textarea -->
+                    <div class="form-group mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="modalReplyMessage" class="small font-weight-bold text-dark mb-0">
+                                Reply Message Body <span class="text-danger">*</span>
+                            </label>
+                            <span class="small text-muted font-italic">Formatted into official branded HTML email</span>
+                        </div>
+                        <textarea name="reply_message" id="modalReplyMessage" rows="7" class="form-control" required placeholder="Type your response message here..." style="font-size: 0.9rem; line-height: 1.6; border-radius: var(--radius-sm, 8px);"></textarea>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="p-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <div class="custom-control custom-checkbox mb-2">
+                            <input type="checkbox" name="auto_resolve" value="1" class="custom-control-input" id="checkAutoResolve" checked>
+                            <label class="custom-control-label font-weight-bold text-dark cursor-pointer" for="checkAutoResolve" style="font-size: 0.88rem;">
+                                Automatically mark this inquiry as <span class="badge badge-success px-2 py-0.5">RESOLVED</span> upon sending email
+                            </label>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" name="send_bcc" value="1" class="custom-control-input" id="checkSendBcc" checked>
+                            <label class="custom-control-label text-muted cursor-pointer" for="checkSendBcc" style="font-size: 0.85rem;">
+                                Send audit copy (BCC) to helpdesk (<?php echo htmlspecialchars($inst_email ?: 'care@olaw.in'); ?>)
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-outline-secondary font-weight-bold px-3" data-dismiss="modal" style="border-radius: var(--radius-sm, 8px);">
+                        <i class="fas fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" id="btnSubmitReply" style="border-radius: var(--radius-sm, 8px);">
+                        <i class="fas fa-paper-plane mr-1.5"></i> Send Email Reply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <style>
 .cursor-pointer {
@@ -688,6 +1030,156 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // =========================================================================
+    // Email Reply Modal Handlers
+    // =========================================================================
+    $('.btn-reply-contact').on('click', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        const name = $(this).data('name') || 'User';
+        const email = $(this).data('email') || '';
+        const mobile = $(this).data('mobile') || 'N/A';
+        const area = $(this).data('area') || 'General Inquiry';
+        const message = $(this).data('message') || '';
+        const cin = $(this).data('cin') || '';
+        const replied = $(this).data('replied') == '1';
+        const lastReply = $(this).data('last-reply') || '';
+        const lastSubject = $(this).data('last-subject') || '';
+        const lastRepliedAt = $(this).data('last-replied-at') || '';
+
+        $('#modalContactIdInput').val(id);
+        $('#modalInquiryIdBadge').text('#' + id);
+        $('#modalSenderNameDisplay').text(name);
+        $('#modalSenderMobileDisplay').text(mobile);
+        $('#modalSenderCategoryDisplay').text(area);
+        $('#modalOriginalMessageText').text(message);
+        $('#modalRecipientEmail').val(email);
+
+        // Store active item data on the modal for quick templates
+        $('#replyContactModal').data('active-item', {
+            id: id,
+            name: name,
+            email: email,
+            mobile: mobile,
+            area: area,
+            message: message,
+            cin: cin
+        });
+
+        // Set previous reply state
+        if (replied && lastRepliedAt) {
+            $('#modalPreviousReplyBox').removeClass('d-none');
+            $('#modalPreviousRepliedAt').text(lastRepliedAt);
+            $('#modalPreviousReplyText').text(lastReply || '(Empty message)');
+        } else {
+            $('#modalPreviousReplyBox').addClass('d-none');
+        }
+
+        // Reset template selector
+        $('#quickTemplateSelect').val('');
+
+        // Set contextual default subject & greeting
+        const isRemoval = area.toLowerCase().includes('complain') || area.toLowerCase().includes('delete') || message.toUpperCase().includes('DELIST') || message.toUpperCase().includes('DELETE') || cin !== '';
+        if (isRemoval && cin) {
+            $('#modalEmailSubject').val(`Re: Request regarding ${cin} [#${id}] - Online Law Support`);
+            $('#quickTemplateSelect').val('data_removal').trigger('change');
+        } else {
+            $('#modalEmailSubject').val(`Re: Inquiry regarding ${area} [#${id}] - Online Law Support`);
+            $('#modalReplyMessage').val(`Dear ${name},\n\nThank you for contacting Online Law regarding ${area}.\n\n`);
+        }
+
+        $('#replyContactModal').modal('show');
+    });
+
+    // Quick Template Selector Change Handler
+    $('#quickTemplateSelect').on('change', function() {
+        const tpl = $(this).val();
+        const item = $('#replyContactModal').data('active-item') || {};
+        const name = item.name || 'User';
+        const area = item.area || 'your inquiry';
+        const cin = item.cin || '';
+        const id = item.id || '';
+
+        if (tpl === 'data_removal') {
+            $('#modalEmailSubject').val(`Re: Corporate Listing Delisting Request regarding ${cin || 'Company'} [#${id}] - Online Law`);
+            $('#modalReplyMessage').val(
+`Dear ${name},
+
+Thank you for contacting Online Law regarding the corporate listing for ${cin ? '(' + cin + ')' : 'your company'}.
+
+We have verified your request and records. The specified corporate record has been delisted and unlinked from our public website search directory.
+
+Please allow a brief interval for external third-party search engines (such as Google and Bing) to refresh their automated search index caches.
+
+If you have any further questions or require any additional assistance, please feel free to reply directly to this email.
+
+Warm regards,
+Online Law Support Desk
+Website: https://olaw.in`
+            );
+        } else if (tpl === 'need_docs') {
+            $('#modalEmailSubject').val(`Re: Verification Documents Required for Company Record Request [#${id}] - Online Law`);
+            $('#modalReplyMessage').val(
+`Dear ${name},
+
+Thank you for contacting Online Law regarding ${cin ? '(' + cin + ')' : 'the company record'}.
+
+In order to verify authorization and process your listing modification or data removal request, please reply directly to this email attaching the following documents:
+
+1. Copy of the official Certificate of Incorporation / MCA Master Data filing.
+2. Official request letter on the company's letterhead authorized by a Director.
+3. Government-issued photo ID of the authorized director or signatory.
+
+Upon receipt and review of these documents, our administration desk will process your request within 24–48 business hours.
+
+Warm regards,
+Online Law Compliance Desk
+Website: https://olaw.in`
+            );
+        } else if (tpl === 'general_help') {
+            $('#modalEmailSubject').val(`Re: Information regarding ${area} [#${id}] - Online Law Support`);
+            $('#modalReplyMessage').val(
+`Dear ${name},
+
+Thank you for contacting Online Law support regarding ${area}.
+
+Our platform is a free open digital directory dedicated to democratizing legal, banking, and public civic identifiers for every citizen across India. We synchronize data with official government and regulatory authorities including the Ministry of Corporate Affairs (MCA), Reserve Bank of India (RBI), and India Post.
+
+If you require specific lookup assistance or details regarding any identifier (such as Bank IFSC, MICR, PIN Code, or NIC Code), please reply with the exact details and we will be delighted to guide you.
+
+Warm regards,
+Online Law Support Desk
+Website: https://olaw.in`
+            );
+        } else if (tpl === 'api_inquiry') {
+            $('#modalEmailSubject').val(`Re: Developer REST API Hub & Data Integration [#${id}] - Online Law`);
+            $('#modalReplyMessage').val(
+`Dear ${name},
+
+Thank you for your interest in the Online Law Developer API Hub.
+
+We offer high-performance RESTful JSON APIs for Bank IFSC/MICR, Postal PIN Codes, GST HSN/SAC, and MCA Company Incorporations.
+
+You can learn more and review all available endpoints at our documentation page:
+https://olaw.in/api
+
+If you require a custom API Key, increased rate limits, or custom bulk enterprise endpoints, please reply to this email with your use case.
+
+Warm regards,
+Online Law API Operations
+Website: https://olaw.in`
+            );
+        } else if (tpl === 'blank') {
+            $('#modalReplyMessage').val(`Dear ${name},\n\n`);
+        }
+    });
+
+    // Form submit loading state
+    $('#replyContactForm').on('submit', function() {
+        const btn = $('#btnSubmitReply');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1.5"></i> Sending Email...');
+    });
 });
 </script>
 

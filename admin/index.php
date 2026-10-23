@@ -1,48 +1,99 @@
 <?php
 require_once('includes/header.php');
 
-// Fetch Primary Counts
-$companies_count = direct_sql("SELECT count(*) as total FROM companies_incorporated");
-$ifsc_count = direct_sql("SELECT count(*) as total FROM bank_ifsc");
-$pincode_count = direct_sql("SELECT count(*) as total FROM pincode");
-$acts_count = direct_sql("SELECT count(*) as total FROM acts");
-$users_count = direct_sql("SELECT count(*) as total FROM op_user");
+// Transient Cache for Dashboard Metrics (5-minute TTL)
+$force_refresh = isset($_GET['refresh']) && $_GET['refresh'] == '1';
+$cache_file = __DIR__ . '/../tmp/admin_dashboard_cache.json';
+$cache_valid = false;
+$cached_data = null;
 
-$total_companies = isset($companies_count['data'][0]['total']) ? (int)$companies_count['data'][0]['total'] : 0;
-$total_ifsc = isset($ifsc_count['data'][0]['total']) ? (int)$ifsc_count['data'][0]['total'] : 0;
-$total_pincodes = isset($pincode_count['data'][0]['total']) ? (int)$pincode_count['data'][0]['total'] : 0;
-$total_acts = isset($acts_count['data'][0]['total']) ? (int)$acts_count['data'][0]['total'] : 0;
-$total_users = isset($users_count['data'][0]['total']) ? (int)$users_count['data'][0]['total'] : 0;
-
-// Category breakdown for MCA Companies
-$cat_breakdown = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
-$cat_data = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0];
-if (isset($cat_breakdown['data'])) {
-    foreach ($cat_breakdown['data'] as $cb) {
-        $cat = strtoupper($cb['category'] ?? '');
-        if (isset($cat_data[$cat])) {
-            $cat_data[$cat] = (int)$cb['cnt'];
+if (!$force_refresh && file_exists($cache_file)) {
+    $raw_cache = @file_get_contents($cache_file);
+    if ($raw_cache) {
+        $cached_data = json_decode($raw_cache, true);
+        if ($cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['timestamp'] < 300)) {
+            $cache_valid = true;
         }
     }
 }
 
-// Percentages
-$pct_indian = $total_companies > 0 ? round(($cat_data['INDIAN'] / $total_companies) * 100, 1) : 0;
-$pct_llp = $total_companies > 0 ? round(($cat_data['LLP'] / $total_companies) * 100, 1) : 0;
-$pct_foreign = $total_companies > 0 ? round(($cat_data['FOREIGN'] / $total_companies) * 100, 1) : 0;
-
-// Monthly Incorporation Trends (Last 6 Months)
-$monthly_trends = direct_sql("SELECT report_month, COUNT(*) as cnt FROM companies_incorporated WHERE report_month IS NOT NULL AND report_month != '' GROUP BY report_month ORDER BY report_month ASC LIMIT 6");
-$chart_labels = [];
-$chart_values = [];
-if (isset($monthly_trends['data']) && count($monthly_trends['data']) > 0) {
-    foreach ($monthly_trends['data'] as $mt) {
-        $chart_labels[] = $mt['report_month'];
-        $chart_values[] = (int)$mt['cnt'];
-    }
+if ($cache_valid && $cached_data) {
+    $total_companies = $cached_data['total_companies'];
+    $total_ifsc = $cached_data['total_ifsc'];
+    $total_pincodes = $cached_data['total_pincodes'];
+    $total_acts = $cached_data['total_acts'];
+    $total_users = $cached_data['total_users'];
+    $cat_data = $cached_data['cat_data'];
+    $pct_indian = $cached_data['pct_indian'];
+    $pct_llp = $cached_data['pct_llp'];
+    $pct_foreign = $cached_data['pct_foreign'];
+    $chart_labels = $cached_data['chart_labels'];
+    $chart_values = $cached_data['chart_values'];
+    $cache_time_formatted = date('H:i', $cached_data['timestamp']);
 } else {
-    $chart_labels = ['Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026', 'Sep 2026'];
-    $chart_values = [12400, 14200, 13800, 15600, 16100, 17200];
+    // Fetch Primary Counts
+    $companies_count = direct_sql("SELECT count(*) as total FROM companies_incorporated");
+    $ifsc_count = direct_sql("SELECT count(*) as total FROM bank_ifsc");
+    $pincode_count = direct_sql("SELECT count(*) as total FROM pincode");
+    $acts_count = direct_sql("SELECT count(*) as total FROM acts");
+    $users_count = direct_sql("SELECT count(*) as total FROM op_user");
+
+    $total_companies = isset($companies_count['data'][0]['total']) ? (int)$companies_count['data'][0]['total'] : 0;
+    $total_ifsc = isset($ifsc_count['data'][0]['total']) ? (int)$ifsc_count['data'][0]['total'] : 0;
+    $total_pincodes = isset($pincode_count['data'][0]['total']) ? (int)$pincode_count['data'][0]['total'] : 0;
+    $total_acts = isset($acts_count['data'][0]['total']) ? (int)$acts_count['data'][0]['total'] : 0;
+    $total_users = isset($users_count['data'][0]['total']) ? (int)$users_count['data'][0]['total'] : 0;
+
+    // Category breakdown for MCA Companies
+    $cat_breakdown = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
+    $cat_data = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0];
+    if (isset($cat_breakdown['data'])) {
+        foreach ($cat_breakdown['data'] as $cb) {
+            $cat = strtoupper($cb['category'] ?? '');
+            if (isset($cat_data[$cat])) {
+                $cat_data[$cat] = (int)$cb['cnt'];
+            }
+        }
+    }
+
+    // Percentages
+    $pct_indian = $total_companies > 0 ? round(($cat_data['INDIAN'] / $total_companies) * 100, 1) : 0;
+    $pct_llp = $total_companies > 0 ? round(($cat_data['LLP'] / $total_companies) * 100, 1) : 0;
+    $pct_foreign = $total_companies > 0 ? round(($cat_data['FOREIGN'] / $total_companies) * 100, 1) : 0;
+
+    // Monthly Incorporation Trends (Last 6 Months)
+    $monthly_trends = direct_sql("SELECT report_month, COUNT(*) as cnt FROM companies_incorporated WHERE report_month IS NOT NULL AND report_month != '' GROUP BY report_month ORDER BY report_month ASC LIMIT 6");
+    $chart_labels = [];
+    $chart_values = [];
+    if (isset($monthly_trends['data']) && count($monthly_trends['data']) > 0) {
+        foreach ($monthly_trends['data'] as $mt) {
+            $chart_labels[] = $mt['report_month'];
+            $chart_values[] = (int)$mt['cnt'];
+        }
+    } else {
+        $chart_labels = ['Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026', 'Sep 2026'];
+        $chart_values = [12400, 14200, 13800, 15600, 16100, 17200];
+    }
+
+    // Persist Cache
+    if (!is_dir(__DIR__ . '/../tmp')) {
+        @mkdir(__DIR__ . '/../tmp', 0755, true);
+    }
+    @file_put_contents($cache_file, json_encode([
+        'timestamp' => time(),
+        'total_companies' => $total_companies,
+        'total_ifsc' => $total_ifsc,
+        'total_pincodes' => $total_pincodes,
+        'total_acts' => $total_acts,
+        'total_users' => $total_users,
+        'cat_data' => $cat_data,
+        'pct_indian' => $pct_indian,
+        'pct_llp' => $pct_llp,
+        'pct_foreign' => $pct_foreign,
+        'chart_labels' => $chart_labels,
+        'chart_values' => $chart_values
+    ]));
+    $cache_time_formatted = date('H:i');
 }
 ?>
 
@@ -55,7 +106,13 @@ if (isset($monthly_trends['data']) && count($monthly_trends['data']) > 0) {
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2" style="gap: 10px;">
         <span class="badge bg-white text-dark shadow-sm border px-3 py-2 rounded-pill d-inline-flex align-items-center" style="font-size: 0.85rem; font-weight: 600;">
             <i class="far fa-calendar-alt text-primary mr-2"></i><?php echo date('l, d M Y'); ?>
+            <?php if (isset($cache_time_formatted)): ?>
+            <span class="text-muted ml-2 small" title="Cache timestamp" style="font-size: 11px;">(Updated <?php echo $cache_time_formatted; ?>)</span>
+            <?php endif; ?>
         </span>
+        <a href="index.php?refresh=1" class="btn btn-outline-secondary px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;" title="Recalculate platform statistics">
+            <i class="fas fa-sync-alt mr-1"></i> Refresh
+        </a>
         <a href="manage_settings.php" class="btn btn-outline-secondary px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-sliders-h mr-1"></i> Site Settings
         </a>

@@ -782,19 +782,22 @@ if (!empty($faq_items)) {
                      NEARBY PIN CODES
                      ============================================================== -->
                 <?php
-                    if (strlen($pincode) >= 3) {
+                    if (strlen($pincode) >= 3 && is_numeric($pincode)) {
                         $prefix3 = substr($pincode, 0, 3);
                         $prefix4 = (strlen($pincode) >= 4) ? substr($pincode, 0, 4) : $prefix3;
-                        
-                        $safe_prefix3 = mysqli_real_escape_string($con, $prefix3);
-                        $safe_prefix4 = mysqli_real_escape_string($con, $prefix4);
-                        $safe_cur_pin = mysqli_real_escape_string($con, $pincode);
+                        $safe_cur_pin = intval($pincode);
 
-                        // Very Near (4-digit match)
-                        $very_near_res = direct_sql("SELECT DISTINCT pincode, district_name FROM pincode WHERE pincode LIKE '$safe_prefix4%' AND pincode != '$safe_cur_pin' ORDER BY pincode ASC LIMIT 8");
+                        // Very Near (4-digit match using fast indexed numeric range scan)
+                        $p4_int = intval($prefix4);
+                        $min4 = $p4_int * 100;
+                        $max4 = $min4 + 99;
+                        $very_near_res = direct_sql("SELECT DISTINCT pincode, district_name FROM pincode WHERE pincode >= $min4 AND pincode <= $max4 AND pincode != $safe_cur_pin ORDER BY pincode ASC LIMIT 8");
 
-                        // Nearby (3-digit match, excluding 4-digit pool)
-                        $nearby_res = direct_sql("SELECT DISTINCT pincode, district_name FROM pincode WHERE pincode LIKE '$safe_prefix3%' AND pincode NOT LIKE '$safe_prefix4%' AND pincode != '$safe_cur_pin' ORDER BY pincode ASC LIMIT 8");
+                        // Nearby (3-digit match, excluding 4-digit pool, using fast indexed numeric range scan)
+                        $p3_int = intval($prefix3);
+                        $min3 = $p3_int * 1000;
+                        $max3 = $min3 + 999;
+                        $nearby_res = direct_sql("SELECT DISTINCT pincode, district_name FROM pincode WHERE pincode >= $min3 AND pincode <= $max3 AND (pincode < $min4 OR pincode > $max4) AND pincode != $safe_cur_pin ORDER BY pincode ASC LIMIT 8");
                     }
                 ?>
 

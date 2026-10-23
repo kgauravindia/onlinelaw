@@ -24,12 +24,13 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
     
     <!-- CSS Dependencies -->
     <link rel="stylesheet" href="../css/bootstrap-4.1.3.min.css">
-    <link rel="stylesheet" href="../css/fontawesome-all-5.5.0.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="css/admin.css">
     <script src="../js/jquery-3.3.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <?php if ($current_page == 'index.php'): ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <?php endif; ?>
 </head>
 <body class="<?php echo ($current_page == 'login.php') ? 'login-page' : 'admin-dashboard'; ?>">
 <?php if ($current_page != 'login.php'): ?>
@@ -81,8 +82,13 @@ if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_S
 
             <div class="sidebar-nav-section mt-3">Helpdesk &amp; Inquiries</div>
             <?php
-                $unread_contact_res = direct_sql("SELECT COUNT(*) as total FROM contact WHERE status = 'NEW' OR status = '' OR status IS NULL");
-                $unread_contact_count = isset($unread_contact_res['data'][0]['total']) ? (int)$unread_contact_res['data'][0]['total'] : 0;
+                $now = time();
+                if (!isset($_SESSION['unread_contact_count']) || !isset($_SESSION['unread_contact_time']) || ($now - $_SESSION['unread_contact_time'] > 60)) {
+                    $unread_contact_res = direct_sql("SELECT COUNT(*) as total FROM contact WHERE status = 'NEW' OR status = '' OR status IS NULL");
+                    $_SESSION['unread_contact_count'] = isset($unread_contact_res['data'][0]['total']) ? (int)$unread_contact_res['data'][0]['total'] : 0;
+                    $_SESSION['unread_contact_time'] = $now;
+                }
+                $unread_contact_count = $_SESSION['unread_contact_count'];
             ?>
             <a href="manage_contact.php" class="nav-link-custom <?php echo ($current_page == 'manage_contact.php') ? 'active' : ''; ?>" title="User Inquiries &amp; Delisting Complaints">
                 <i class="fas fa-envelope-open-text"></i> <span>Inquiries &amp; Complaints</span>

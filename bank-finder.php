@@ -76,12 +76,26 @@
     $selected_district = isset($_GET['district']) ? trim($_GET['district']) : (isset($_POST['district']) ? trim($_POST['district']) : '');
     $selected_branch = isset($_GET['branch']) ? trim($_GET['branch']) : (isset($_POST['branch']) ? trim($_POST['branch']) : '');
 
-    // Fetch All Banks for Step 1 Dropdown
-    $banks_res = mysqli_query($con, "SELECT DISTINCT bank FROM bank_ifsc WHERE bank IS NOT NULL AND bank != '' ORDER BY bank ASC");
+    // Fetch All Banks for Step 1 Dropdown (Cached in tmp/ to eliminate 180k-row DISTINCT scan on every load)
+    $banks_cache_file = __DIR__ . '/tmp/bank_list.json';
     $all_banks = [];
-    if ($banks_res) {
-        while ($bRow = mysqli_fetch_assoc($banks_res)) {
-            $all_banks[] = $bRow['bank'];
+    if (file_exists($banks_cache_file) && (time() - filemtime($banks_cache_file) < 604800)) {
+        $raw_banks = @file_get_contents($banks_cache_file);
+        if ($raw_banks) {
+            $all_banks = json_decode($raw_banks, true) ?: [];
+        }
+    }
+    if (empty($all_banks)) {
+        $banks_res = mysqli_query($con, "SELECT DISTINCT bank FROM bank_ifsc WHERE bank IS NOT NULL AND bank != '' ORDER BY bank ASC");
+        if ($banks_res) {
+            while ($bRow = mysqli_fetch_assoc($banks_res)) {
+                $all_banks[] = $bRow['bank'];
+            }
+            mysqli_free_result($banks_res);
+            if (!is_dir(__DIR__ . '/tmp')) {
+                @mkdir(__DIR__ . '/tmp', 0755, true);
+            }
+            @file_put_contents($banks_cache_file, json_encode($all_banks));
         }
     }
 

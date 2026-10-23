@@ -1,4 +1,5 @@
 <?php
+define('REST_API', true);
 /**
  * Online Law - Developer API Hub & Documentation
  * RESTful JSON APIs for Bank IFSC, MICR, Pincode, GST HSN/SAC, MCA Companies, and NIC Codes
@@ -271,7 +272,14 @@ if (!empty($api_key_input) && isset($_REQUEST['action'])) {
             $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : $cin;
             if (!empty($q)) {
                 $safe_q = addslashes($q);
-                $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (cin = '$safe_q' OR cin LIKE '%$safe_q%' OR company_name LIKE '%$safe_q%') LIMIT 50");
+                // Fast unique index seek first if alphanumeric CIN candidate
+                $res = null;
+                if (strlen($safe_q) >= 8 && preg_match('/^[A-Z0-9_\-]+$/i', $safe_q)) {
+                    $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe_q' AND (status = 'ACTIVE' OR status IS NULL OR status = '') LIMIT 1");
+                }
+                if (empty($res['count'])) {
+                    $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (cin LIKE '$safe_q%' OR company_name LIKE '%$safe_q%') LIMIT 50");
+                }
                 if ($res['count'] > 0) {
                     foreach ($res['data'] as &$row) {
                         $row['nic_details'] = get_nic_details($row['cin'] ?: $row['activity_code']);

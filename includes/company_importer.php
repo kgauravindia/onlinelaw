@@ -20,20 +20,17 @@ function import_mca_incorporation_excel($filePath, $con, $forcedReportMonth = nu
     if ($zip->locateName('xl/sharedStrings.xml') !== false) {
         $xmlReader = new XMLReader();
         $xmlReader->xml($zip->getFromName('xl/sharedStrings.xml'));
+        $currentStr = '';
+        $inSi = false;
         while ($xmlReader->read()) {
             if ($xmlReader->nodeType == XMLReader::ELEMENT && $xmlReader->name == 'si') {
-                $node = new SimpleXMLElement($xmlReader->readOuterXML());
-                if (isset($node->t)) {
-                    $sharedStrings[] = (string)$node->t;
-                } elseif (isset($node->r)) {
-                    $t = '';
-                    foreach ($node->r as $r) {
-                        $t .= (string)$r->t;
-                    }
-                    $sharedStrings[] = $t;
-                } else {
-                    $sharedStrings[] = '';
-                }
+                $inSi = true;
+                $currentStr = '';
+            } elseif ($xmlReader->nodeType == XMLReader::END_ELEMENT && $xmlReader->name == 'si') {
+                $inSi = false;
+                $sharedStrings[] = $currentStr;
+            } elseif ($inSi && $xmlReader->nodeType == XMLReader::ELEMENT && $xmlReader->name == 't') {
+                $currentStr .= $xmlReader->readString();
             }
         }
         $xmlReader->close();
@@ -369,18 +366,17 @@ function import_mca_struck_off_excel($filePath, $con, $forcedReportMonth = null)
     if ($zip->locateName('xl/sharedStrings.xml') !== false) {
         $xmlReader = new XMLReader();
         $xmlReader->xml($zip->getFromName('xl/sharedStrings.xml'));
+        $currentStr = '';
+        $inSi = false;
         while ($xmlReader->read()) {
             if ($xmlReader->nodeType == XMLReader::ELEMENT && $xmlReader->name == 'si') {
-                $node = new SimpleXMLElement($xmlReader->readOuterXML());
-                $val = '';
-                if (isset($node->t)) {
-                    $val = (string)$node->t;
-                } elseif (isset($node->r)) {
-                    foreach ($node->r as $r) {
-                        $val .= (string)$r->t;
-                    }
-                }
-                $sharedStrings[] = $val;
+                $inSi = true;
+                $currentStr = '';
+            } elseif ($xmlReader->nodeType == XMLReader::END_ELEMENT && $xmlReader->name == 'si') {
+                $inSi = false;
+                $sharedStrings[] = $currentStr;
+            } elseif ($inSi && $xmlReader->nodeType == XMLReader::ELEMENT && $xmlReader->name == 't') {
+                $currentStr .= $xmlReader->readString();
             }
         }
         $xmlReader->close();

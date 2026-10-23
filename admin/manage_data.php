@@ -1,12 +1,38 @@
 <?php
 require_once('includes/header.php');
 
-// Fetch counts for each dataset
-$companies_count = direct_sql("SELECT count(*) as total FROM companies_incorporated");
-$ifsc_count = direct_sql("SELECT count(*) as total FROM bank_ifsc");
-$pincode_count = direct_sql("SELECT count(*) as total FROM pincode");
-$acts_count = direct_sql("SELECT count(*) as total FROM acts");
-$users_count = direct_sql("SELECT count(*) as total FROM op_user");
+// Fetch counts for each dataset with transient cache support
+$cache_file = __DIR__ . '/../tmp/admin_dashboard_cache.json';
+$cached_data = null;
+if (file_exists($cache_file)) {
+    $raw_cache = @file_get_contents($cache_file);
+    if ($raw_cache) {
+        $c = json_decode($raw_cache, true);
+        if ($c && isset($c['timestamp']) && (time() - $c['timestamp'] < 300)) {
+            $cached_data = $c;
+        }
+    }
+}
+
+if ($cached_data) {
+    $total_companies_num = $cached_data['total_companies'];
+    $total_ifsc_num = $cached_data['total_ifsc'];
+    $total_pincodes_num = $cached_data['total_pincodes'];
+    $total_acts_num = $cached_data['total_acts'];
+    $total_users_num = $cached_data['total_users'];
+} else {
+    $companies_count = direct_sql("SELECT count(*) as total FROM companies_incorporated");
+    $ifsc_count = direct_sql("SELECT count(*) as total FROM bank_ifsc");
+    $pincode_count = direct_sql("SELECT count(*) as total FROM pincode");
+    $acts_count = direct_sql("SELECT count(*) as total FROM acts");
+    $users_count = direct_sql("SELECT count(*) as total FROM op_user");
+
+    $total_companies_num = isset($companies_count['data'][0]['total']) ? (int)$companies_count['data'][0]['total'] : 0;
+    $total_ifsc_num = isset($ifsc_count['data'][0]['total']) ? (int)$ifsc_count['data'][0]['total'] : 0;
+    $total_pincodes_num = isset($pincode_count['data'][0]['total']) ? (int)$pincode_count['data'][0]['total'] : 0;
+    $total_acts_num = isset($acts_count['data'][0]['total']) ? (int)$acts_count['data'][0]['total'] : 0;
+    $total_users_num = isset($users_count['data'][0]['total']) ? (int)$users_count['data'][0]['total'] : 0;
+}
 ?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
@@ -26,7 +52,7 @@ $users_count = direct_sql("SELECT count(*) as total FROM op_user");
                         <i class="fas fa-building"></i>
                     </div>
                     <span class="badge-premium badge-premium-primary">
-                        <?php echo isset($companies_count['data'][0]['total']) ? number_format($companies_count['data'][0]['total']) : '0'; ?> Records
+                        <?php echo number_format($total_companies_num); ?> Records
                     </span>
                 </div>
                 <h5 class="font-weight-bold mb-2">Companies Incorporated</h5>
@@ -52,7 +78,7 @@ $users_count = direct_sql("SELECT count(*) as total FROM op_user");
                         <i class="fas fa-university"></i>
                     </div>
                     <span class="badge-premium badge-premium-info">
-                        <?php echo isset($ifsc_count['data'][0]['total']) ? number_format($ifsc_count['data'][0]['total']) : '0'; ?> Records
+                        <?php echo number_format($total_ifsc_num); ?> Records
                     </span>
                 </div>
                 <h5 class="font-weight-bold mb-2">Bank IFSC &amp; MICR Directory</h5>
@@ -75,7 +101,7 @@ $users_count = direct_sql("SELECT count(*) as total FROM op_user");
                         <i class="fas fa-map-marked-alt"></i>
                     </div>
                     <span class="badge-premium badge-premium-success">
-                        <?php echo isset($pincode_count['data'][0]['total']) ? number_format($pincode_count['data'][0]['total']) : '0'; ?> Records
+                        <?php echo number_format($total_pincodes_num); ?> Records
                     </span>
                 </div>
                 <h5 class="font-weight-bold mb-2">Postal PIN Codes</h5>
@@ -98,7 +124,7 @@ $users_count = direct_sql("SELECT count(*) as total FROM op_user");
                         <i class="fas fa-book"></i>
                     </div>
                     <span class="badge-premium badge-premium-warning">
-                        <?php echo isset($acts_count['data'][0]['total']) ? number_format($acts_count['data'][0]['total']) : '0'; ?> Acts
+                        <?php echo number_format($total_acts_num); ?> Acts
                     </span>
                 </div>
                 <h5 class="font-weight-bold mb-2">Bare Acts Registry</h5>

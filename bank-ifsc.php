@@ -841,8 +841,8 @@ if (!empty($ifsccode)) {
                     $safe_state = mysqli_real_escape_string($con, $state_ref);
                     $safe_cur_ifsc = mysqli_real_escape_string($con, $b['ifsc']);
 
-                    // Same bank in same district
-                    $near_dist_res = direct_sql("SELECT DISTINCT branch, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND city2 = '$safe_city' AND ifsc != '$safe_cur_ifsc' ORDER BY branch ASC LIMIT 8");
+                    // Same bank in same district (including state to leverage composite index idx_bank_geo)
+                    $near_dist_res = direct_sql("SELECT DISTINCT branch, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 = '$safe_city' AND ifsc != '$safe_cur_ifsc' ORDER BY branch ASC LIMIT 8");
 
                     // Same bank in same state
                     $near_state_res = direct_sql("SELECT DISTINCT branch, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' ORDER BY branch ASC LIMIT 8");

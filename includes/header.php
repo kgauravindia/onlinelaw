@@ -42,8 +42,9 @@ $bing_site_verification = get_setting('bing_site_verification', '');
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/style.css">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/responsive.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+<!-- Non-blocking DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/custom-modern.css">
     
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->

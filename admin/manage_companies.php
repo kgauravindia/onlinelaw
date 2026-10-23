@@ -32,6 +32,9 @@ if (isset($_REQUEST['toggle_status_id'])) {
     }
 
     $update_res = update_data('companies_incorporated', ['status' => $to_status], $toggle_id);
+    unset($_SESSION['mca_stats_cache']);
+    @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
+    @unlink(__DIR__ . '/../tmp/mca_months_cache.json');
     $is_ajax = isset($_REQUEST['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
     if ($is_ajax) {
@@ -68,6 +71,9 @@ if (isset($_REQUEST['toggle_status_id'])) {
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
     $res = delete_data('companies_incorporated', $del_id);
+    unset($_SESSION['mca_stats_cache']);
+    @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
+    @unlink(__DIR__ . '/../tmp/mca_months_cache.json');
     if ($res['status'] === 'success') {
         echo "<script>alert('Company record deleted successfully'); window.location.href='manage_companies.php';</script>";
     } else {
@@ -125,44 +131,69 @@ if (!empty($filter_date_to)) {
 
 $where_sql = implode(' AND ', $where_clauses);
 
-// Get total count for pagination
-$count_query = direct_sql("SELECT COUNT(*) as total FROM companies_incorporated WHERE $where_sql");
-$total_records = isset($count_query['data'][0]['total']) ? (int)$count_query['data'][0]['total'] : 0;
+// Overall category & status stats with session caching (180s TTL)
+$now = time();
+if (!isset($_SESSION['mca_stats_cache']) || !isset($_SESSION['mca_stats_time']) || ($now - $_SESSION['mca_stats_time'] > 180)) {
+    $stats_query = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
+    $stats = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0, 'TOTAL' => 0];
+    if ($stats_query['count'] > 0) {
+        foreach ($stats_query['data'] as $s) {
+            $cat = strtoupper($s['category'] ?? '');
+            if (isset($stats[$cat])) {
+                $stats[$cat] = (int)$s['cnt'];
+            }
+            $stats['TOTAL'] += (int)$s['cnt'];
+        }
+    }
+
+    $status_stats_query = direct_sql("SELECT status, COUNT(*) as cnt FROM companies_incorporated GROUP BY status");
+    $stats_status = ['ACTIVE' => 0, 'STRUCK_OFF' => 0, 'BLOCK' => 0];
+    if ($status_stats_query['count'] > 0) {
+        foreach ($status_stats_query['data'] as $st) {
+            $st_val = strtoupper($st['status'] ?? '');
+            if ($st_val === 'BLOCK') {
+                $stats_status['BLOCK'] += (int)$st['cnt'];
+            } elseif ($st_val === 'STRUCK_OFF' || $st_val === 'STRUCK OFF' || $st_val === 'STRIKE_OFF') {
+                $stats_status['STRUCK_OFF'] += (int)$st['cnt'];
+            } else {
+                $stats_status['ACTIVE'] += (int)$st['cnt'];
+            }
+        }
+    }
+    $_SESSION['mca_stats_cache'] = ['stats' => $stats, 'stats_status' => $stats_status];
+    $_SESSION['mca_stats_time'] = $now;
+} else {
+    $stats = $_SESSION['mca_stats_cache']['stats'];
+    $stats_status = $_SESSION['mca_stats_cache']['stats_status'];
+}
+
+// Get total count for pagination (skip full table scan when unfiltered)
+if ($where_sql === "1=1" && isset($stats['TOTAL']) && $stats['TOTAL'] > 0) {
+    $total_records = $stats['TOTAL'];
+} else {
+    $count_query = direct_sql("SELECT COUNT(*) as total FROM companies_incorporated WHERE $where_sql");
+    $total_records = isset($count_query['data'][0]['total']) ? (int)$count_query['data'][0]['total'] : 0;
+}
 $total_pages = ceil($total_records / $limit);
 
 // Fetch records
 $companies = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY registration_date DESC, id DESC LIMIT $offset, $limit");
 
-// Get distinct months for filter dropdown
-$months_res = direct_sql("SELECT DISTINCT report_month FROM companies_incorporated WHERE report_month IS NOT NULL AND report_month != '' ORDER BY report_month DESC");
-
-// Overall category stats
-$stats_query = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated GROUP BY category");
-$stats = ['INDIAN' => 0, 'LLP' => 0, 'FOREIGN' => 0, 'TOTAL' => 0];
-if ($stats_query['count'] > 0) {
-    foreach ($stats_query['data'] as $s) {
-        $cat = strtoupper($s['category'] ?? '');
-        if (isset($stats[$cat])) {
-            $stats[$cat] = (int)$s['cnt'];
-        }
-        $stats['TOTAL'] += (int)$s['cnt'];
+// Get distinct months for filter dropdown (Cached for 1 hour to avoid scanning 1M rows on every page change)
+$months_cache_file = __DIR__ . '/../tmp/mca_months_cache.json';
+$months_res = null;
+if (file_exists($months_cache_file) && (time() - filemtime($months_cache_file) < 3600)) {
+    $raw_months = @file_get_contents($months_cache_file);
+    if ($raw_months) {
+        $months_res = json_decode($raw_months, true);
     }
 }
-
-// Overall status stats (Active vs Struck Off vs Blocked)
-$status_stats_query = direct_sql("SELECT status, COUNT(*) as cnt FROM companies_incorporated GROUP BY status");
-$stats_status = ['ACTIVE' => 0, 'STRUCK_OFF' => 0, 'BLOCK' => 0];
-if ($status_stats_query['count'] > 0) {
-    foreach ($status_stats_query['data'] as $st) {
-        $st_val = strtoupper($st['status'] ?? '');
-        if ($st_val === 'BLOCK') {
-            $stats_status['BLOCK'] += (int)$st['cnt'];
-        } elseif ($st_val === 'STRUCK_OFF' || $st_val === 'STRUCK OFF' || $st_val === 'STRIKE_OFF') {
-            $stats_status['STRUCK_OFF'] += (int)$st['cnt'];
-        } else {
-            $stats_status['ACTIVE'] += (int)$st['cnt'];
-        }
+if (!$months_res) {
+    $months_res = direct_sql("SELECT DISTINCT report_month FROM companies_incorporated WHERE report_month IS NOT NULL AND report_month != '' ORDER BY report_month DESC");
+    if (!is_dir(__DIR__ . '/../tmp')) {
+        @mkdir(__DIR__ . '/../tmp', 0755, true);
     }
+    @file_put_contents($months_cache_file, json_encode($months_res));
 }
 ?>
 

@@ -1,7 +1,7 @@
 <?php
 require_once(__DIR__ . '/config.php');
-$con = mysqli_connect( $host_name, $db_user, $db_password, $db_name) or die("Unable to Connect, Check the Connection Parameter. " .mysqli_error($con)) ;
-mysqli_query($con, "SET character_set_results = 'utf8', character_set_client = 'utf8', character_set_connection = 'utf8', character_set_database = 'utf8', character_set_server = 'utf8'");
+$con = mysqli_connect($host_name, $db_user, $db_password, $db_name) or die("Unable to Connect, Check the Connection Parameter. " . mysqli_connect_error());
+mysqli_set_charset($con, 'utf8mb4');
 /*-------------- DUMMY DATA------------------------*/
 //$user_id =1;
 
@@ -363,23 +363,25 @@ function direct_sql($sql, $type='get')
 			$result['status']='success';
 			$result['id']=mysqli_insert_id($con);
 		}else{
-
-
 			$ct =mysqli_num_rows($res);	
-		if ($ct >=1)
+			if ($ct >=1)
 			{
+				$data = [];
 				while($row =mysqli_fetch_assoc($res))
 				{
 					$data[] = $row;
 				}
-			$result['count']=$ct;
-			$result['status']='success';
-			$result['data']=$data;
+				$result['count']=$ct;
+				$result['status']='success';
+				$result['data']=$data;
 			}	
-		else{
-			$result['count']=0;
-			$result['status']='error';
-			$result['data']=null;
+			else{
+				$result['count']=0;
+				$result['status']='error';
+				$result['data']=null;
+			}
+			if (is_object($res)) {
+				mysqli_free_result($res);
 			}
 		}
 		return $result;
@@ -410,6 +412,7 @@ function get_all( $table_name, $column_list ='*', $whereArr =null, $orderby ='id
 		$ct =mysqli_num_rows($res);
 		if ($ct >=1)
 		{
+			$data = [];
 			while($row =mysqli_fetch_assoc($res))
 			{
 				$data[] = $row;
@@ -422,6 +425,9 @@ function get_all( $table_name, $column_list ='*', $whereArr =null, $orderby ='id
 			$result['count']=0;
 			$result['status']='error';
 			$result['data'] =null;
+		}
+		if (is_object($res)) {
+			mysqli_free_result($res);
 		}
 		return $result;
 	}
@@ -437,12 +443,12 @@ function get_data($table_name, $id , $field_name =null, $pkey ='id')
 		$result['count']=$ct;
 		if ($ct >=1)
 		{
-		$row =mysqli_fetch_assoc($res);
-		extract($row);
+			$row =mysqli_fetch_assoc($res);
+			extract($row);
 			if($field_name)
 			{
-			$result['status']='success';
-			$result['data'] = $row[$field_name];
+				$result['status']='success';
+				$result['data'] = $row[$field_name];
 			}
 			else{
 				$result['status']='success';
@@ -453,23 +459,28 @@ function get_data($table_name, $id , $field_name =null, $pkey ='id')
 			$result['status']='success';
 			$result['data'] = null;
 		}
-	return $result;
+		if (is_object($res)) {
+			mysqli_free_result($res);
+		}
+		return $result;
 	}
+
 function get_multi_data( $table_name, $whereArr , $order =null )
 	{
 		global $con;
-		
+		$where = [];
 		foreach($whereArr as $key=>$value) 
-			{
-				$newvalue = preg_replace('/[^A-Za-z.@_,:+0-9\-]/', ' ', $value);
-				$where[] = "$key = '$newvalue'";
-			}
+		{
+			$newvalue = preg_replace('/[^A-Za-z.@_,:+0-9\-]/', ' ', $value);
+			$where[] = "$key = '$newvalue'";
+		}
 		
 	    $sql = "select * from ". $table_name. " WHERE " .implode('and ', $where) .$order ;
 		$res=mysqli_query($con,$sql) or mysqli_error($con);
 		$num = mysqli_num_rows($res);
 		if($num>0)
 		{
+			$data = [];
 			while($row =mysqli_fetch_assoc($res))
 			{
 				$data[] =$row;
@@ -477,12 +488,14 @@ function get_multi_data( $table_name, $whereArr , $order =null )
 			$result['status'] ='success';	
 			$result['count'] = $num;
 			$result['data'] = $data;
-			
 		}
 		else{
 			$result['status'] ='error';	
 			$result['count'] = 0;
 			$result['data'] = null;
+		}
+		if (is_object($res)) {
+			mysqli_free_result($res);
 		}
 		return $result;	
 	}		
@@ -1245,6 +1258,11 @@ function get_nic_details($code_or_cin) {
 
     if (empty($codeOrCin)) return $result;
 
+    static $nic_cache = [];
+    if (isset($nic_cache[$codeOrCin])) {
+        return $nic_cache[$codeOrCin];
+    }
+
     $divCode = '';
     $classCode = '';
 
@@ -1357,19 +1375,26 @@ function get_nic_details($code_or_cin) {
         $result['primary_code'] = $result['division']['code'];
     }
 
+    $nic_cache[$codeOrCin] = $result;
     return $result;
 }
 
 function get_all_nic_divisions() {
     global $con;
+    static $divisions_cache = null;
+    if ($divisions_cache !== null) {
+        return $divisions_cache;
+    }
     $res = mysqli_query($con, "SELECT code, title, section_code FROM `nic` WHERE level = 'DIVISION' AND status = 'ACTIVE' ORDER BY code ASC");
     $list = [];
     if ($res) {
         while ($r = mysqli_fetch_assoc($res)) {
             $list[] = $r;
         }
+        mysqli_free_result($res);
     }
-    return $list;
+    $divisions_cache = $list;
+    return $divisions_cache;
 }
 
 /**
@@ -1494,6 +1519,7 @@ function get_all_settings() {
             while ($row = mysqli_fetch_assoc($res)) {
                 $cached_settings[$row['setting_key']] = $row['setting_value'];
             }
+            mysqli_free_result($res);
         }
     }
     return $cached_settings;

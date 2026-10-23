@@ -1,10 +1,20 @@
 <?php
-if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+// Automatic Output Buffering with GZIP Compression (Compresses HTML responses by 75-85%, speeding up load times)
+if (!ob_get_level() && !headers_sent()) {
+    if (extension_loaded('zlib') && !ini_get('zlib.output_compression')) {
+        ob_start('ob_gzhandler');
+    } else {
+        ob_start();
+    }
+}
+
+// Session Initialization (Skip on stateless REST API calls to avoid file locking and memory consumption)
+$is_api_request = defined('REST_API') || (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], 'api.php') !== false);
+if (!$is_api_request && session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
 $token = session_id();
-ini_set('max_execution_time', 300);
-set_time_limit(300);
+ini_set('max_execution_time', 120);
 date_default_timezone_set('Asia/Kolkata');
 /*-------Some Basic Details (Global Variables) ---------*/
 if(isset($_SESSION['user_id']))
@@ -92,15 +102,22 @@ $dev_email ="ask@offerplant.com";
 $dev_contact ="+91 9431 42 6600";
 $api_key = '';
 
-$host_name ='localhost';
-if(isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost') {
-    $db_user ='root';
-    $db_password ='';
-    $db_name ='u305984835_web'; // Ensure this matches your local database name
+$host_name = 'localhost';
+$is_local = false;
+if (isset($_SERVER['HTTP_HOST'])) {
+    $h = strtolower($_SERVER['HTTP_HOST']);
+    if ($h === 'localhost' || str_starts_with($h, 'localhost:') || $h === '127.0.0.1' || str_starts_with($h, '127.0.0.1:') || str_ends_with($h, '.test') || str_ends_with($h, '.local')) {
+        $is_local = true;
+    }
+}
+if ($is_local) {
+    $db_user = 'root';
+    $db_password = '';
+    $db_name = 'u305984835_web'; // Ensure this matches your local database name
 } else {
-    $db_user ='u305984835_web';
-    $db_password ='@User_2001';
-    $db_name ='u305984835_web';
+    $db_user = 'u305984835_web';
+    $db_password = '@User_2001';
+    $db_name = 'u305984835_web';
 }
 
 $gender_list =array('','MALE','FEMALE','OTHER');

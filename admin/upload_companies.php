@@ -130,9 +130,14 @@ if (isset($_POST['import_server_file'])) {
     }
 }
 
-// Clear public stats cache if import just completed
-if ($import_result !== null && function_exists('set_setting')) {
-    set_setting('company_stats_cache', '');
+// Clear public & admin stats cache if import just completed
+if ($import_result !== null) {
+    if (function_exists('set_setting')) {
+        set_setting('company_stats_cache', '');
+    }
+    unset($_SESSION['mca_stats_cache']);
+    @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
+    @unlink(__DIR__ . '/../tmp/mca_months_cache.json');
 }
 
 // Get current database counts

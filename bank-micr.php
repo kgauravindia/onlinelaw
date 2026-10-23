@@ -856,8 +856,8 @@ if (!empty($micrcode)) {
                     $safe_state = mysqli_real_escape_string($con, $state_ref);
                     $safe_cur_micr = mysqli_real_escape_string($con, $b['micr']);
 
-                    // Same bank in same district
-                    $near_dist_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND city2 = '$safe_city' AND micr != '$safe_cur_micr' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+                    // Same bank in same district (including state to leverage composite index idx_bank_geo)
+                    $near_dist_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 = '$safe_city' AND micr != '$safe_cur_micr' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
 
                     // Same bank in same state
                     $near_state_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");

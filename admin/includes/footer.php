@@ -5,7 +5,6 @@
 <?php endif; ?>
 
 <!-- Core JavaScript Dependencies -->
-<script src="../js/jquery-3.3.1.min.js"></script>
 <script src="../js/popper-1.14.3.min.js"></script>
 <script src="../js/bootstrap-4.1.3.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>

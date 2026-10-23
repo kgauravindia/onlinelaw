@@ -52,12 +52,26 @@
     $selected_district = isset($_GET['district']) ? trim($_GET['district']) : (isset($_POST['district']) ? trim($_POST['district']) : '');
     $selected_region = isset($_GET['region']) ? trim($_GET['region']) : (isset($_POST['region']) ? trim($_POST['region']) : '');
 
-    // Fetch All States for Initial Dropdown
-    $states_res = mysqli_query($con, "SELECT DISTINCT state_name FROM pincode WHERE state_name != '' ORDER BY state_name ASC");
+    // Fetch All States for Initial Dropdown (Cached in tmp/ to eliminate 1M-row DISTINCT scan on every load)
+    $states_cache_file = __DIR__ . '/tmp/pincode_states.json';
     $all_states = [];
-    if ($states_res) {
-        while ($sRow = mysqli_fetch_assoc($states_res)) {
-            $all_states[] = $sRow['state_name'];
+    if (file_exists($states_cache_file) && (time() - filemtime($states_cache_file) < 604800)) {
+        $raw_states = @file_get_contents($states_cache_file);
+        if ($raw_states) {
+            $all_states = json_decode($raw_states, true) ?: [];
+        }
+    }
+    if (empty($all_states)) {
+        $states_res = mysqli_query($con, "SELECT DISTINCT state_name FROM pincode WHERE state_name != '' ORDER BY state_name ASC");
+        if ($states_res) {
+            while ($sRow = mysqli_fetch_assoc($states_res)) {
+                $all_states[] = $sRow['state_name'];
+            }
+            mysqli_free_result($states_res);
+            if (!is_dir(__DIR__ . '/tmp')) {
+                @mkdir(__DIR__ . '/tmp', 0755, true);
+            }
+            @file_put_contents($states_cache_file, json_encode($all_states));
         }
     }
 

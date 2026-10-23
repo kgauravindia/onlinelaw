@@ -79,6 +79,10 @@ Options -Indexes
     <FilesMatch "\.(css|js)$">
         Header set Cache-Control "max-age=2592000, public"
     </FilesMatch>
+    
+    # Remove ETag header to optimize caching & eliminate revalidation overhead
+    Header unset ETag
+    FileETag None
 </IfModule>
 
 # ----------------------------------------------------------------------
