@@ -7,11 +7,24 @@
     // --------------------------------------------------------------------------
     if (isset($_GET['ajax_states'])) {
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=86400');
         $bank = trim($_GET['bank'] ?? '');
         if (empty($bank)) {
             echo json_encode(['status' => 'error', 'data' => []]);
             exit;
         }
+
+        $cache_dir = __DIR__ . '/tmp/bank_cache';
+        $cache_key = md5('st_' . strtolower($bank));
+        $cache_file = "$cache_dir/$cache_key.json";
+        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
+            $raw = @file_get_contents($cache_file);
+            if ($raw) {
+                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
+                exit;
+            }
+        }
+
         $safe_bank = mysqli_real_escape_string($con, $bank);
         $res = mysqli_query($con, "SELECT DISTINCT state FROM bank_ifsc WHERE bank = '$safe_bank' AND state IS NOT NULL AND state != '' ORDER BY state ASC");
         $states = [];
@@ -19,19 +32,39 @@
             while ($row = mysqli_fetch_assoc($res)) {
                 $states[] = $row['state'];
             }
+            mysqli_free_result($res);
         }
+
+        if (!is_dir($cache_dir)) {
+            @mkdir($cache_dir, 0755, true);
+        }
+        @file_put_contents($cache_file, json_encode($states));
+
         echo json_encode(['status' => 'success', 'data' => $states]);
         exit;
     }
 
     if (isset($_GET['ajax_districts'])) {
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=86400');
         $bank = trim($_GET['bank'] ?? '');
         $state = trim($_GET['state'] ?? '');
         if (empty($bank) || empty($state)) {
             echo json_encode(['status' => 'error', 'data' => []]);
             exit;
         }
+
+        $cache_dir = __DIR__ . '/tmp/bank_cache';
+        $cache_key = md5('dst_' . strtolower($bank . '_' . $state));
+        $cache_file = "$cache_dir/$cache_key.json";
+        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
+            $raw = @file_get_contents($cache_file);
+            if ($raw) {
+                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
+                exit;
+            }
+        }
+
         $safe_bank = mysqli_real_escape_string($con, $bank);
         $safe_state = mysqli_real_escape_string($con, $state);
         $res = mysqli_query($con, "SELECT DISTINCT city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 IS NOT NULL AND city2 != '' ORDER BY city2 ASC");
@@ -40,13 +73,21 @@
             while ($row = mysqli_fetch_assoc($res)) {
                 $districts[] = $row['city2'];
             }
+            mysqli_free_result($res);
         }
+
+        if (!is_dir($cache_dir)) {
+            @mkdir($cache_dir, 0755, true);
+        }
+        @file_put_contents($cache_file, json_encode($districts));
+
         echo json_encode(['status' => 'success', 'data' => $districts]);
         exit;
     }
 
     if (isset($_GET['ajax_branches'])) {
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=86400');
         $bank = trim($_GET['bank'] ?? '');
         $state = trim($_GET['state'] ?? '');
         $district = trim($_GET['district'] ?? '');
@@ -54,6 +95,18 @@
             echo json_encode(['status' => 'error', 'data' => []]);
             exit;
         }
+
+        $cache_dir = __DIR__ . '/tmp/bank_cache';
+        $cache_key = md5('br_' . strtolower($bank . '_' . $state . '_' . $district));
+        $cache_file = "$cache_dir/$cache_key.json";
+        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
+            $raw = @file_get_contents($cache_file);
+            if ($raw) {
+                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
+                exit;
+            }
+        }
+
         $safe_bank = mysqli_real_escape_string($con, $bank);
         $safe_state = mysqli_real_escape_string($con, $state);
         $safe_district = mysqli_real_escape_string($con, $district);
@@ -63,7 +116,14 @@
             while ($row = mysqli_fetch_assoc($res)) {
                 $branches[] = $row['branch'];
             }
+            mysqli_free_result($res);
         }
+
+        if (!is_dir($cache_dir)) {
+            @mkdir($cache_dir, 0755, true);
+        }
+        @file_put_contents($cache_file, json_encode($branches));
+
         echo json_encode(['status' => 'success', 'data' => $branches]);
         exit;
     }
@@ -1257,6 +1317,12 @@ function fallbackCopy(text) {
 }
 
 // 1. When Bank Changes -> Fetch States
+// Client-side Memory Cache for Zero Duplicate Requests
+const bankStatesCache = {};
+const bankDistrictsCache = {};
+const bankBranchesCache = {};
+
+// 1. When Bank Changes -> Fetch States
 function onBankChange() {
     const bankSelect = document.getElementById('bankSelect');
     const stateSelect = document.getElementById('stateSelect');
@@ -1278,21 +1344,23 @@ function onBankChange() {
         return;
     }
 
+    if (bankStatesCache[bank]) {
+        renderBankStates(bankStatesCache[bank]);
+        return;
+    }
+
     stateSelect.disabled = true;
     stateSelect.innerHTML = '<option value="">Loading States...</option>';
 
     fetch(`${BASE_URL}bank-finder?ajax_states=1&bank=${encodeURIComponent(bank)}`)
         .then(response => response.json())
         .then(res => {
-            stateSelect.disabled = false;
-            stateSelect.innerHTML = '<option value="">-- Choose State --</option>';
             if (res.status === 'success' && res.data && res.data.length > 0) {
-                res.data.forEach(st => {
-                    const opt = document.createElement('option');
-                    opt.value = st;
-                    opt.textContent = st;
-                    stateSelect.appendChild(opt);
-                });
+                bankStatesCache[bank] = res.data;
+                renderBankStates(res.data);
+            } else {
+                stateSelect.disabled = false;
+                stateSelect.innerHTML = '<option value="">-- Choose State --</option>';
             }
         })
         .catch(err => {
@@ -1300,6 +1368,17 @@ function onBankChange() {
             stateSelect.disabled = false;
             stateSelect.innerHTML = '<option value="">-- Choose State --</option>';
         });
+
+    function renderBankStates(stList) {
+        stateSelect.disabled = false;
+        stateSelect.innerHTML = '<option value="">-- Choose State --</option>';
+        stList.forEach(st => {
+            const opt = document.createElement('option');
+            opt.value = st;
+            opt.textContent = st;
+            stateSelect.appendChild(opt);
+        });
+    }
 }
 
 // 2. When State Changes -> Fetch Districts
@@ -1321,21 +1400,24 @@ function onStateChange() {
         return;
     }
 
+    const cacheKey = bank + '||' + state;
+    if (bankDistrictsCache[cacheKey]) {
+        renderBankDistricts(bankDistrictsCache[cacheKey]);
+        return;
+    }
+
     districtSelect.disabled = true;
     districtSelect.innerHTML = '<option value="">Loading Districts...</option>';
 
     fetch(`${BASE_URL}bank-finder?ajax_districts=1&bank=${encodeURIComponent(bank)}&state=${encodeURIComponent(state)}`)
         .then(response => response.json())
         .then(res => {
-            districtSelect.disabled = false;
-            districtSelect.innerHTML = '<option value="">-- Choose District / City --</option>';
             if (res.status === 'success' && res.data && res.data.length > 0) {
-                res.data.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d;
-                    opt.textContent = d;
-                    districtSelect.appendChild(opt);
-                });
+                bankDistrictsCache[cacheKey] = res.data;
+                renderBankDistricts(res.data);
+            } else {
+                districtSelect.disabled = false;
+                districtSelect.innerHTML = '<option value="">-- Choose District / City --</option>';
             }
         })
         .catch(err => {
@@ -1343,6 +1425,17 @@ function onStateChange() {
             districtSelect.disabled = false;
             districtSelect.innerHTML = '<option value="">-- Choose District / City --</option>';
         });
+
+    function renderBankDistricts(distList) {
+        districtSelect.disabled = false;
+        districtSelect.innerHTML = '<option value="">-- Choose District / City --</option>';
+        distList.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            districtSelect.appendChild(opt);
+        });
+    }
 }
 
 // 3. When District Changes -> Fetch Branches
@@ -1363,21 +1456,24 @@ function onDistrictChange() {
         return;
     }
 
+    const cacheKey = bank + '||' + state + '||' + district;
+    if (bankBranchesCache[cacheKey]) {
+        renderBankBranches(bankBranchesCache[cacheKey]);
+        return;
+    }
+
     branchSelect.disabled = true;
     branchSelect.innerHTML = '<option value="">Loading Branches...</option>';
 
     fetch(`${BASE_URL}bank-finder?ajax_branches=1&bank=${encodeURIComponent(bank)}&state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`)
         .then(response => response.json())
         .then(res => {
-            branchSelect.disabled = false;
-            branchSelect.innerHTML = '<option value="">-- All Branches --</option>';
             if (res.status === 'success' && res.data && res.data.length > 0) {
-                res.data.forEach(br => {
-                    const opt = document.createElement('option');
-                    opt.value = br;
-                    opt.textContent = br;
-                    branchSelect.appendChild(opt);
-                });
+                bankBranchesCache[cacheKey] = res.data;
+                renderBankBranches(res.data);
+            } else {
+                branchSelect.disabled = false;
+                branchSelect.innerHTML = '<option value="">-- All Branches --</option>';
             }
         })
         .catch(err => {
@@ -1385,6 +1481,17 @@ function onDistrictChange() {
             branchSelect.disabled = false;
             branchSelect.innerHTML = '<option value="">-- All Branches --</option>';
         });
+
+    function renderBankBranches(brList) {
+        branchSelect.disabled = false;
+        branchSelect.innerHTML = '<option value="">-- All Branches --</option>';
+        brList.forEach(br => {
+            const opt = document.createElement('option');
+            opt.value = br;
+            opt.textContent = br;
+            branchSelect.appendChild(opt);
+        });
+    }
 }
 </script>
 

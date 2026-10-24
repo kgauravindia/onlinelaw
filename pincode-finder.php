@@ -7,11 +7,24 @@
     // --------------------------------------------------------------------------
     if (isset($_GET['ajax_districts'])) {
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=86400'); // 24hr browser cache
         $st = trim($_GET['state'] ?? '');
         if (empty($st)) {
             echo json_encode(['status' => 'error', 'data' => []]);
             exit;
         }
+
+        $cache_dir = __DIR__ . '/tmp/pincode_cache';
+        $cache_key = md5('dist_' . strtolower($st));
+        $cache_file = "$cache_dir/$cache_key.json";
+        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
+            $raw = @file_get_contents($cache_file);
+            if ($raw) {
+                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
+                exit;
+            }
+        }
+
         $safe_st = mysqli_real_escape_string($con, $st);
         $res = mysqli_query($con, "SELECT DISTINCT district_name FROM pincode WHERE state_name = '$safe_st' AND district_name != '' ORDER BY district_name ASC");
         $districts = [];
@@ -19,19 +32,39 @@
             while ($row = mysqli_fetch_assoc($res)) {
                 $districts[] = $row['district_name'];
             }
+            mysqli_free_result($res);
         }
+
+        if (!is_dir($cache_dir)) {
+            @mkdir($cache_dir, 0755, true);
+        }
+        @file_put_contents($cache_file, json_encode($districts));
+
         echo json_encode(['status' => 'success', 'data' => $districts]);
         exit;
     }
 
     if (isset($_GET['ajax_regions'])) {
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=86400');
         $st = trim($_GET['state'] ?? '');
         $dist = trim($_GET['district'] ?? '');
         if (empty($st) || empty($dist)) {
             echo json_encode(['status' => 'error', 'data' => []]);
             exit;
         }
+
+        $cache_dir = __DIR__ . '/tmp/pincode_cache';
+        $cache_key = md5('reg_' . strtolower($st . '_' . $dist));
+        $cache_file = "$cache_dir/$cache_key.json";
+        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
+            $raw = @file_get_contents($cache_file);
+            if ($raw) {
+                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
+                exit;
+            }
+        }
+
         $safe_st = mysqli_real_escape_string($con, $st);
         $safe_dist = mysqli_real_escape_string($con, $dist);
         $res = mysqli_query($con, "SELECT DISTINCT sub_district_name FROM pincode WHERE state_name = '$safe_st' AND district_name = '$safe_dist' AND sub_district_name != '' ORDER BY sub_district_name ASC");
@@ -40,7 +73,14 @@
             while ($row = mysqli_fetch_assoc($res)) {
                 $regions[] = $row['sub_district_name'];
             }
+            mysqli_free_result($res);
         }
+
+        if (!is_dir($cache_dir)) {
+            @mkdir($cache_dir, 0755, true);
+        }
+        @file_put_contents($cache_file, json_encode($regions));
+
         echo json_encode(['status' => 'success', 'data' => $regions]);
         exit;
     }
@@ -1046,6 +1086,10 @@
 
 <!-- Interactive Scripts & AJAX Cascading Dropdowns -->
 <script>
+// Client-side Memory Cache for Zero Duplicate Requests
+const pincodeDistrictCache = {};
+const pincodeRegionCache = {};
+
 function onStateChange() {
     const stateVal = document.getElementById('stateSelect').value;
     const districtSelect = document.getElementById('districtSelect');
@@ -1061,16 +1105,18 @@ function onStateChange() {
         return;
     }
 
+    // Check Client-side Cache
+    if (pincodeDistrictCache[stateVal]) {
+        renderDistrictOptions(pincodeDistrictCache[stateVal]);
+        return;
+    }
+
     fetch('<?php echo $base_url; ?>pincode-finder?ajax_districts=1&state=' + encodeURIComponent(stateVal))
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success' && data.data) {
-                let opts = '<option value="">-- Choose District --</option>';
-                data.data.forEach(d => {
-                    opts += '<option value="' + d + '">' + d + '</option>';
-                });
-                districtSelect.innerHTML = opts;
-                districtSelect.disabled = false;
+                pincodeDistrictCache[stateVal] = data.data;
+                renderDistrictOptions(data.data);
             } else {
                 districtSelect.innerHTML = '<option value="">No districts found</option>';
             }
@@ -1078,6 +1124,15 @@ function onStateChange() {
         .catch(err => {
             districtSelect.innerHTML = '<option value="">Error loading districts</option>';
         });
+
+    function renderDistrictOptions(distList) {
+        let opts = '<option value="">-- Choose District --</option>';
+        distList.forEach(d => {
+            opts += '<option value="' + d + '">' + d + '</option>';
+        });
+        districtSelect.innerHTML = opts;
+        districtSelect.disabled = false;
+    }
 }
 
 function onDistrictChange() {
@@ -1093,16 +1148,18 @@ function onDistrictChange() {
         return;
     }
 
+    const cacheKey = stateVal + '||' + districtVal;
+    if (pincodeRegionCache[cacheKey]) {
+        renderRegionOptions(pincodeRegionCache[cacheKey]);
+        return;
+    }
+
     fetch('<?php echo $base_url; ?>pincode-finder?ajax_regions=1&state=' + encodeURIComponent(stateVal) + '&district=' + encodeURIComponent(districtVal))
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success' && data.data) {
-                let opts = '<option value="">-- All Regions / Taluks --</option>';
-                data.data.forEach(r => {
-                    opts += '<option value="' + r + '">' + r + '</option>';
-                });
-                regionSelect.innerHTML = opts;
-                regionSelect.disabled = false;
+                pincodeRegionCache[cacheKey] = data.data;
+                renderRegionOptions(data.data);
             } else {
                 regionSelect.innerHTML = '<option value="">All Regions</option>';
             }
@@ -1110,6 +1167,15 @@ function onDistrictChange() {
         .catch(err => {
             regionSelect.innerHTML = '<option value="">-- All Regions / Taluks --</option>';
         });
+
+    function renderRegionOptions(regList) {
+        let opts = '<option value="">-- All Regions / Taluks --</option>';
+        regList.forEach(r => {
+            opts += '<option value="' + r + '">' + r + '</option>';
+        });
+        regionSelect.innerHTML = opts;
+        regionSelect.disabled = false;
+    }
 }
 
 function copyFinderText(text) {

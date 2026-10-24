@@ -113,11 +113,11 @@ if (isset($_SERVER['HTTP_HOST'])) {
 if ($is_local) {
     $db_user = 'root';
     $db_password = '';
-    $db_name = 'u305984835_web'; // Ensure this matches your local database name
+    $db_name = 'u305984835_onlinelaw'; // Ensure this matches your local database name
 } else {
-    $db_user = 'u305984835_web';
-    $db_password = '@User_2001';
-    $db_name = 'u305984835_web';
+    $db_user = 'u305984835_onlinelaw';
+    $db_password = 'Gaurav@@2026';
+    $db_name = 'u305984835_onlinelaw';
 }
 
 $gender_list =array('','MALE','FEMALE','OTHER');

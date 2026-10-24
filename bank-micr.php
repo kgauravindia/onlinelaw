@@ -856,11 +856,35 @@ if (!empty($micrcode)) {
                     $safe_state = mysqli_real_escape_string($con, $state_ref);
                     $safe_cur_micr = mysqli_real_escape_string($con, $b['micr']);
 
-                    // Same bank in same district (including state to leverage composite index idx_bank_geo)
-                    $near_dist_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 = '$safe_city' AND micr != '$safe_cur_micr' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+                    // Cache nearby branches to eliminate repeated queries across 180k branch pages
+                    $near_cache_dir = __DIR__ . '/tmp/bank_near';
+                    $near_cache_key = md5('micr_' . strtolower($safe_bank . '_' . $safe_state . '_' . $safe_city));
+                    $near_cache_file = "$near_cache_dir/$near_cache_key.json";
+                    $cached_near = null;
 
-                    // Same bank in same state
-                    $near_state_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+                    if (file_exists($near_cache_file) && (time() - filemtime($near_cache_file) < 604800)) { // 7 days
+                        $raw = @file_get_contents($near_cache_file);
+                        if ($raw) $cached_near = json_decode($raw, true);
+                    }
+
+                    if (is_array($cached_near)) {
+                        $near_dist_res = $cached_near['dist'] ?? ['count' => 0, 'data' => []];
+                        $near_state_res = $cached_near['state'] ?? ['count' => 0, 'data' => []];
+                    } else {
+                        // Same bank in same district (including state to leverage composite index idx_bank_geo)
+                        $near_dist_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 = '$safe_city' AND micr != '$safe_cur_micr' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+
+                        // Same bank in same state
+                        $near_state_res = direct_sql("SELECT DISTINCT branch, micr, ifsc, city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 != '$safe_city' AND micr != '' AND micr != 'NA' AND micr != '-' ORDER BY branch ASC LIMIT 8");
+
+                        if (!is_dir($near_cache_dir)) {
+                            @mkdir($near_cache_dir, 0755, true);
+                        }
+                        @file_put_contents($near_cache_file, json_encode([
+                            'dist' => $near_dist_res,
+                            'state' => $near_state_res
+                        ]));
+                    }
                 ?>
 
                 <?php if ($near_dist_res['count'] > 0 || $near_state_res['count'] > 0): ?>
