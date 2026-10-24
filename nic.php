@@ -300,7 +300,7 @@ $nic_schema = [
         height: 52px;
         border-radius: 12px;
         border: 1.5px solid #e2e8f0;
-        padding-left: 44px;
+        padding-left: 16px;
         padding-right: 16px;
         font-size: 14.5px;
         color: #0f172a;
@@ -621,7 +621,6 @@ $nic_schema = [
                             <?php endif; ?>
                         </label>
                         <div class="nic-input-wrap">
-                            <i class="fas fa-search nic-input-icon"></i>
                             <input type="text" name="q" class="form-control nic-input-control" placeholder="e.g. Software, 62013, Hospital, Real Estate, Dairy..." value="<?php echo htmlspecialchars($q_param); ?>" autocomplete="off" autofocus>
                         </div>
                     </div>

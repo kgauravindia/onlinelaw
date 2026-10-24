@@ -312,16 +312,9 @@ if (!empty($faq_items)) {
             display: flex;
             align-items: center;
         }
-        .search-input-group i.search-icon {
-            position: absolute;
-            left: 20px;
-            color: #94a3b8;
-            font-size: 18px;
-            z-index: 5;
-        }
         .search-input-field {
             height: 56px;
-            padding-left: 54px;
+            padding-left: 20px;
             padding-right: 20px;
             border-radius: 14px;
             border: 2px solid #e2e8f0;
@@ -578,7 +571,6 @@ if (!empty($faq_items)) {
                 <div class="row justify-content-center">
                     <div class="col-lg-8 col-md-8 mb-3 mb-md-0">
                         <div class="search-input-group">
-                            <i class="fas fa-envelope search-icon"></i>
                             <input type="text" name="pincode" class="form-control search-input-field" placeholder="Enter 6-digit PIN Code (e.g. 110001, 400001, 560001, 800001)" maxlength="6" minlength="6" value="<?php echo htmlspecialchars($pincode); ?>" required autocomplete="off">
                         </div>
                     </div>

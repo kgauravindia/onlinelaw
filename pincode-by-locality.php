@@ -384,16 +384,9 @@ if (!empty($faq_items)) {
             display: flex;
             align-items: center;
         }
-        .search-input-group i.search-icon {
-            position: absolute;
-            left: 20px;
-            color: #94a3b8;
-            font-size: 18px;
-            z-index: 5;
-        }
         .search-input-field {
             height: 56px;
-            padding-left: 54px;
+            padding-left: 20px;
             padding-right: 20px;
             border-radius: 14px;
             border: 2px solid #e2e8f0;
@@ -645,7 +638,6 @@ if (!empty($faq_items)) {
                 <div class="row justify-content-center">
                     <div class="col-lg-8 col-md-8 mb-3 mb-md-0">
                         <div class="search-input-group">
-                            <i class="fas fa-map-marker-alt search-icon"></i>
                             <input type="text" name="locality" class="form-control search-input-field" placeholder="Enter Locality, Village, Sector or City (e.g. Connaught Place, Andheri East, Indirapuram, Whitefield)" minlength="3" maxlength="60" value="<?php echo htmlspecialchars($locality_search); ?>" required autocomplete="off">
                         </div>
                     </div>

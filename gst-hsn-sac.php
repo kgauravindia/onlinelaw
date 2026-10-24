@@ -212,16 +212,9 @@ if (!empty($faq_items)) {
             display: flex;
             align-items: center;
         }
-        .search-input-group i.search-icon {
-            position: absolute;
-            left: 20px;
-            color: #94a3b8;
-            font-size: 18px;
-            z-index: 5;
-        }
         .search-input-field {
             height: 56px;
-            padding-left: 54px;
+            padding-left: 20px;
             padding-right: 20px;
             border-radius: 14px;
             border: 2px solid #e2e8f0;
@@ -453,7 +446,6 @@ if (!empty($faq_items)) {
                 <div class="row justify-content-center">
                     <div class="col-lg-8 col-md-8 mb-3 mb-md-0">
                         <div class="search-input-group">
-                            <i class="fas fa-barcode search-icon"></i>
                             <input type="text" name="q" class="form-control search-input-field" placeholder="Enter HSN/SAC Code or Product Name (e.g. 1001, Rice, Software, 9983, Cement, Medical)" minlength="2" maxlength="60" value="<?php echo htmlspecialchars($q); ?>" required autocomplete="off">
                         </div>
                     </div>

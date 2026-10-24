@@ -191,8 +191,7 @@ $passport_schema = [
                 <div class="row justify-content-center">
                     <div class="col-lg-8 col-md-8 col-12 mb-2 mb-md-0">
                         <div class="position-relative">
-                            <i class="fas fa-search position-absolute" style="top: 50%; transform: translateY(-50%); left: 18px; color: #94a3b8; font-size: 17px;"></i>
-                            <input class="form-control" style="padding-left: 48px; height: 52px; border-radius: 12px; font-size: 15px; border: 1.5px solid #cbd5e1;" type="text" placeholder="Search by City, Office Name (e.g. PSK Patna, Ahmedabad), or RPO..." name="q" value="<?php echo htmlentities($q); ?>" required>
+                            <input class="form-control" style="padding-left: 18px; height: 52px; border-radius: 12px; font-size: 15px; border: 1.5px solid #cbd5e1;" type="text" placeholder="Search by City, Office Name (e.g. PSK Patna, Ahmedabad), or RPO..." name="q" value="<?php echo htmlentities($q); ?>" required>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-12">

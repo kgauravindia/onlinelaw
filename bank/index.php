@@ -319,8 +319,7 @@
                         <div class="row justify-content-center">
                             <div class="col-lg-8 col-md-9 mb-3 mb-md-0">
                                 <div class="position-relative">
-                                    <i class="fas fa-university position-absolute text-muted" style="top: 50%; transform: translateY(-50%); left: 18px; font-size: 16px;"></i>
-                                    <input class="form-control text-uppercase" style="padding-left: 48px; height: 52px; border-radius: 14px; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter 11-digit IFSC (e.g. SBIN0000691, HDFC0000240)" maxlength="11" minlength="11" name="ifsc" required>
+                                    <input class="form-control text-uppercase" style="padding-left: 18px; height: 52px; border-radius: 14px; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter 11-digit IFSC (e.g. SBIN0000691, HDFC0000240)" maxlength="11" minlength="11" name="ifsc" required>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-3">
@@ -338,8 +337,7 @@
                         <div class="row justify-content-center">
                             <div class="col-lg-8 col-md-9 mb-3 mb-md-0">
                                 <div class="position-relative">
-                                    <i class="fas fa-building position-absolute text-muted" style="top: 50%; transform: translateY(-50%); left: 18px; font-size: 16px;"></i>
-                                    <input class="form-control" style="padding-left: 48px; height: 52px; border-radius: 14px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter Branch Name or City (e.g. Connaught Place, Andheri East)" maxlength="50" minlength="3" name="branch" required>
+                                    <input class="form-control" style="padding-left: 18px; height: 52px; border-radius: 14px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter Branch Name or City (e.g. Connaught Place, Andheri East)" maxlength="50" minlength="3" name="branch" required>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-3">
@@ -357,8 +355,7 @@
                         <div class="row justify-content-center">
                             <div class="col-lg-8 col-md-9 mb-3 mb-md-0">
                                 <div class="position-relative">
-                                    <i class="fas fa-money-check-alt position-absolute text-muted" style="top: 50%; transform: translateY(-50%); left: 18px; font-size: 16px;"></i>
-                                    <input class="form-control text-uppercase" style="padding-left: 48px; height: 52px; border-radius: 14px; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter 9-digit MICR Code (e.g. 110002001, 400002010)" maxlength="9" minlength="9" name="micr" required>
+                                    <input class="form-control text-uppercase" style="padding-left: 18px; height: 52px; border-radius: 14px; font-weight: 600; letter-spacing: 0.5px; border: 1.5px solid #e2e8f0;" type="text" placeholder="Enter 9-digit MICR Code (e.g. 110002001, 400002010)" maxlength="9" minlength="9" name="micr" required>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-3">
