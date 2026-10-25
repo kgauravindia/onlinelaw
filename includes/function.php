@@ -105,13 +105,13 @@ function verify_request()
 
 function csv_import($table, $pkey='id') // Import CSV FILE to Table
 	{
-		 // Allowed mime types
-   		 $csvMimes = array('text/x-comma-separated-values', 'text/comma-separated-values', 'application/octet-stream', 'application/vnd.ms-excel', 'application/x-csv', 'text/x-csv', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.msexcel', 'text/plain');
-    
-    	// Validate whether selected file is a CSV file
-    	if(!empty($_FILES['file']['name']) && in_array($_FILES['file']['type'], $csvMimes)){
-			$change =$new=0;
-			if(is_uploaded_file($_FILES['file']['tmp_name'])){
+		if (!empty($_FILES['file']['name'])) {
+			$val = validate_uploaded_file($_FILES['file'], ['csv']);
+			if (!$val['safe']) {
+				return ['status' => 'error', 'msg' => $val['error']];
+			}
+			$change = $new = 0;
+			if (is_uploaded_file($_FILES['file']['tmp_name'])) {
 						
 				// Open uploaded CSV file with read-only mode
 				$csvFile = fopen($_FILES['file']['tmp_name'], 'r');
@@ -801,58 +801,53 @@ function send_sms($number,$sms)
 			}
 			return $res;
 		}		
-function uploadimg ($file_name , $imgkey = 'rand', $target_dir = "upload")
+function uploadimg ($file_name , $imgkey = 'rand', $target_dir = "uploads")
     {
-        if ($imgkey =='rand') { $imgkey = rand(10000,99999); }
-        $target_file = $imgkey."_". basename($_FILES[$file_name]["name"]);
-		$target_file = strtolower(preg_replace("/[^a-zA-Z0-9.]+/", "", $target_file));
-        $uploadOk = 1;
-		
-		$res['id'] =0;
-		$res['status'] ='error';
-		$res['msg'] ='';
-        $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-        // Check if image file is a actual image or fake image
+        $res = ['id' => 0, 'status' => 'error', 'msg' => ''];
         
-            $check = getimagesize($_FILES[$file_name]["tmp_name"]);
-            if($check !== false) {
-                $res['msg']= "File is an image - " . $check["mime"] . ".";
-                $uploadOk = 1;
-            } else {
-                $res['msg']= "File is not an image.";
-                $uploadOk = 0;
+        if (empty($_FILES[$file_name]['name'])) {
+            $res['msg'] = 'Please select a file to upload.';
+            return $res;
+        }
+
+        // Strict security & extension validation (blocks .php, .bat, .exe, scripts, etc.)
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'];
+        $val = validate_uploaded_file($_FILES[$file_name], $allowedExtensions, 5 * 1024 * 1024);
+        if (!$val['safe']) {
+            $res['msg'] = $val['error'];
+            return $res;
+        }
+
+        if ($imgkey === 'rand') { $imgkey = rand(10000, 99999); }
+        $safeName = sanitize_uploaded_filename($_FILES[$file_name]["name"]);
+        $target_file = $imgkey . "_" . $safeName;
+
+        // Verify directory
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0755, true);
+        }
+
+        $imageFileType = $val['extension'];
+
+        // If claimed to be image, verify with getimagesize
+        if (in_array($imageFileType, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
+            $check = @getimagesize($_FILES[$file_name]["tmp_name"]);
+            if ($check === false) {
+                $res['msg'] = "File is not a valid image.";
+                return $res;
             }
-        
-        // Check if file already exists
-        if (file_exists($target_file)) {
-            unlink($target_file);
-            $res['msg']= "Sorry, file already exists.";
-            $uploadOk = 1;
         }
-        // Check file size
-        if ($_FILES[$file_name]["size"] > 500000) {
-            $res['msg']= "Sorry, your file is too large.";
-            $uploadOk = 0;
-        }
-        // Allow certain file formats
-        if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" && $imageFileType != "pdf" ) {
-            $res['msg']= "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
-            $uploadOk = 0;
-        }
-        // Check if $uploadOk is set to 0 by an error
-        if ($uploadOk == 0) {
-            $msg= "Sorry, your file was not uploaded.";
-        // if everything is ok, try to upload file
+
+        $fullPath = rtrim($target_dir, '/') . '/' . $target_file;
+        if (move_uploaded_file($_FILES[$file_name]["tmp_name"], $fullPath)) {
+            $res['msg'] = "The file " . htmlspecialchars($safeName) . " has been uploaded.";
+            $res['id'] = $target_file;
+            $res['status'] = 'success';
         } else {
-            if (move_uploaded_file($_FILES[$file_name]["tmp_name"],$target_dir."/".$target_file)) {
-                $res['msg'] = "The file ". basename( $_FILES[$file_name]["name"]). " has been uploaded.";
-                $res['id'] = $target_file;
-				$res['status'] ='success';
-            } else {
-                $res['msg']= "Sorry, there was an error uploading your file.";
-            }
+            $res['msg'] = "Sorry, there was an error saving your uploaded file.";
         }
-		return $res;
+
+        return $res;
     }
 
 

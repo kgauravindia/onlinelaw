@@ -1,0 +1,38 @@
+# ----------------------------------------------------------------------
+# Online Law - Uploads Directory Security Enforcement
+# Disables script execution and denies access to dangerous file formats
+# ----------------------------------------------------------------------
+
+# 1. Disable Directory Indexing and Script Execution
+Options -Indexes -ExecCGI
+
+# 2. Prevent handler association for script engines
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .inc .cgi .pl .py .sh .bash .bin .bat .cmd .exe
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .inc .cgi .pl .py .sh .bash .bin .bat .cmd .exe
+
+# 3. Disable PHP Engine if mod_php is active
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 4. Strictly Deny Access to All Executable, Script, and Config Files
+<FilesMatch "(?i)\.(php|phtml|php3|php4|php5|php7|php8|phar|phps|inc|hphp|cgi|pl|py|pyc|pyo|sh|bash|bin|run|bat|cmd|exe|com|msi|msp|scr|pif|vbs|vbe|wsf|wsh|ps1|ps2|psc1|psc2|reg|dll|sys|drv|htaccess|htpasswd|ini|config|conf|jar|war|ear|jsp|asp|aspx)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 5. Prevent MIME type sniffing
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>

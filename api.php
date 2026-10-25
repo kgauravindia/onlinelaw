@@ -342,7 +342,228 @@ if (isset($_REQUEST['check_usage'])) {
     exit;
 }
 
-// --- Documentation Data ---
+// --- Temporary Public Documentation Restriction ---
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    session_start();
+}
+$is_admin = (!empty($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
+
+// If public visitor (not logged in as admin), display clean maintenance notice
+if (!$is_admin) {
+    if (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'status' => 'maintenance',
+            'message' => 'API documentation is temporarily under maintenance. Active API endpoints continue to function normally with valid API keys.'
+        ]);
+        exit;
+    }
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>API Documentation Under Maintenance - Online Law</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-dark: #111827;
+            --accent-amber: #f59e0b;
+            --accent-blue: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #030712 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .maintenance-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 3px solid var(--accent-amber);
+            border-radius: 20px;
+            max-width: 580px;
+            width: 100%;
+            padding: 44px 36px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+        .icon-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.05) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: var(--accent-amber);
+            font-size: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.2);
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #f59e0b;
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 14px;
+            letter-spacing: -0.02em;
+        }
+        p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.65;
+            margin-bottom: 24px;
+        }
+        .notice-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 13.5px;
+            color: #cbd5e1;
+            margin-bottom: 30px;
+            text-align: left;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .notice-box i {
+            color: var(--accent-blue);
+            font-size: 16px;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary-home:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+        .btn-secondary-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .btn-secondary-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+        .brand-footer {
+            margin-top: 26px;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-card">
+        <div class="icon-badge">
+            <i class="fas fa-code"></i>
+        </div>
+        <div>
+            <span class="status-pill"><span class="pulse-dot"></span> Under Maintenance</span>
+        </div>
+        <h1>API Documentation</h1>
+        <p>The Developer API portal and interactive testing console are temporarily offline for scheduled system updates and maintenance.</p>
+        <div class="notice-box">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+                <strong>Active Endpoints Unaffected:</strong> If your applications already integrate with Online Law via an API Key, programmatic JSON endpoints remain active and fully operational.
+            </div>
+        </div>
+        <div class="actions">
+            <a href="<?php echo $base_url; ?>" class="btn-primary-home">
+                <i class="fas fa-home"></i> Back to Homepage
+            </a>
+            <a href="<?php echo $base_url; ?>contact-us.php" class="btn-secondary-link">
+                <i class="fas fa-envelope"></i> Contact Support
+            </a>
+        </div>
+        <div class="brand-footer">
+            &copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($inst_name); ?>. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+<?php
+    exit;
+}
+
+// --- Documentation Data (Admin View Only) ---
 $stats = direct_sql("SELECT COUNT(*) as total_keys, SUM(usage_count) as total_calls FROM api_keys WHERE is_active = 1");
 $total_keys = $stats['data'][0]['total_keys'] ?? 0;
 $total_calls = $stats['data'][0]['total_calls'] ?? 0;
@@ -537,6 +758,12 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
 
 <?php require_once('includes/header.php'); ?>
 
+<?php if ($is_admin): ?>
+<div style="background: linear-gradient(90deg, #92400e, #b45309); color: #ffffff; padding: 12px 20px; font-size: 13.5px; font-weight: 600; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+    <i class="fas fa-eye-slash mr-2"></i> <strong>Admin Preview Mode:</strong> Public API documentation is currently hidden under maintenance for regular visitors. You can see this documentation because you are logged in as Administrator.
+    <a href="<?php echo $base_url; ?>admin/manage_api_keys.php" style="color: #fef08a; text-decoration: underline; margin-left: 14px; font-weight: 700;">Admin API Dashboard &rarr;</a>
+</div>
+<?php endif; ?>
 <!-- Hero Section -->
 <section class="api-hero-section">
     <div class="api-glow-orb-1"></div>

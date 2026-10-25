@@ -91,6 +91,12 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
     ErrorDocument 404 /404.php
+
+    # Security: Block script and binary execution attempts in uploads & tmp directories
+    RewriteRule ^(uploads|tmp)/.*\.(php[0-9]?|phtml|phar|inc|cgi|pl|py|sh|bash|bin|bat|cmd|exe|com|msi|vbs|ps1|reg)$ - [F,L,NC]
+
+    # Security: Block direct access to environment and sensitive dot-files
+    RewriteRule (^|/)\.(env|git|user\.ini|htaccess|htpasswd) - [F,L,NC]
     
     # 1. Search tool detail URLs
     RewriteRule ^company-incorporation/([a-zA-Z0-9_\-]+)/?$ company-incorporation.php?cin=$1 [L,QSA]

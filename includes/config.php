@@ -1,4 +1,7 @@
 <?php
+// Global Security & File Upload Interceptor (Blocks .php, .bat, .exe, scripts & executables across whole site)
+require_once(__DIR__ . '/security.php');
+
 // Automatic Output Buffering with GZIP Compression (Compresses HTML responses by 75-85%, speeding up load times)
 if (!ob_get_level() && !headers_sent()) {
     if (extension_loaded('zlib') && !ini_get('zlib.output_compression')) {

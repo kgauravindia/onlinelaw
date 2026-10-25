@@ -9,13 +9,12 @@ $success_msg = null;
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_excel') {
     if (!empty($_FILES['excel_file']['name'])) {
-        $fileName = $_FILES['excel_file']['name'];
-        $fileTmp = $_FILES['excel_file']['tmp_name'];
-        $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-        if ($fileExt !== 'xlsx') {
-            $error_msg = "Please upload a valid Microsoft Excel file (.xlsx format only).";
+        $validation = validate_uploaded_file($_FILES['excel_file'], ['xlsx']);
+        if (!$validation['safe']) {
+            $error_msg = $validation['error'];
         } else {
+            $fileName = sanitize_uploaded_filename($_FILES['excel_file']['name']);
+            $fileTmp = $_FILES['excel_file']['tmp_name'];
             $forcedMonth = !empty($_POST['report_month']) ? trim($_POST['report_month']) : null;
             $reportType = !empty($_POST['report_type']) ? trim($_POST['report_type']) : 'auto';
             
@@ -23,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
-            $targetPath = $uploadDir . time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $fileName);
+            $targetPath = $uploadDir . time() . '_' . $fileName;
             if (move_uploaded_file($fileTmp, $targetPath)) {
                 // Auto-detect if needed
                 if ($reportType === 'auto') {

@@ -30,3 +30,9 @@ tmp/
 # User Uploads
 uploads/*
 !uploads/.gitkeep
+!uploads/.htaccess
+
+# Spreadsheets & Data Exports
+*.xlsx
+*.xls
+*.csv
