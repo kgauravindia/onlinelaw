@@ -103,6 +103,80 @@ function verify_request()
 		}
     }
 
+/**
+ * Validate active administrator session against the op_user table using the stored token.
+ *
+ * @param bool $redirect Whether to automatically redirect or return false on invalid token
+ * @return array|false Returns user array on success, false on failure
+ */
+function check_admin_auth($redirect = true) {
+    global $con;
+
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        session_start();
+    }
+
+    if (empty($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true || empty($_SESSION['admin_token']) || empty($_SESSION['user_id'])) {
+        if ($redirect) {
+            $is_ajax = isset($_REQUEST['ajax_action']) || 
+                       (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || 
+                       (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+            if ($is_ajax) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized access. Please log in.']);
+                exit();
+            }
+            header("Location: login.php");
+            exit();
+        }
+        return false;
+    }
+
+    $auth_uid = intval($_SESSION['user_id']);
+    $auth_token = mysqli_real_escape_string($con, $_SESSION['admin_token']);
+    $auth_check = direct_sql("SELECT id, user_name, full_name, user_type, status, token FROM op_user WHERE id = $auth_uid AND token = '$auth_token' LIMIT 1");
+
+    if (empty($auth_check['count']) || $auth_check['count'] == 0) {
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        if ($redirect) {
+            $is_ajax = isset($_REQUEST['ajax_action']) || 
+                       (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || 
+                       (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+            if ($is_ajax) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['status' => 'error', 'message' => 'Session expired or invalidated. Please sign in again.']);
+                exit();
+            }
+            header("Location: login.php?msg=session_invalid");
+            exit();
+        }
+        return false;
+    }
+
+    $auth_user = $auth_check['data'][0];
+    if (!empty($auth_user['status']) && strtoupper($auth_user['status']) === 'BLOCK') {
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        if ($redirect) {
+            header("Location: login.php?msg=account_blocked");
+            exit();
+        }
+        return false;
+    }
+
+    // Keep session data synchronized with database
+    $_SESSION['username'] = $auth_user['user_name'];
+    $_SESSION['full_name'] = $auth_user['full_name'] ?: $auth_user['user_name'];
+    $_SESSION['user_type'] = $auth_user['user_type'] ?: 'ADMIN';
+
+    return $auth_user;
+}
+
 function csv_import($table, $pkey='id') // Import CSV FILE to Table
 	{
 		if (!empty($_FILES['file']['name'])) {
@@ -1430,7 +1504,7 @@ function resolve_company_incorporation($param) {
     if (empty($param)) return null;
 
     $safe = mysqli_real_escape_string($con, $param);
-    $is_admin = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
+    $is_admin = (check_admin_auth(false) !== false);
     $active_filter = $is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')";
     
     // 1. Direct CIN match (e.g. U88100ME2026NPL476032, ADB-7416, F07073)

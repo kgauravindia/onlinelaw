@@ -346,7 +346,7 @@ if (isset($_REQUEST['check_usage'])) {
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
-$is_admin = (!empty($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
+$is_admin = (check_admin_auth(false) !== false);
 
 // If public visitor (not logged in as admin), display clean maintenance notice
 if (!$is_admin) {

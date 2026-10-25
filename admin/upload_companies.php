@@ -1,6 +1,6 @@
 <?php
 require_once('includes/header.php');
-require_once('../includes/company_importer.php');
+require_once(__DIR__ . '/../includes/company_importer.php');
 
 $import_result = null;
 $error_msg = null;

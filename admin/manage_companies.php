@@ -3,15 +3,7 @@ require_once(__DIR__ . '/../includes/config.php');
 require_once(__DIR__ . '/../includes/function.php');
 
 // Admin Auth Check
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    if (isset($_REQUEST['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
-        header('Content-Type: application/json');
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized access']);
-        exit();
-    }
-    header("Location: login.php");
-    exit();
-}
+check_admin_auth(true);
 
 // Handle Status Toggle (ACTIVE <-> STRUCK_OFF <-> BLOCK) via AJAX or direct GET/POST
 if (isset($_REQUEST['toggle_status_id'])) {

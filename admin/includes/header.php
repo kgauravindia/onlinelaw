@@ -2,11 +2,10 @@
 require_once(__DIR__ . '/../../includes/config.php');
 require_once(__DIR__ . '/../../includes/function.php');
 
-// Admin Auth Check
+// Admin Token Authentication Check against op_user table
 $current_page = basename($_SERVER['PHP_SELF']);
-if ($current_page != 'login.php' && (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true)) {
-    header("Location: login.php");
-    exit();
+if ($current_page != 'login.php') {
+    $current_admin = check_admin_auth(true);
 }
 ?>
 <!DOCTYPE html>

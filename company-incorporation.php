@@ -33,7 +33,7 @@
     $page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
     $limit = 30;
     $offset = ($page - 1) * $limit;
-    $is_admin = (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
+    $is_admin = (check_admin_auth(false) !== false);
 
     // Normalize type and category if aliased
     if (empty($type_param) && !empty($category_param)) {

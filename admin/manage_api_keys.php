@@ -3,15 +3,7 @@ require_once(__DIR__ . '/../includes/config.php');
 require_once(__DIR__ . '/../includes/function.php');
 
 // Admin Auth Check
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    if (isset($_REQUEST['ajax_action']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
-        header('Content-Type: application/json');
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized access. Please log in.']);
-        exit();
-    }
-    header("Location: login.php");
-    exit();
-}
+check_admin_auth(true);
 
 // Auto Schema Migration / Table Verification
 $tbl_check = direct_sql("SHOW TABLES LIKE 'api_logs'");

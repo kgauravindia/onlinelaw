@@ -3,10 +3,7 @@ require_once(__DIR__ . '/../includes/config.php');
 require_once(__DIR__ . '/../includes/function.php');
 
 // Admin Auth Check
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
+check_admin_auth(true);
 
 // Auto Schema Migration / Table Verification
 $tbl_check = direct_sql("SHOW TABLES LIKE 'api_logs'");

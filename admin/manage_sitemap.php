@@ -4,16 +4,7 @@ require_once(__DIR__ . '/../includes/function.php');
 require_once(__DIR__ . '/../generate_sitemap.php');
 
 // Admin Auth Check
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    if (isset($_POST['ajax']) || isset($_GET['ajax'])) {
-        if (ob_get_length()) ob_clean();
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['status' => 'error', 'message' => 'Admin session expired. Please log in again.']);
-        exit();
-    }
-    header("Location: login.php");
-    exit();
-}
+check_admin_auth(true);
 
 $base = rtrim($inst_url, '/') . '/';
 $root_dir = realpath(dirname(__DIR__));

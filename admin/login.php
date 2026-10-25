@@ -1,35 +1,66 @@
 <?php
-require_once('../includes/config.php');
-require_once('../includes/function.php');
+require_once(__DIR__ . '/../includes/config.php');
+require_once(__DIR__ . '/../includes/function.php');
 
 $error = '';
+$success = '';
+
+// Handle redirect messages
+if (isset($_GET['msg'])) {
+    if ($_GET['msg'] === 'session_invalid') {
+        $error = "Session expired or logged in from another browser. Please sign in.";
+    } elseif ($_GET['msg'] === 'account_blocked') {
+        $error = "Your account is deactivated. Please contact support.";
+    } elseif ($_GET['msg'] === 'logged_out') {
+        $success = "You have been logged out successfully.";
+    }
+}
+
+// If already logged in with a valid active token, redirect to dashboard
+if (check_admin_auth(false) !== false) {
+    header("Location: index.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
     
-    // Check credentials against op_user table or fallback
-    $check = direct_sql("SELECT * FROM op_user WHERE user_name = '" . mysqli_real_escape_string($con, $username) . "'");
+    // Check credentials strictly against op_user table in database
+    $safe_username = mysqli_real_escape_string($con, $username);
+    $check = direct_sql("SELECT * FROM op_user WHERE user_name = '$safe_username' LIMIT 1");
     if (isset($check['data'][0])) {
         $u = $check['data'][0];
-        $stored_pass = $u['user_pass'] ?? '';
-        if (password_verify($password, $stored_pass) || md5($password) === $stored_pass || $password === $stored_pass) {
-            $_SESSION['admin_logged_in'] = true;
-            $_SESSION['username'] = $u['user_name'] ?? $username;
-            $_SESSION['full_name'] = $u['full_name'] ?? $username;
-            $_SESSION['user_type'] = $u['user_type'] ?? 'ADMIN';
-            header("Location: index.php");
-            exit();
+        if (!empty($u['status']) && strtoupper($u['status']) === 'BLOCK') {
+            $error = "Your account is blocked. Please contact support.";
+        } else {
+            $stored_pass = trim($u['user_pass'] ?? '');
+            if (!empty($stored_pass) && !empty($password) && (password_verify($password, $stored_pass) || md5($password) === $stored_pass || $password === $stored_pass)) {
+                $user_id = intval($u['id']);
+                
+                // Generate a cryptographically secure authentication token
+                $auth_token = bin2hex(random_bytes(32));
+
+                // Save token & last login in op_user table
+                direct_sql("UPDATE op_user SET token = '$auth_token', last_login = NOW(), status = 'ACTIVE' WHERE id = $user_id", 'set');
+
+                // Regenerate session ID to prevent session fixation
+                session_regenerate_id(true);
+
+                // Initialize token-backed session
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['admin_token'] = $auth_token;
+                $_SESSION['username'] = $u['user_name'];
+                $_SESSION['full_name'] = $u['full_name'] ?: $u['user_name'];
+                $_SESSION['user_type'] = $u['user_type'] ?: 'ADMIN';
+
+                header("Location: index.php");
+                exit();
+            } else {
+                $error = "Invalid username or password!";
+            }
         }
-    }
-    
-    // Fallback default admin
-    if ($username === 'admin' && $password === 'admin123') {
-        $_SESSION['admin_logged_in'] = true;
-        $_SESSION['username'] = 'admin';
-        $_SESSION['full_name'] = 'Administrator';
-        $_SESSION['user_type'] = 'ADMIN';
-        header("Location: index.php");
-        exit();
     } else {
         $error = "Invalid username or password!";
     }
@@ -67,6 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="alert alert-danger py-2 px-3 mb-4 rounded-lg shadow-sm border-0 d-flex align-items-center" style="font-size: 0.88rem; gap: 8px;">
             <i class="fas fa-exclamation-circle"></i>
             <div><?php echo htmlspecialchars($error); ?></div>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($success)): ?>
+        <div class="alert alert-success py-2 px-3 mb-4 rounded-lg shadow-sm border-0 d-flex align-items-center" style="font-size: 0.88rem; gap: 8px;">
+            <i class="fas fa-check-circle"></i>
+            <div><?php echo htmlspecialchars($success); ?></div>
         </div>
     <?php endif; ?>
 

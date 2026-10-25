@@ -3,10 +3,7 @@ require_once(__DIR__ . '/../includes/config.php');
 require_once(__DIR__ . '/../includes/function.php');
 
 // Admin Auth Check
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
+check_admin_auth(true);
 
 // Auto-create contact table if not available
 mysqli_query($con, "CREATE TABLE IF NOT EXISTS `contact` (
@@ -273,7 +270,17 @@ if ($tab === 'complaints') {
 
 if (!empty($q)) {
     $sq = mysqli_real_escape_string($con, $q);
-    $where_clauses[] = "(name LIKE '%$sq%' OR email LIKE '%$sq%' OR mobile LIKE '%$sq%' OR area LIKE '%$sq%' OR message LIKE '%$sq%')";
+    $words = array_filter(preg_split('/\s+/', trim($q)), function($w) { return strlen($w) > 0; });
+    if (count($words) > 1) {
+        $word_conditions = [];
+        foreach ($words as $w) {
+            $sw = mysqli_real_escape_string($con, $w);
+            $word_conditions[] = "(name LIKE '%$sw%' OR email LIKE '%$sw%' OR mobile LIKE '%$sw%' OR area LIKE '%$sw%' OR message LIKE '%$sw%')";
+        }
+        $where_clauses[] = "((" . implode(' AND ', $word_conditions) . ") OR (name LIKE '%$sq%' OR message LIKE '%$sq%'))";
+    } else {
+        $where_clauses[] = "(name LIKE '%$sq%' OR email LIKE '%$sq%' OR mobile LIKE '%$sq%' OR area LIKE '%$sq%' OR message LIKE '%$sq%')";
+    }
 }
 
 $where_sql = implode(' AND ', $where_clauses);
