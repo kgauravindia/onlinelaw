@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__ . '/../../includes/config.php');
+require_once(__DIR__ . '/../../includes/security.php');
 require_once(__DIR__ . '/../../includes/function.php');
 
 // Admin Token Authentication Check against op_user table
