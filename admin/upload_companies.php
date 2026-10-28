@@ -8,7 +8,9 @@ $success_msg = null;
 
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_excel') {
-    if (!empty($_FILES['excel_file']['name'])) {
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '', 'admin_upload')) {
+        $error_msg = "Security token invalid or expired. Please refresh the page.";
+    } elseif (!empty($_FILES['excel_file']['name'])) {
         $validation = validate_uploaded_file($_FILES['excel_file'], ['xlsx']);
         if (!$validation['safe']) {
             $error_msg = $validation['error'];
@@ -20,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             
             $uploadDir = '../uploads/reports/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+                mkdir($uploadDir, 0755, true);
             }
             $targetPath = $uploadDir . time() . '_' . $fileName;
             if (move_uploaded_file($fileTmp, $targetPath)) {
@@ -457,6 +459,7 @@ $server_incorp_size = $server_incorp ? round(filesize('../Incorporation-Report-2
             
             <form action="upload_companies.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="upload_excel">
+                <?php echo get_csrf_input('admin_upload'); ?>
                 
                 <!-- Report Type Selector -->
                 <div class="form-group mb-3">

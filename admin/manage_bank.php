@@ -6,12 +6,17 @@ $banks = direct_sql("SELECT * FROM bank_ifsc ORDER BY id DESC LIMIT 500");
 
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_delete')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_bank.php';</script>";
+        exit;
+    }
     $res = delete_data('bank_ifsc', $del_id);
     if ($res['status'] == 'success') {
         echo "<script>alert('Record deleted successfully'); window.location.href='manage_bank.php';</script>";
     } else {
         echo "<script>alert('Failed to delete record'); window.location.href='manage_bank.php';</script>";
     }
+    exit;
 }
 ?>
 
@@ -88,7 +93,7 @@ if (isset($_GET['del'])) {
                                     <a href="edit_bank.php?id=<?php echo $b['id']; ?>" class="btn-action-circle text-primary" title="Edit Bank">
                                         <i class="fas fa-pen"></i>
                                     </a>
-                                    <a href="manage_bank.php?del=<?php echo $b['id']; ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this bank record?');">
+                                    <a href="manage_bank.php?del=<?php echo $b['id']; ?>&csrf=<?php echo generate_csrf_token('admin_delete'); ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this bank record?');">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>

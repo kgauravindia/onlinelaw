@@ -22,25 +22,29 @@ if ($user_data['count'] == 0) {
 $u = $user_data['data'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $update_data = array(
-        'full_name' => trim($_POST['full_name']),
-        'user_mobile' => trim($_POST['user_mobile']),
-        'user_email' => trim($_POST['user_email']),
-        'user_type' => trim($_POST['user_type']),
-        'status' => trim($_POST['status'])
-    );
-
-    // If new password is provided, hash with md5/bcrypt
-    if (!empty($_POST['user_pass'])) {
-        $update_data['user_pass'] = md5(trim($_POST['user_pass']));
-    }
-
-    $res = update_data('op_user', $update_data, $id);
-    if ($res['status'] == 'success') {
-        $success = "User account updated successfully!";
-        $u = get_data('op_user', $id)['data'];
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '', 'admin_user')) {
+        $error = "Security token mismatch. Please reload the page and try again.";
     } else {
-        $error = "Failed to update user: " . $res['msg'];
+        $update_data = array(
+            'full_name' => trim($_POST['full_name']),
+            'user_mobile' => trim($_POST['user_mobile']),
+            'user_email' => trim($_POST['user_email']),
+            'user_type' => trim($_POST['user_type']),
+            'status' => trim($_POST['status'])
+        );
+
+        // If new password is provided, securely hash with PASSWORD_DEFAULT (Bcrypt)
+        if (!empty($_POST['user_pass'])) {
+            $update_data['user_pass'] = password_hash(trim($_POST['user_pass']), PASSWORD_DEFAULT);
+        }
+
+        $res = update_data('op_user', $update_data, $id);
+        if ($res['status'] == 'success') {
+            $success = "User account updated successfully!";
+            $u = get_data('op_user', $id)['data'];
+        } else {
+            $error = "Failed to update user: " . $res['msg'];
+        }
     }
 }
 ?>
@@ -75,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="col-lg-8 mb-4">
         <div class="section-card p-4">
             <form method="post" action="">
+                <?php echo get_csrf_input('admin_user'); ?>
                 <div class="row">
                     <div class="col-md-6 form-group mb-3">
                         <label class="small font-weight-bold text-muted mb-1">Full Name *</label>

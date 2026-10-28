@@ -62,6 +62,10 @@ if (isset($_REQUEST['toggle_status_id'])) {
 // Handle Deletion
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_delete')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_companies.php';</script>";
+        exit();
+    }
     $res = delete_data('companies_incorporated', $del_id);
     unset($_SESSION['mca_stats_cache']);
     @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
@@ -486,7 +490,7 @@ if (!$months_res) {
                                     <a href="edit_company.php?id=<?php echo $c['id']; ?>" class="btn-action-circle text-primary" title="Edit Company Details">
                                         <i class="fas fa-pen"></i>
                                     </a>
-                                    <a href="manage_companies.php?del=<?php echo $c['id']; ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this company record?');">
+                                    <a href="manage_companies.php?del=<?php echo $c['id']; ?>&csrf=<?php echo generate_csrf_token('admin_delete'); ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this company record?');">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>

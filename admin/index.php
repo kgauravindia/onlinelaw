@@ -321,33 +321,52 @@ if ($cache_valid && $cached_data) {
     <div class="col-lg-6 mb-4">
         <div class="section-card p-4 h-100 d-flex flex-column justify-content-between">
             <div>
-                <h5 class="font-weight-bold mb-3">
-                    <i class="fas fa-shield-alt text-success mr-2"></i> System Health &amp; Summary
-                </h5>
-                <ul class="list-unstyled mb-0" style="font-size: 0.9rem; line-height: 2;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-weight-bold mb-0">
+                        <i class="fas fa-shield-alt text-success mr-2"></i> System Health &amp; Security Guard
+                    </h5>
+                    <span class="badge-premium badge-premium-success">Hardened 2026</span>
+                </div>
+                <ul class="list-unstyled mb-0" style="font-size: 0.88rem; line-height: 2.1;">
                     <li class="d-flex align-items-center justify-content-between">
-                        <span class="text-muted"><i class="fas fa-check text-success mr-2"></i> Database Status:</span>
-                        <span class="badge-premium badge-premium-success">Operational</span>
+                        <span class="text-muted"><i class="fas fa-server text-primary mr-2"></i> PHP Runtime:</span>
+                        <span class="badge bg-light text-dark border px-2 py-0.5" style="border-radius: 6px;">PHP <?php echo PHP_VERSION; ?></span>
                     </li>
                     <li class="d-flex align-items-center justify-content-between">
-                        <span class="text-muted"><i class="fas fa-clock text-info mr-2"></i> Server Time:</span>
-                        <strong><?php echo date('Y-m-d H:i:s'); ?></strong>
+                        <span class="text-muted"><i class="fas fa-database text-success mr-2"></i> Database Status:</span>
+                        <span class="badge-premium badge-premium-success">Operational (utf8mb4)</span>
                     </li>
                     <li class="d-flex align-items-center justify-content-between">
-                        <span class="text-muted"><i class="fas fa-user-shield text-primary mr-2"></i> Active Admin:</span>
+                        <span class="text-muted"><i class="fas fa-shield-virus text-info mr-2"></i> Upload Interceptor:</span>
+                        <span class="badge bg-success text-white px-2 py-0.5" style="border-radius: 6px;"><i class="fas fa-check mr-1"></i>Active (Blocks .php/.exe/.bat)</span>
+                    </li>
+                    <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-user-lock text-warning mr-2"></i> Brute-Force Defender:</span>
+                        <span class="badge bg-success text-white px-2 py-0.5" style="border-radius: 6px;"><i class="fas fa-lock mr-1"></i>Rate-Limited (IP Guard)</span>
+                    </li>
+                    <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-key text-purple mr-2"></i> CSRF Validation:</span>
+                        <span class="badge bg-primary text-white px-2 py-0.5" style="border-radius: 6px;">Enforced</span>
+                    </li>
+                    <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-cookie-bite text-info mr-2"></i> Session Cookie Policy:</span>
+                        <span class="badge bg-light text-dark border px-2 py-0.5" style="border-radius: 6px;">HttpOnly + SameSite=Lax</span>
+                    </li>
+                    <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-clock text-secondary mr-2"></i> Server Clock:</span>
+                        <strong><?php echo date('d M Y, H:i:s'); ?> IST</strong>
+                    </li>
+                    <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-user-shield text-primary mr-2"></i> Authenticated Admin:</span>
                         <strong><?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?></strong>
                     </li>
-                    <li class="d-flex align-items-center justify-content-between">
-                        <span class="text-muted"><i class="fas fa-database text-warning mr-2"></i> Total Indexed Entities:</span>
-                        <strong class="text-primary font-weight-bold"><?php echo number_format($total_companies + $total_ifsc + $total_pincodes + $total_acts); ?></strong>
-                    </li>
-                    <li class="d-flex align-items-center justify-content-between">
-                        <span class="text-muted"><i class="fas fa-sitemap text-primary mr-2"></i> Search Sitemaps:</span>
-                        <a href="manage_sitemap.php" class="badge-premium badge-premium-primary text-decoration-none">
-                            <i class="fas fa-cog mr-1"></i> Manage Sitemaps &rarr;
-                        </a>
-                    </li>
                 </ul>
+            </div>
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Total Platform Records: <strong><?php echo number_format($total_companies + $total_ifsc + $total_pincodes + $total_acts); ?></strong></span>
+                <a href="manage_sitemap.php" class="btn btn-sm btn-outline-primary" style="border-radius: var(--radius-sm); font-size: 0.8rem;">
+                    <i class="fas fa-sitemap mr-1"></i> Sitemaps &rarr;
+                </a>
             </div>
         </div>
     </div>

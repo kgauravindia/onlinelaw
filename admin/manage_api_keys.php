@@ -48,6 +48,10 @@ if (!empty($cols_res['data'])) {
 // Handle Direct GET Actions (e.g. ?del=ID or ?toggle=ID)
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_api')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_api_keys.php';</script>";
+        exit;
+    }
     if ($del_id > 0) {
         direct_sql("DELETE FROM api_keys WHERE id = $del_id", 'set');
         direct_sql("DELETE FROM api_logs WHERE api_key_id = $del_id", 'set');
@@ -58,6 +62,10 @@ if (isset($_GET['del'])) {
 
 if (isset($_GET['toggle'])) {
     $toggle_id = intval($_GET['toggle']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_api')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_api_keys.php';</script>";
+        exit;
+    }
     if ($toggle_id > 0) {
         $curr = direct_sql("SELECT is_active FROM api_keys WHERE id = $toggle_id LIMIT 1");
         $curr_status = (!empty($curr['data'][0]['is_active'])) ? intval($curr['data'][0]['is_active']) : 0;
@@ -69,6 +77,10 @@ if (isset($_GET['toggle'])) {
 }
 
 if (isset($_GET['clear_logs'])) {
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_api')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_api_keys.php';</script>";
+        exit;
+    }
     direct_sql("TRUNCATE TABLE api_logs", 'set');
     echo "<script>alert('All API request logs have been cleared.'); window.location.href='manage_api_keys.php';</script>";
     exit;
@@ -426,7 +438,7 @@ require_once('includes/header.php');
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="manage_api_keys.php?toggle=<?php echo $k['id']; ?>" class="btn btn-sm <?php echo $is_active ? 'btn-outline-success' : 'btn-outline-danger'; ?> font-weight-bold py-1 px-2" style="border-radius: 20px; font-size: 0.78rem;" title="Click to toggle status">
+                                        <a href="manage_api_keys.php?toggle=<?php echo $k['id']; ?>&csrf=<?php echo generate_csrf_token('admin_api'); ?>" class="btn btn-sm <?php echo $is_active ? 'btn-outline-success' : 'btn-outline-danger'; ?> font-weight-bold py-1 px-2" style="border-radius: 20px; font-size: 0.78rem;" title="Click to toggle status">
                                             <i class="fas <?php echo $is_active ? 'fa-check-circle' : 'fa-ban'; ?> mr-1"></i>
                                             <?php echo $is_active ? 'Active' : 'Suspended'; ?>
                                         </a>
@@ -442,7 +454,7 @@ require_once('includes/header.php');
                                             <button type="button" class="btn-action-circle text-warning" title="Regenerate Key" onclick="regenerateKey(<?php echo $k['id']; ?>, '<?php echo htmlspecialchars($k['website_name']); ?>')">
                                                 <i class="fas fa-sync-alt"></i>
                                             </button>
-                                            <a href="manage_api_keys.php?del=<?php echo $k['id']; ?>" class="btn-action-circle text-danger" title="Revoke & Delete Key" onclick="return confirm('Are you sure you want to completely revoke and delete the API key for \'<?php echo htmlspecialchars($k['website_name']); ?>\'?');">
+                                            <a href="manage_api_keys.php?del=<?php echo $k['id']; ?>&csrf=<?php echo generate_csrf_token('admin_api'); ?>" class="btn-action-circle text-danger" title="Revoke & Delete Key" onclick="return confirm('Are you sure you want to completely revoke and delete the API key for \'<?php echo htmlspecialchars($k['website_name']); ?>\'?');">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
@@ -464,7 +476,7 @@ require_once('includes/header.php');
                     <i class="fas fa-history text-primary mr-2"></i> Real-time API Traffic &amp; Security Auditing
                 </div>
                 <div>
-                    <a href="manage_api_keys.php?clear_logs=1" class="btn btn-sm btn-outline-danger font-weight-bold" onclick="return confirm('Are you sure you want to purge and clear all API audit logs?');">
+                    <a href="manage_api_keys.php?clear_logs=1&csrf=<?php echo generate_csrf_token('admin_api'); ?>" class="btn btn-sm btn-outline-danger font-weight-bold" onclick="return confirm('Are you sure you want to purge and clear all API audit logs?');">
                         <i class="fas fa-trash-alt mr-1"></i> Clear Audit Logs
                     </a>
                 </div>

@@ -6,12 +6,17 @@ $acts = direct_sql("SELECT * FROM acts ORDER BY id DESC LIMIT 500");
 
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_delete')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_acts.php';</script>";
+        exit;
+    }
     $res = delete_data('acts', $del_id);
     if ($res['status'] == 'success') {
         echo "<script>alert('Bare Act deleted successfully'); window.location.href='manage_acts.php';</script>";
     } else {
         echo "<script>alert('Failed to delete act'); window.location.href='manage_acts.php';</script>";
     }
+    exit;
 }
 ?>
 
@@ -80,7 +85,7 @@ if (isset($_GET['del'])) {
                                     <a href="edit_act.php?id=<?php echo $a['id']; ?>" class="btn-action-circle text-primary" title="Edit Bare Act">
                                         <i class="fas fa-pen"></i>
                                     </a>
-                                    <a href="manage_acts.php?del=<?php echo $a['id']; ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this act?');">
+                                    <a href="manage_acts.php?del=<?php echo $a['id']; ?>&csrf=<?php echo generate_csrf_token('admin_delete'); ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this act?');">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>

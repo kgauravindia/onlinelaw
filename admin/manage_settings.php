@@ -6,7 +6,11 @@ $msg_type = '';
 
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
-    $settings_to_save = [
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '', 'admin_settings')) {
+        $msg = "Security validation failed. Please refresh the page and try again.";
+        $msg_type = "danger";
+    } else {
+        $settings_to_save = [
         // Analytics
         'google_analytics_id'        => trim($_POST['google_analytics_id'] ?? ''),
         'google_analytics_enabled'   => isset($_POST['google_analytics_enabled']) ? '1' : '0',
@@ -54,8 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
         }
     }
 
-    $msg = "Settings successfully updated!";
-    $msg_type = "success";
+        $msg = "Settings successfully updated!";
+        $msg_type = "success";
+    }
 }
 
 // Fetch all current settings
@@ -196,6 +201,7 @@ $social_pinterest = $all_settings['social_pinterest'] ?? $inst_pinterest;
 
     <!-- Main Settings Form -->
     <form method="POST" action="manage_settings.php">
+        <?php echo get_csrf_input('admin_settings'); ?>
         <div class="card border-0 shadow-sm mb-5" style="border-radius: 16px; background: #ffffff; overflow: hidden;">
             <!-- Nav Tabs -->
             <div class="card-header bg-white border-bottom p-0" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">

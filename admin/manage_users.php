@@ -6,12 +6,21 @@ $users = get_all('op_user', '*', null, 'id DESC');
 
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_delete')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_users.php';</script>";
+        exit;
+    }
+    if ($del_id === intval($_SESSION['user_id'] ?? 0)) {
+        echo "<script>alert('Error: You cannot delete your currently signed-in account.'); window.location.href='manage_users.php';</script>";
+        exit;
+    }
     $res = delete_data('op_user', $del_id);
     if ($res['status'] == 'success') {
         echo "<script>alert('User deleted successfully'); window.location.href='manage_users.php';</script>";
     } else {
         echo "<script>alert('Failed to delete user'); window.location.href='manage_users.php';</script>";
     }
+    exit;
 }
 ?>
 
@@ -91,7 +100,7 @@ if (isset($_GET['del'])) {
                                     <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn-action-circle text-primary" title="Edit User">
                                         <i class="fas fa-pen"></i>
                                     </a>
-                                    <a href="manage_users.php?del=<?php echo $u['id']; ?>" class="btn-action-circle text-danger" title="Delete User" onclick="return confirm('Are you sure you want to delete this user?');">
+                                    <a href="manage_users.php?del=<?php echo $u['id']; ?>&csrf=<?php echo generate_csrf_token('admin_delete'); ?>" class="btn-action-circle text-danger" title="Delete User" onclick="return confirm('Are you sure you want to delete this user?');">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>

@@ -6,12 +6,17 @@ $pincodes = direct_sql("SELECT * FROM pincode ORDER BY id DESC LIMIT 500");
 
 if (isset($_GET['del'])) {
     $del_id = intval($_GET['del']);
+    if (!validate_csrf_token($_GET['csrf'] ?? '', 'admin_delete')) {
+        echo "<script>alert('Security token invalid or expired. Please refresh the page.'); window.location.href='manage_pincode.php';</script>";
+        exit;
+    }
     $res = delete_data('pincode', $del_id);
     if ($res['status'] == 'success') {
         echo "<script>alert('Record deleted successfully'); window.location.href='manage_pincode.php';</script>";
     } else {
         echo "<script>alert('Failed to delete record'); window.location.href='manage_pincode.php';</script>";
     }
+    exit;
 }
 ?>
 
@@ -82,7 +87,7 @@ if (isset($_GET['del'])) {
                                     <a href="edit_pincode.php?id=<?php echo $p['id']; ?>" class="btn-action-circle text-primary" title="Edit PIN Code">
                                         <i class="fas fa-pen"></i>
                                     </a>
-                                    <a href="manage_pincode.php?del=<?php echo $p['id']; ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this PIN code?');">
+                                    <a href="manage_pincode.php?del=<?php echo $p['id']; ?>&csrf=<?php echo generate_csrf_token('admin_delete'); ?>" class="btn-action-circle text-danger" title="Delete Record" onclick="return confirm('Are you sure you want to delete this PIN code?');">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>
