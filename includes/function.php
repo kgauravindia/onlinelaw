@@ -137,11 +137,12 @@ function check_admin_auth($redirect = true) {
     $auth_check = direct_sql("SELECT id, user_name, full_name, user_type, status, token FROM op_user WHERE id = $auth_uid AND token = '$auth_token' LIMIT 1");
 
     if (empty($auth_check['count']) || $auth_check['count'] == 0) {
-        $_SESSION = [];
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
-        }
+        unset($_SESSION['admin_logged_in'], $_SESSION['admin_token'], $_SESSION['user_id'], $_SESSION['username'], $_SESSION['full_name'], $_SESSION['user_type']);
         if ($redirect) {
+            $_SESSION = [];
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
+            }
             $is_ajax = isset($_REQUEST['ajax_action']) || 
                        (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || 
                        (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
@@ -158,11 +159,12 @@ function check_admin_auth($redirect = true) {
 
     $auth_user = $auth_check['data'][0];
     if (!empty($auth_user['status']) && strtoupper($auth_user['status']) === 'BLOCK') {
-        $_SESSION = [];
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
-        }
+        unset($_SESSION['admin_logged_in'], $_SESSION['admin_token'], $_SESSION['user_id'], $_SESSION['username'], $_SESSION['full_name'], $_SESSION['user_type']);
         if ($redirect) {
+            $_SESSION = [];
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
+            }
             header("Location: login.php?msg=account_blocked");
             exit();
         }

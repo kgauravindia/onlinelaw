@@ -508,10 +508,15 @@ function global_input_security_interceptor() {
         '/(javascript|vbscript|data):[^\n]+/i'
     ];
 
-    $check_val = function($val) use (&$check_val, $dangerous_patterns) {
+    $check_val = function($val, $key = '') use (&$check_val, $dangerous_patterns) {
+        // Skip password fields from arbitrary pattern blocks
+        if (in_array(strtolower((string)$key), ['password', 'user_pass', 'pass', 'pwd', 'csrf_token'], true)) {
+            return false;
+        }
+
         if (is_array($val)) {
-            foreach ($val as $sub) {
-                if ($check_val($sub)) return true;
+            foreach ($val as $k => $sub) {
+                if ($check_val($sub, $k)) return true;
             }
             return false;
         }
@@ -529,9 +534,14 @@ function global_input_security_interceptor() {
     };
 
     $culprit = false;
-    if ($check_val($_GET)) $culprit = 'GET';
-    if (!$culprit && $check_val($_POST)) $culprit = 'POST';
-    if (!$culprit && $check_val($_COOKIE)) $culprit = 'COOKIE';
+    foreach ($_GET as $k => $v) {
+        if ($check_val($v, $k)) { $culprit = 'GET'; break; }
+    }
+    if (!$culprit) {
+        foreach ($_POST as $k => $v) {
+            if ($check_val($v, $k)) { $culprit = 'POST'; break; }
+        }
+    }
 
     if ($culprit) {
         $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';

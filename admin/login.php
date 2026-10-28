@@ -1,8 +1,7 @@
 <?php
-// Production error suppressing to prevent server path leakage
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
-error_reporting(0);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 
 require_once(__DIR__ . '/../includes/config.php');
 require_once(__DIR__ . '/../includes/function.php');
@@ -10,8 +9,8 @@ require_once(__DIR__ . '/../includes/function.php');
 $error = '';
 $success = '';
 
-// Check IP Rate Limiting (5 failed attempts per 15-minute window)
-$rate_status = check_rate_limit('admin_login', 5, 900);
+// Check IP Rate Limiting (10 failed attempts per 15-minute window)
+$rate_status = check_rate_limit('admin_login', 10, 900);
 if (!$rate_status['allowed']) {
     $mins_left = max(1, ceil($rate_status['remaining_seconds'] / 60));
     $error = "Too many failed sign-in attempts. For security, login is temporarily locked for {$mins_left} more minute(s). Please try again later.";
@@ -42,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     // 2. Verify CSRF Token
     elseif (!validate_csrf_token($_POST['csrf_token'] ?? '', 'admin_login')) {
-        $error = "Security validation failed. Please refresh the page and try again.";
-        record_rate_limit_failure('admin_login', 5, 900);
+        $error = "Security token expired or invalid. Please try submitting again.";
     } else {
         $username = trim($_POST['username'] ?? '');
         $password = trim($_POST['password'] ?? '');
@@ -55,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $u = $check['data'][0];
             if (!empty($u['status']) && strtoupper($u['status']) === 'BLOCK') {
                 $error = "Your account is blocked. Please contact support.";
-                record_rate_limit_failure('admin_login', 5, 900);
+                record_rate_limit_failure('admin_login', 10, 900);
             } else {
                 $stored_pass = trim($u['user_pass'] ?? '');
                 $is_password_valid = false;
@@ -102,16 +100,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['full_name'] = $u['full_name'] ?: $u['user_name'];
                     $_SESSION['user_type'] = $u['user_type'] ?: 'ADMIN';
 
+                    // Ensure session is written and closed before HTTP redirect
+                    session_write_close();
+
                     header("Location: index.php");
                     exit();
                 } else {
                     $error = "Invalid username or password!";
-                    record_rate_limit_failure('admin_login', 5, 900);
+                    record_rate_limit_failure('admin_login', 10, 900);
                 }
             }
         } else {
             $error = "Invalid username or password!";
-            record_rate_limit_failure('admin_login', 5, 900);
+            record_rate_limit_failure('admin_login', 10, 900);
         }
     }
 }
