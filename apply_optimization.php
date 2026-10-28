@@ -5,9 +5,11 @@
  * Table `advocate` is skipped as instructed.
  */
 require_once(__DIR__ . '/includes/config.php');
+require_once(__DIR__ . '/includes/function.php');
 
-// Optional Basic Protection if run via web browser
+// Restrict execution to CLI or authenticated admins only
 if (php_sapi_name() !== 'cli') {
+    check_admin_auth(true);
     header('Content-Type: text/plain; charset=utf-8');
 }
 

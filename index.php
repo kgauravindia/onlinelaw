@@ -510,6 +510,9 @@ $website_schema = [
 									<input type="text" id="heroSearchInput" name="q" placeholder="Find Bank Branches by Bank, State, District &amp; Branch..." required autocomplete="off">
 									<button type="button" id="heroClearBtn" class="hero-clear-btn" title="Clear input"><i class="fas fa-times"></i></button>
 								</div>
+								<div id="heroFormatHint" class="hero-format-hint">
+									<i class="fas fa-lightbulb text-warning mr-1"></i> <span id="heroFormatHintText">Tip: Select Bank, State, District &amp; Branch or enter branch name</span>
+								</div>
 							</div>
 							<div class="col-md-3 col-12">
 								<button type="submit" class="btn btn-primary btn-block font-weight-bold" style="height: 50px; border-radius: var(--radius-md); font-size: 15px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">
@@ -518,6 +521,12 @@ $website_schema = [
 							</div>
 						</div>
 					</form>
+
+					<!-- Recent Searches Container -->
+					<div id="heroRecentContainer" class="hero-recent-container" style="display: none;">
+						<span class="small text-muted font-weight-bold mr-1"><i class="fas fa-history text-secondary mr-1"></i> Recent:</span>
+						<div id="heroRecentList" class="d-inline-flex flex-wrap gap-1" style="gap: 5px;"></div>
+					</div>
 
 					<!-- Quick Trending Suggestions -->
 					<div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2">
@@ -991,14 +1000,26 @@ $website_schema = [
 <!-- Metrics Section End --> 
 
 <script>
-// Interactive Hero Multi-Tool Switcher Script with Clear Input Handling
+// Interactive Hero Multi-Tool Switcher & Modern Recent Searches
 document.addEventListener('DOMContentLoaded', function() {
     var tabs = document.querySelectorAll('#heroToolTabs .hero-tab-pill');
     var form = document.getElementById('heroInstantSearchForm');
     var input = document.getElementById('heroSearchInput');
     var icon = document.getElementById('heroSearchIcon');
     var clearBtn = document.getElementById('heroClearBtn');
+    var hintText = document.getElementById('heroFormatHintText');
     var baseUrl = '<?php echo $base_url; ?>';
+
+    var toolHints = {
+        'bank-finder': 'Tip: Select Bank, State, District & Branch or enter branch name',
+        'pincode-finder': 'Tip: Select State, District, and postal delivery division',
+        'bank-ifsc': 'Tip: Enter 11-digit IFSC code (e.g. SBIN0000691, HDFC0000001, ICIC0000002)',
+        'pincode': 'Tip: Enter 6-digit postal PIN code (e.g. 110001, 841301, 400001)',
+        'company-incorporation': 'Tip: Enter Company Name or 21-digit Corporate Identity Number (CIN)',
+        'nic': 'Tip: Search 2 to 5-digit NIC 2025 activity code or sector (e.g. 6201, Software)',
+        'gst-hsn-sac': 'Tip: Search 4 to 8-digit HSN code or product name (e.g. 8471, Computer)',
+        'passport': 'Tip: Enter City, Passport Seva Kendra (PSK), or RPO name (e.g. Patna, Delhi)'
+    };
 
     tabs.forEach(function(tab) {
         tab.addEventListener('click', function() {
@@ -1015,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', function() {
             input.setAttribute('placeholder', placeholder);
             input.value = '';
             if (clearBtn) clearBtn.style.display = 'none';
+            if (hintText && toolHints[action]) hintText.textContent = toolHints[action];
             
             icon.className = iconClass + ' text-primary mr-2';
             input.focus();
@@ -1036,6 +1058,50 @@ document.addEventListener('DOMContentLoaded', function() {
             input.focus();
         });
     }
+
+    // Recent Searches Storage & Rendering
+    function loadRecentSearches() {
+        var container = document.getElementById('heroRecentContainer');
+        var list = document.getElementById('heroRecentList');
+        if (!container || !list) return;
+
+        try {
+            var raw = localStorage.getItem('olaw_recent_searches');
+            if (!raw) return;
+            var searches = JSON.parse(raw);
+            if (!Array.isArray(searches) || searches.length === 0) return;
+
+            list.innerHTML = '';
+            searches.slice(0, 5).forEach(function(item) {
+                var a = document.createElement('a');
+                a.className = 'hero-recent-tag';
+                a.href = baseUrl + item.action + '?' + encodeURIComponent(item.param || 'q') + '=' + encodeURIComponent(item.term);
+                a.innerHTML = '<i class="fas fa-search text-muted mr-1" style="font-size: 10px;"></i>' + item.term;
+                list.appendChild(a);
+            });
+            container.style.display = 'flex';
+        } catch(e) {}
+    }
+
+    if (form) {
+        form.addEventListener('submit', function() {
+            var query = input.value.trim();
+            if (!query) return;
+            var activeTab = document.querySelector('#heroToolTabs .hero-tab-pill.active');
+            var action = activeTab ? activeTab.getAttribute('data-action') : 'bank-finder';
+            var param = activeTab ? activeTab.getAttribute('data-name') : 'q';
+
+            try {
+                var raw = localStorage.getItem('olaw_recent_searches');
+                var searches = raw ? JSON.parse(raw) : [];
+                searches = searches.filter(function(s) { return s.term.toLowerCase() !== query.toLowerCase(); });
+                searches.unshift({ term: query, action: action, param: param });
+                localStorage.setItem('olaw_recent_searches', JSON.stringify(searches.slice(0, 8)));
+            } catch(e) {}
+        });
+    }
+
+    loadRecentSearches();
 });
 </script>
 

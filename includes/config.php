@@ -11,6 +11,33 @@ if (!ob_get_level() && !headers_sent()) {
     }
 }
 
+// Determine if request is via HTTPS
+$is_https = (
+    (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1')) ||
+    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+    (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
+    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+);
+
+// Enforce Session Security Settings before session starts
+ini_set('session.cookie_httponly', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_samesite', 'Lax');
+if ($is_https) {
+    ini_set('session.cookie_secure', '1');
+}
+
+// Runtime Security Headers
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    if ($is_https) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 // Session Initialization (Skip on stateless REST API calls to avoid file locking and memory consumption)
 $is_api_request = defined('REST_API') || (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], 'api.php') !== false);
 if (!$is_api_request && session_status() === PHP_SESSION_NONE && !headers_sent()) {

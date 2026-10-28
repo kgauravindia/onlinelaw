@@ -1,7 +1,30 @@
 # ----------------------------------------------------------------------
-# 1. Disable Directory Browsing
+# 1. Disable Directory Browsing & Server Signatures
 # ----------------------------------------------------------------------
 Options -Indexes
+ServerSignature Off
+
+# Strictly block direct web access to sensitive config, database, lock, and log files
+<FilesMatch "(?i)\.(sql|sqlite|db|lock|code-workspace|log|bak|orig|old|dist|env|ini)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Block access to composer files specifically
+<FilesMatch "(?i)^composer\.(json|lock)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
 
 # ----------------------------------------------------------------------
 # 2. Compression (mod_deflate) - Compresses text, html, css, js, json, svg
@@ -71,6 +94,8 @@ Options -Indexes
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set X-XSS-Protection "1; mode=block"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
 
     # Cache-Control headers for static assets
     <FilesMatch "\.(ico|jpe?g|png|gif|webp|svg|woff2?|ttf|otf|eot)$">
@@ -95,8 +120,18 @@ Options -Indexes
     # Security: Block script and binary execution attempts in uploads & tmp directories
     RewriteRule ^(uploads|tmp)/.*\.(php[0-9]?|phtml|phar|inc|cgi|pl|py|sh|bash|bin|bat|cmd|exe|com|msi|vbs|ps1|reg)$ - [F,L,NC]
 
-    # Security: Block direct access to environment and sensitive dot-files
+    # Security: Block direct access to environment, git, and sensitive dot-files
     RewriteRule (^|/)\.(env|git|user\.ini|htaccess|htpasswd) - [F,L,NC]
+
+    # Security: Block direct access to internal database maintenance and debug scripts
+    RewriteRule ^(check_db|apply_optimization|tmp_get_max_date|create_bank_micr)\.php$ - [F,L,NC]
+
+    # Security: Block common query injection attacks (null bytes, script tags, union select)
+    RewriteCond %{QUERY_STRING} (%00|%08|%09|%0A|%0D|\0) [NC,OR]
+    RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} (union(\s|\+)+select) [NC,OR]
+    RewriteCond %{QUERY_STRING} (base64_encode|base64_decode) [NC]
+    RewriteRule .* - [F,L]
     
     # 1. Search tool detail URLs
     RewriteRule ^company-incorporation/([a-zA-Z0-9_\-]+)/?$ company-incorporation.php?cin=$1 [L,QSA]

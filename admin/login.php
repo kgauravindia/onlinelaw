@@ -1,13 +1,21 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Production error suppressing to prevent server path leakage
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
 
 require_once(__DIR__ . '/../includes/config.php');
 require_once(__DIR__ . '/../includes/function.php');
 
 $error = '';
 $success = '';
+
+// Check IP Rate Limiting (5 failed attempts per 15-minute window)
+$rate_status = check_rate_limit('admin_login', 5, 900);
+if (!$rate_status['allowed']) {
+    $mins_left = max(1, ceil($rate_status['remaining_seconds'] / 60));
+    $error = "Too many failed sign-in attempts. For security, login is temporarily locked for {$mins_left} more minute(s). Please try again later.";
+}
 
 // Handle redirect messages
 if (isset($_GET['msg'])) {
@@ -27,46 +35,84 @@ if (check_admin_auth(false) !== false) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
-    
-    // Check credentials strictly against op_user table in database
-    $safe_username = mysqli_real_escape_string($con, $username);
-    $check = direct_sql("SELECT * FROM op_user WHERE user_name = '$safe_username' LIMIT 1");
-    if (isset($check['data'][0])) {
-        $u = $check['data'][0];
-        if (!empty($u['status']) && strtoupper($u['status']) === 'BLOCK') {
-            $error = "Your account is blocked. Please contact support.";
-        } else {
-            $stored_pass = trim($u['user_pass'] ?? '');
-            if (!empty($stored_pass) && !empty($password) && (password_verify($password, $stored_pass) || md5($password) === $stored_pass || $password === $stored_pass)) {
-                $user_id = intval($u['id']);
-                
-                // Generate a cryptographically secure authentication token
-                $auth_token = bin2hex(random_bytes(32));
-
-                // Save token & last login in op_user table
-                direct_sql("UPDATE op_user SET token = '$auth_token', last_login = NOW(), status = 'ACTIVE' WHERE id = $user_id", 'set');
-
-                // Regenerate session ID to prevent session fixation
-                session_regenerate_id(true);
-
-                // Initialize token-backed session
-                $_SESSION['admin_logged_in'] = true;
-                $_SESSION['user_id'] = $user_id;
-                $_SESSION['admin_token'] = $auth_token;
-                $_SESSION['username'] = $u['user_name'];
-                $_SESSION['full_name'] = $u['full_name'] ?: $u['user_name'];
-                $_SESSION['user_type'] = $u['user_type'] ?: 'ADMIN';
-
-                header("Location: index.php");
-                exit();
-            } else {
-                $error = "Invalid username or password!";
-            }
-        }
+    // 1. Verify Rate Limiting
+    if (!$rate_status['allowed']) {
+        $mins_left = max(1, ceil($rate_status['remaining_seconds'] / 60));
+        $error = "Too many failed sign-in attempts. For security, login is temporarily locked for {$mins_left} more minute(s).";
+    }
+    // 2. Verify CSRF Token
+    elseif (!validate_csrf_token($_POST['csrf_token'] ?? '', 'admin_login')) {
+        $error = "Security validation failed. Please refresh the page and try again.";
+        record_rate_limit_failure('admin_login', 5, 900);
     } else {
-        $error = "Invalid username or password!";
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+        
+        // Check credentials strictly against op_user table in database
+        $safe_username = mysqli_real_escape_string($con, $username);
+        $check = direct_sql("SELECT * FROM op_user WHERE user_name = '$safe_username' LIMIT 1");
+        if (isset($check['data'][0])) {
+            $u = $check['data'][0];
+            if (!empty($u['status']) && strtoupper($u['status']) === 'BLOCK') {
+                $error = "Your account is blocked. Please contact support.";
+                record_rate_limit_failure('admin_login', 5, 900);
+            } else {
+                $stored_pass = trim($u['user_pass'] ?? '');
+                $is_password_valid = false;
+                $needs_rehash = false;
+
+                if (!empty($stored_pass) && !empty($password)) {
+                    if (password_verify($password, $stored_pass)) {
+                        $is_password_valid = true;
+                        if (password_needs_rehash($stored_pass, PASSWORD_DEFAULT)) {
+                            $needs_rehash = true;
+                        }
+                    } elseif (md5($password) === $stored_pass || $password === $stored_pass) {
+                        $is_password_valid = true;
+                        $needs_rehash = true;
+                    }
+                }
+
+                if ($is_password_valid) {
+                    $user_id = intval($u['id']);
+                    
+                    // Generate a cryptographically secure authentication token
+                    $auth_token = bin2hex(random_bytes(32));
+
+                    // Upgrade password hash in database if legacy format was detected
+                    if ($needs_rehash) {
+                        $new_hash = mysqli_real_escape_string($con, password_hash($password, PASSWORD_DEFAULT));
+                        direct_sql("UPDATE op_user SET user_pass = '$new_hash' WHERE id = $user_id", 'set');
+                    }
+
+                    // Save token & last login in op_user table
+                    direct_sql("UPDATE op_user SET token = '$auth_token', last_login = NOW(), status = 'ACTIVE' WHERE id = $user_id", 'set');
+
+                    // Clear rate limiting counter upon successful authentication
+                    clear_rate_limit('admin_login');
+
+                    // Regenerate session ID to prevent session fixation
+                    session_regenerate_id(true);
+
+                    // Initialize token-backed session
+                    $_SESSION['admin_logged_in'] = true;
+                    $_SESSION['user_id'] = $user_id;
+                    $_SESSION['admin_token'] = $auth_token;
+                    $_SESSION['username'] = $u['user_name'];
+                    $_SESSION['full_name'] = $u['full_name'] ?: $u['user_name'];
+                    $_SESSION['user_type'] = $u['user_type'] ?: 'ADMIN';
+
+                    header("Location: index.php");
+                    exit();
+                } else {
+                    $error = "Invalid username or password!";
+                    record_rate_limit_failure('admin_login', 5, 900);
+                }
+            }
+        } else {
+            $error = "Invalid username or password!";
+            record_rate_limit_failure('admin_login', 5, 900);
+        }
     }
 }
 ?>
@@ -113,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <?php endif; ?>
 
     <form method="post" action="">
+        <?php echo get_csrf_input('admin_login'); ?>
         <div class="form-group mb-3">
             <label class="font-weight-bold text-muted small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Username</label>
             <div class="input-group">

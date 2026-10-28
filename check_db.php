@@ -1,5 +1,12 @@
 <?php
 require_once('includes/config.php');
+require_once('includes/function.php');
+
+// Restrict execution to CLI or authenticated admins only
+if (php_sapi_name() !== 'cli') {
+    check_admin_auth(true);
+}
+
 $conn = new mysqli($host_name, $db_user, $db_password, $db_name);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);

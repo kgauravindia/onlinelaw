@@ -28,6 +28,18 @@ if (isset($_REQUEST['api_key'])) {
     }
 }
 
+if (isset($_REQUEST['action'])) {
+    if (empty($api_key_input)) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(401);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Missing required API Key. Please provide a valid key via query parameter api_key, X-API-Key header, or Bearer Authorization.'
+        ]);
+        exit;
+    }
+}
+
 if (!empty($api_key_input) && isset($_REQUEST['action'])) {
     $api_start_time = microtime(true);
     header('Content-Type: application/json; charset=utf-8');

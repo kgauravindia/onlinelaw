@@ -323,3 +323,228 @@ function global_upload_security_guard() {
 
 // Automatically activate global security guard
 global_upload_security_guard();
+
+// ============================================================================
+// CSRF (Cross-Site Request Forgery) Protection Engine
+// ============================================================================
+
+/**
+ * Generate or retrieve an existing cryptographically secure CSRF token.
+ *
+ * @param string $context Unique form or action context
+ * @return string
+ */
+function generate_csrf_token($context = 'global') {
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
+    }
+    if (!isset($_SESSION['csrf_tokens']) || !is_array($_SESSION['csrf_tokens'])) {
+        $_SESSION['csrf_tokens'] = [];
+    }
+    if (empty($_SESSION['csrf_tokens'][$context]) || !is_string($_SESSION['csrf_tokens'][$context])) {
+        $_SESSION['csrf_tokens'][$context] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_tokens'][$context];
+}
+
+/**
+ * Output a secure hidden HTML input field containing the CSRF token.
+ *
+ * @param string $context Context identifier
+ * @return string HTML input string
+ */
+function get_csrf_input($context = 'global') {
+    $token = generate_csrf_token($context);
+    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+}
+
+/**
+ * Validate a submitted CSRF token using constant-time string comparison.
+ *
+ * @param string|null $token Submitted token to verify
+ * @param string $context Context identifier
+ * @param bool $consume Whether to invalidate the token after verification
+ * @return bool True if valid, false otherwise
+ */
+function validate_csrf_token($token, $context = 'global', $consume = false) {
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
+    }
+    if (empty($token) || empty($_SESSION['csrf_tokens'][$context])) {
+        return false;
+    }
+    $isValid = hash_equals($_SESSION['csrf_tokens'][$context], (string)$token);
+    if ($isValid && $consume) {
+        unset($_SESSION['csrf_tokens'][$context]);
+    }
+    return $isValid;
+}
+
+// ============================================================================
+// Brute-Force & Rate-Limiting Protection Engine
+// ============================================================================
+
+/**
+ * Check if the client IP address is currently rate-limited for an action.
+ *
+ * @param string $action Identifier for the action (e.g. 'admin_login', 'contact_submit')
+ * @param int $maxAttempts Maximum allowed failures within window
+ * @param int $lockoutSeconds Lockout duration in seconds (default 15 minutes)
+ * @return array ['allowed' => bool, 'remaining_seconds' => int, 'attempts' => int]
+ */
+function check_rate_limit($action = 'admin_login', $maxAttempts = 5, $lockoutSeconds = 900) {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $cacheDir = __DIR__ . '/../tmp/security_limits';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0750, true);
+    }
+
+    $fileKey = md5($action . '_' . $ip);
+    $limitFile = "$cacheDir/$fileKey.json";
+    $now = time();
+
+    $data = ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
+    if (file_exists($limitFile)) {
+        $raw = @file_get_contents($limitFile);
+        if ($raw) {
+            $parsed = json_decode($raw, true);
+            if (is_array($parsed)) {
+                $data = $parsed;
+            }
+        }
+    }
+
+    // Check if lockout is still active
+    if (!empty($data['locked_until']) && $data['locked_until'] > $now) {
+        return [
+            'allowed' => false,
+            'remaining_seconds' => $data['locked_until'] - $now,
+            'attempts' => $data['attempts']
+        ];
+    }
+
+    // Reset attempt window if elapsed
+    if (($now - $data['first_attempt']) > $lockoutSeconds) {
+        $data = ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
+        @file_put_contents($limitFile, json_encode($data));
+    }
+
+    return [
+        'allowed' => ($data['attempts'] < $maxAttempts),
+        'remaining_seconds' => 0,
+        'attempts' => $data['attempts']
+    ];
+}
+
+/**
+ * Record a failed attempt for rate limiting.
+ *
+ * @param string $action Action identifier
+ * @param int $maxAttempts Max attempts before locking
+ * @param int $lockoutSeconds Lockout duration
+ */
+function record_rate_limit_failure($action = 'admin_login', $maxAttempts = 5, $lockoutSeconds = 900) {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $cacheDir = __DIR__ . '/../tmp/security_limits';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0750, true);
+    }
+
+    $fileKey = md5($action . '_' . $ip);
+    $limitFile = "$cacheDir/$fileKey.json";
+    $now = time();
+
+    $data = ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
+    if (file_exists($limitFile)) {
+        $raw = @file_get_contents($limitFile);
+        if ($raw) {
+            $parsed = json_decode($raw, true);
+            if (is_array($parsed)) {
+                $data = $parsed;
+            }
+        }
+    }
+
+    $data['attempts']++;
+    if ($data['attempts'] >= $maxAttempts) {
+        $data['locked_until'] = $now + $lockoutSeconds;
+        error_log("[SECURITY] Rate limit lockout triggered for $action from IP: $ip ($maxAttempts failed attempts)");
+    }
+    @file_put_contents($limitFile, json_encode($data));
+}
+
+/**
+ * Clear recorded rate-limit counter on successful action.
+ *
+ * @param string $action Action identifier
+ */
+function clear_rate_limit($action = 'admin_login') {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $cacheDir = __DIR__ . '/../tmp/security_limits';
+    $fileKey = md5($action . '_' . $ip);
+    $limitFile = "$cacheDir/$fileKey.json";
+    if (file_exists($limitFile)) {
+        @unlink($limitFile);
+    }
+}
+
+// ============================================================================
+// Global Input Attack Interceptor (SQLi / Null Byte / Path Traversal)
+// ============================================================================
+
+/**
+ * Inspects all incoming GET, POST, and COOKIE parameters for malicious attack patterns.
+ */
+function global_input_security_interceptor() {
+    // Avoid running on command line
+    if (php_sapi_name() === 'cli') {
+        return;
+    }
+
+    $dangerous_patterns = [
+        '/\b(union\s+select|select\s+.*?\s+from\s+information_schema)\b/i',
+        '/(\.\.[\/\\\\])+/i',
+        '/<script\b[^>]*>(.*?)<\/script>/is',
+        '/(javascript|vbscript|data):[^\n]+/i'
+    ];
+
+    $check_val = function($val) use (&$check_val, $dangerous_patterns) {
+        if (is_array($val)) {
+            foreach ($val as $sub) {
+                if ($check_val($sub)) return true;
+            }
+            return false;
+        }
+        if (!is_string($val)) return false;
+
+        // Null byte injection check
+        if (strpos($val, "\0") !== false) return true;
+
+        foreach ($dangerous_patterns as $pattern) {
+            if (preg_match($pattern, $val)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    $culprit = false;
+    if ($check_val($_GET)) $culprit = 'GET';
+    if (!$culprit && $check_val($_POST)) $culprit = 'POST';
+    if (!$culprit && $check_val($_COOKIE)) $culprit = 'COOKIE';
+
+    if ($culprit) {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        error_log("[SECURITY VIOLATION] Blocked malicious attack pattern in $culprit from IP: $ip");
+        if (!headers_sent()) {
+            http_response_code(400);
+            header('Content-Type: text/plain; charset=UTF-8');
+        }
+        echo "400 Bad Request: Suspicious input pattern detected.";
+        exit();
+    }
+}
+
+// Activate global input security interceptor
+global_input_security_interceptor();
+

@@ -15,6 +15,7 @@ $adsense_enabled = get_setting('google_adsense_enabled', '1');
 $header_custom_code = get_setting('header_custom_code', '');
 $g_site_verification = get_setting('google_site_verification', '');
 $bing_site_verification = get_setting('bing_site_verification', '');
+$current_page = basename($_SERVER['PHP_SELF'] ?? '', '.php');
 ?> 
 <link rel="icon" type="image/png" href="<?php echo $base_url; ?>images/favicon.png">
 <link rel="canonical" href="<?php echo !empty($canonical_url) ? htmlspecialchars($canonical_url) : ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>">
@@ -108,14 +109,27 @@ $bing_site_verification = get_setting('bing_site_verification', '');
 								</div>
 								<span><span style="color: var(--primary-color);">Online</span>Law</span>
 							</a>
-						<button class="navbar-toggler border-0 shadow-none p-2" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> 
-							<span class="fas fa-bars" style="font-size: 20px; color: var(--text-main);"></span> 
-						</button>
-						<div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+						<!-- Quick Search Trigger & Mobile Toggle Wrap -->
+						<div class="d-flex align-items-center ml-auto ml-lg-0 order-lg-2">
+							<button type="button" class="header-search-trigger mr-2 d-none d-sm-inline-flex" id="globalSearchTrigger" title="Quick Search (Ctrl + K)">
+								<i class="fas fa-search text-primary mr-2" style="font-size: 13px;"></i>
+								<span class="search-label">Quick Search...</span>
+								<kbd class="cmd-kbd-badge">Ctrl K</kbd>
+							</button>
+							<button type="button" class="btn btn-sm btn-light border d-inline-flex d-sm-none mr-2 p-2 align-items-center justify-content-center" id="globalSearchTriggerMobile" aria-label="Search" style="border-radius: 10px; width: 38px; height: 38px;">
+								<i class="fas fa-search text-primary"></i>
+							</button>
+							<button class="navbar-toggler border-0 shadow-none p-2 ml-1" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> 
+								<span class="fas fa-bars" style="font-size: 20px; color: var(--text-main);"></span> 
+							</button>
+						</div>
+
+						<div class="collapse navbar-collapse order-lg-1" id="navbarSupportedContent">
 						  <ul class="navbar-nav ml-auto align-items-lg-center">
-							<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>index"><i class="fas fa-home d-lg-none mr-2"></i>Home</a> </li>
-							<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>about"><i class="fas fa-info-circle d-lg-none mr-2"></i>About Us</a> </li>
-							<li class="nav-item dropdown"> 
+							<li class="nav-item <?php echo ($current_page == 'index' || empty($current_page)) ? 'active' : ''; ?>"> <a class="nav-link" href="<?php echo $base_url; ?>index"><i class="fas fa-home d-lg-none mr-2"></i>Home</a> </li>
+							<li class="nav-item <?php echo ($current_page == 'about') ? 'active' : ''; ?>"> <a class="nav-link" href="<?php echo $base_url; ?>about"><i class="fas fa-info-circle d-lg-none mr-2"></i>About Us</a> </li>
+							<li class="nav-item dropdown <?php echo in_array($current_page, ['company-incorporation', 'nic', 'pincode-finder', 'pincode', 'pincode-by-locality', 'gst-hsn-sac', 'passport', 'acts']) ? 'active' : ''; ?>"> 
 								<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									<i class="fas fa-search d-lg-none mr-2"></i>Search Tools
 								</a>
@@ -165,7 +179,7 @@ $bing_site_verification = get_setting('bing_site_verification', '');
 								</li>
 							  </ul>
 							</li>
-							<li class="nav-item dropdown"> 
+							<li class="nav-item dropdown <?php echo in_array($current_page, ['bank-finder', 'bank-ifsc', 'bank-ifsc-by-branch-name', 'bank-micr', 'bank']) ? 'active' : ''; ?>"> 
 								<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									<i class="fas fa-landmark d-lg-none mr-2"></i>Bank &amp; IFSC
 								</a>
@@ -199,8 +213,8 @@ $bing_site_verification = get_setting('bing_site_verification', '');
 								<li><a class="dropdown-item" href="<?php echo $base_url; ?>bank/contact-details"><span><i class="fas fa-address-book text-secondary mr-2" style="width: 16px;"></i>Official Bank Contacts</span></a></li>
 							  </ul>
 							</li>
-							<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>api"><i class="fas fa-code d-lg-none mr-2"></i>API</a> </li>
-							<li class="nav-item"> <a class="nav-link" href="<?php echo $base_url; ?>contact"><i class="fas fa-envelope d-lg-none mr-2"></i>Contact</a> </li>
+							<li class="nav-item <?php echo ($current_page == 'api') ? 'active' : ''; ?>"> <a class="nav-link" href="<?php echo $base_url; ?>api"><i class="fas fa-code d-lg-none mr-2"></i>API</a> </li>
+							<li class="nav-item <?php echo ($current_page == 'contact') ? 'active' : ''; ?>"> <a class="nav-link" href="<?php echo $base_url; ?>contact"><i class="fas fa-envelope d-lg-none mr-2"></i>Contact</a> </li>
 						  </ul>
 						</div>
 					  </nav>

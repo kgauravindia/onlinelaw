@@ -26,22 +26,40 @@
     $is_removal_request = ($req_type === 'removal' || $req_type === 'delete_company' || !empty($req_cin));
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_contact'])) {
-        $name = mysqli_real_escape_string($con, trim($_POST['name'] ?? ''));
-        $email = mysqli_real_escape_string($con, trim($_POST['email'] ?? ''));
-        $mobile = mysqli_real_escape_string($con, trim($_POST['mobile'] ?? ''));
-        $area = mysqli_real_escape_string($con, trim($_POST['area'] ?? 'General Inquiry'));
-        $message = mysqli_real_escape_string($con, trim($_POST['message'] ?? ''));
-        $user_captcha = isset($_POST['captcha_answer']) ? intval(trim($_POST['captcha_answer'])) : null;
-        $posted_token = trim($_POST['captcha_token'] ?? '');
-        $expected_token = ($user_captcha !== null) ? hash_hmac('sha256', (string)$user_captcha, 'olaw_secret_captcha_key') : '';
-        $session_captcha = isset($_SESSION['olaw_contact_captcha']) ? intval($_SESSION['olaw_contact_captcha']) : null;
+        // 1. Bot Honeypot Check
+        if (!empty($_POST['website_hp'])) {
+            // Silently discard bot spam
+            $msg_status = "success";
+            $msg_text = "Thank you! Your message has been received successfully.";
+        } else {
+            // 2. IP Rate Limiting (Max 5 submissions in 5 minutes)
+            $rate_check = function_exists('check_rate_limit') ? check_rate_limit('contact_submit', 5, 300) : ['allowed' => true];
+            if (!$rate_check['allowed']) {
+                $msg_status = "error";
+                $msg_text = "Security rate limit reached. Please wait a few minutes before submitting another inquiry.";
+            } else {
+                $name = mysqli_real_escape_string($con, trim($_POST['name'] ?? ''));
+                $email = mysqli_real_escape_string($con, trim($_POST['email'] ?? ''));
+                $mobile = mysqli_real_escape_string($con, trim($_POST['mobile'] ?? ''));
+                $area = mysqli_real_escape_string($con, trim($_POST['area'] ?? 'General Inquiry'));
+                $message = mysqli_real_escape_string($con, trim($_POST['message'] ?? ''));
+                $user_captcha = isset($_POST['captcha_answer']) ? intval(trim($_POST['captcha_answer'])) : null;
+                $posted_token = trim($_POST['captcha_token'] ?? '');
+                $expected_token = ($user_captcha !== null) ? hash_hmac('sha256', (string)$user_captcha, 'olaw_secret_captcha_key') : '';
+                $session_captcha = isset($_SESSION['olaw_contact_captcha']) ? intval($_SESSION['olaw_contact_captcha']) : null;
 
-        $is_captcha_valid = ($posted_token !== '' && $posted_token === $expected_token) || ($session_captcha !== null && $user_captcha === $session_captcha);
+                $is_captcha_valid = ($posted_token !== '' && $posted_token === $expected_token) || ($session_captcha !== null && $user_captcha === $session_captcha);
 
-        if (!$is_captcha_valid) {
-            $msg_status = "error";
-            $msg_text = "Security check failed: Incorrect captcha answer. Please calculate the addition problem.";
-        } elseif (!empty($name) && !empty($mobile) && !empty($message)) {
+                if (!$is_captcha_valid) {
+                    $msg_status = "error";
+                    $msg_text = "Security check failed: Incorrect captcha answer. Please calculate the addition problem.";
+                    if (function_exists('record_rate_limit_failure')) {
+                        record_rate_limit_failure('contact_submit', 5, 300);
+                    }
+                } elseif (!empty($name) && !empty($mobile) && !empty($message)) {
+                    if (function_exists('clear_rate_limit')) {
+                        clear_rate_limit('contact_submit');
+                    }
             $created_by_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
             $sql = "INSERT INTO contact (name, email, mobile, area, message, status, created_by, updated_by) VALUES ('$name', '$email', '$mobile', '$area', '$message', 'NEW', $created_by_id, $created_by_id)";
             try {
@@ -160,6 +178,8 @@
         } else {
             $msg_status = "error";
             $msg_text = "Please fill in all required fields (Name, Mobile Number, and Message).";
+        }
+            }
         }
     }
 
@@ -771,6 +791,9 @@
                                         </span>
                                         <input type="number" class="form-control-modern" name="captcha_answer" placeholder="Answer?" required style="height: 48px; font-weight: 600; font-size: 15px;" autocomplete="off">
                                         <input type="hidden" name="captcha_token" value="<?php echo $captcha_token; ?>">
+                                        <div style="display:none !important;" aria-hidden="true">
+                                            <input type="text" name="website_hp" tabindex="-1" autocomplete="off">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
