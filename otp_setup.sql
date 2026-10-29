@@ -9,3 +9,4 @@ ALTER TABLE `op_user`
 
 -- Enable OTP for administrator accounts (ID 1 and 2)
 UPDATE `op_user` SET `allow_otp` = 'YES' WHERE `id` IN (1, 2);
+
