@@ -773,7 +773,7 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
 <?php if ($is_admin): ?>
 <div style="background: linear-gradient(90deg, #92400e, #b45309); color: #ffffff; padding: 12px 20px; font-size: 13.5px; font-weight: 600; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
     <i class="fas fa-eye-slash mr-2"></i> <strong>Admin Preview Mode:</strong> Public API documentation is currently hidden under maintenance for regular visitors. You can see this documentation because you are logged in as Administrator.
-    <a href="<?php echo $base_url; ?>admin/manage_api_keys.php" style="color: #fef08a; text-decoration: underline; margin-left: 14px; font-weight: 700;">Admin API Dashboard &rarr;</a>
+    <a href="<?php echo $base_url; ?>oppi/manage_api_keys.php" style="color: #fef08a; text-decoration: underline; margin-left: 14px; font-weight: 700;">Admin API Dashboard &rarr;</a>
 </div>
 <?php endif; ?>
 <!-- Hero Section -->

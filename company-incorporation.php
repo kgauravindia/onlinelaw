@@ -1315,10 +1315,10 @@ $company_schema = [
                     <span class="small text-muted font-monospace">ID #<?php echo $single_company['id']; ?></span>
                 </div>
                 <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0" style="gap: 8px;">
-                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $single_company['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-3 shadow-sm" style="border-radius: 20px; background: #f59e0b; border: none;">
+                    <a href="<?php echo $base_url; ?>oppi/edit_company.php?id=<?php echo $single_company['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-3 shadow-sm" style="border-radius: 20px; background: #f59e0b; border: none;">
                         <i class="fas fa-edit mr-1"></i> Edit Company
                     </a>
-                    <a href="<?php echo $base_url; ?>admin/manage_companies.php?q=<?php echo urlencode($single_company['cin']); ?>" target="_blank" class="btn btn-sm btn-outline-light px-3" style="border-radius: 20px;">
+                    <a href="<?php echo $base_url; ?>oppi/manage_companies.php?q=<?php echo urlencode($single_company['cin']); ?>" target="_blank" class="btn btn-sm btn-outline-light px-3" style="border-radius: 20px;">
                         <i class="fas fa-list mr-1"></i> Manage
                     </a>
                 </div>
@@ -1676,7 +1676,7 @@ $company_schema = [
                                                     View &rarr;
                                                 </a>
                                                 <?php if ($is_admin): ?>
-                                                    <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
+                                                    <a href="<?php echo $base_url; ?>oppi/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold ml-1 px-2 text-dark" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
                                                 <?php endif; ?>
@@ -1745,7 +1745,7 @@ $company_schema = [
                                                 View Details &rarr;
                                             </a>
                                             <?php if ($is_admin): ?>
-                                                <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
+                                                <a href="<?php echo $base_url; ?>oppi/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
                                                     <i class="fas fa-edit mr-1"></i> Edit
                                                 </a>
                                             <?php endif; ?>
@@ -1882,7 +1882,7 @@ $company_schema = [
                                             View Details &rarr;
                                         </a>
                                         <?php if ($is_admin): ?>
-                                            <a href="<?php echo $base_url; ?>admin/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
+                                            <a href="<?php echo $base_url; ?>oppi/edit_company.php?id=<?php echo $comp['id']; ?>" target="_blank" class="btn btn-sm btn-warning font-weight-bold text-dark px-2" style="background: #f59e0b; border: none; border-radius: 10px;" title="Edit in Admin">
                                                 <i class="fas fa-edit mr-1"></i> Edit
                                             </a>
                                         <?php endif; ?>

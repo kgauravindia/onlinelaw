@@ -104,7 +104,7 @@ if (!empty($doc_root) && !empty($app_root) && strpos($app_root, $doc_root) === 0
 } else {
     // Fallback based on script name if document root realpath mismatch
     $script_dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-    $subpath = preg_replace('#/(admin|bank|includes)$#i', '', rtrim($script_dir, '/'));
+    $subpath = preg_replace('#/(oppi|admin|bank|includes)$#i', '', rtrim($script_dir, '/'));
 }
 
 $base_path = '/' . trim($subpath, '/') . (trim($subpath, '/') !== '' ? '/' : '');
