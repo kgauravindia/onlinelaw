@@ -76,7 +76,16 @@ $inst_app='https://play.google.com/store/apps/details?id=com.offerplant.myadvind
 $sender_id ="OLAWIN"; // OFFAPP
 $noreply_email ="noreply@olaw.in";
 $auth_key_msg ="b0e99bea1fa7d15e27e1c5fd8e3c868"; // MSG CLUB myadvindia updated on 12 jan 2023 
-$auth_key_sms ="180367At8cchpCRSTV59ed9c10"; // MSG 91
+$auth_key_sms ="b0e99bea1fa7d15e27e1c5fd8e3c868"; // msg.morg.in API
+
+// Hostinger SMTP Email Configuration (from SaranIndex setup)
+if (!defined('SMTP_HOST')) define('SMTP_HOST', 'smtp.hostinger.com');
+if (!defined('SMTP_PORT')) define('SMTP_PORT', 587);
+if (!defined('SMTP_USER')) define('SMTP_USER', 'info@saranindex.com');
+if (!defined('SMTP_PASS')) define('SMTP_PASS', 'Index@@2026');
+if (!defined('SMTP_SECURE')) define('SMTP_SECURE', 'tls');
+if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', 'info@saranindex.com');
+if (!defined('SYSTEM_FROM_NAME')) define('SYSTEM_FROM_NAME', 'Online Law Security');
 // Determine if the request is over HTTPS (support Cloudflare, reverse proxies, and direct SSL)
 $protocol = "http";
 if (

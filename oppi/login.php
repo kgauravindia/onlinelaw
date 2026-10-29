@@ -433,7 +433,7 @@ $is_localhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'lo
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-white text-muted border-right-0" style="border-color: var(--border-soft);"><i class="fas fa-user"></i></span>
                     </div>
-                    <input type="text" name="username" class="form-control border-left-0 pl-0" placeholder="oppi" required autofocus style="border-color: var(--border-soft); font-size: 0.92rem;">
+                    <input type="text" name="username" class="form-control border-left-0 pl-0" required autofocus style="border-color: var(--border-soft); font-size: 0.92rem;">
                 </div>
             </div>
 

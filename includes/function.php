@@ -796,57 +796,129 @@ function bulk_msg($mobile_list, $sms, $count =1,  $smstype ='english')
 }
 function bulk_sms($mobileNumber, $message, $dlt_te_id = '1207173591949478780')
 {
-    global $auth_key_sms;
-    global $sender_id;
+    global $auth_key_msg, $auth_key_sms, $sender_id;
 
     if (empty($mobileNumber) || empty($message)) {
         return false;
     }
 
+    $activeAuthKey = !empty($auth_key_msg) ? $auth_key_msg : (!empty($auth_key_sms) ? $auth_key_sms : 'b0e99bea1fa7d15e27e1c5fd8e3c868');
+    $activeSenderId = !empty($sender_id) ? $sender_id : 'OLAWIN';
+
     // Clean Indian 10-digit mobile number
     $cleanMobile = preg_replace('/[^0-9]/', '', (string)$mobileNumber);
-    if (strlen($cleanMobile) === 12 && substr($cleanMobile, 0, 2) === '91') {
-        $cleanMobile = substr($cleanMobile, 2);
-    } elseif (strlen($cleanMobile) === 11 && substr($cleanMobile, 0, 1) === '0') {
-        $cleanMobile = substr($cleanMobile, 1);
+    if (strlen($cleanMobile) >= 10) {
+        $cleanMobile = substr($cleanMobile, -10);
     }
 
-    $route = "4";
-    $postData = array(
-        'authkey' => $auth_key_sms ?: '180367At8cchpCRSTV59ed9c10',
-        'mobiles' => $cleanMobile,
-        'message' => $message,
-        'sender' => $sender_id ?: 'OLAWIN',
-        'route' => $route,
-        'country' => '91'
+    $data = array(
+        'smsContent' => $message,
+        'groupId' => '',
+        'routeId' => 1,
+        'mobileNumbers' => $cleanMobile,
+        'senderId' => $activeSenderId,
+        'signature' => '',
+        'smsContentType' => 'english'
     );
-    if (!empty($dlt_te_id)) {
-        $postData['DLT_TE_ID'] = $dlt_te_id;
-        $postData['dlt_te_id'] = $dlt_te_id;
-    }
 
-    // Primary: MSG91 Official API Endpoint; Fallback: Secondary Host
-    $apiUrl = "https://api.msg91.com/api/sendhttp.php";
-    $ch = curl_init();
-    curl_setopt_array($ch, array(
-        CURLOPT_URL => $apiUrl,
+    $text_sms = json_encode($data);
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => "http://msg.morg.in/rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . urlencode($activeAuthKey),
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => http_build_query($postData),
-        CURLOPT_TIMEOUT => 8,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => 0
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 25,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => $text_sms,
+        CURLOPT_HTTPHEADER => array(
+            "Cache-Control: no-cache",
+            "Content-Type: application/json"
+        ),
     ));
-    $output = curl_exec($ch);
-    $err = curl_error($ch);
-    curl_close($ch);
 
-    if ($err || empty($output)) {
-        $fallbackUrl = "http://control.msg91.com/api/sendhttp.php?" . http_build_query($postData);
-        $output = @file_get_contents($fallbackUrl);
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+    curl_close($curl);
+
+    // Fallback if cURL fails
+    if ($err || empty($response)) {
+        $fallbackUrl = "http://msg.morg.in/rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . urlencode($activeAuthKey);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => $text_sms,
+                'timeout' => 15
+            ]
+        ]);
+        $response = @file_get_contents($fallbackUrl, false, $context);
     }
 
-    return $output;
+    return $response;
+}
+
+/**
+ * Send System Email using PHPMailer & Hostinger SMTP with fallback to mail()
+ *
+ * @param string $to_email Destination email address
+ * @param string $to_name Destination recipient name
+ * @param string $subject Email subject
+ * @param string $body_html HTML message body
+ * @return array ['status' => 'success'|'error', 'sent' => bool, 'transport' => string]
+ */
+function send_system_email($to_email, $to_name, $subject, $body_html) {
+    $to_email = trim($to_email);
+    if (empty($to_email) || !filter_var($to_email, FILTER_VALIDATE_EMAIL)) {
+        return ['status' => 'error', 'sent' => false, 'msg' => 'Invalid email address'];
+    }
+
+    $mailer_file = __DIR__ . '/PHPMailer/PHPMailer.php';
+    if (file_exists($mailer_file)) {
+        require_once __DIR__ . '/PHPMailer/Exception.php';
+        require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+        require_once __DIR__ . '/PHPMailer/SMTP.php';
+
+        try {
+            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = defined('SMTP_USER') ? SMTP_USER : 'info@saranindex.com';
+            $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : 'Index@@2026';
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = defined('SMTP_PORT') ? intval(SMTP_PORT) : 587;
+            $mail->Timeout    = 15;
+            $mail->CharSet    = 'UTF-8';
+
+            $from_email = defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : 'info@saranindex.com';
+            $from_name  = defined('SYSTEM_FROM_NAME') ? SYSTEM_FROM_NAME : 'Online Law Security';
+
+            $mail->setFrom($from_email, $from_name);
+            $mail->addAddress($to_email, $to_name ?: '');
+            $mail->addReplyTo('care@olaw.in', 'Online Law Support');
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $body_html;
+
+            $mail->send();
+            return ['status' => 'success', 'sent' => true, 'transport' => 'SMTP'];
+        } catch (\Exception $e) {
+            error_log("PHPMailer SMTP Error: " . $e->getMessage());
+        }
+    }
+
+    // Fallback to PHP native mail()
+    $headers  = "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= "From: Online Law Security <care@olaw.in>\r\n";
+    $headers .= "Reply-To: care@olaw.in\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
+
+    $sent = @mail($to_email, $subject, $body_html, $headers);
+    return ['status' => $sent ? 'success' : 'error', 'sent' => (bool)$sent, 'transport' => 'MAIL'];
 }
 
 /**
@@ -862,7 +934,7 @@ function send_admin_otp($user, $otp) {
     $res = ['sms' => false, 'email' => false];
 
     // 1. Format SMS with exact approved TRAI DLT template (Template ID: 1207173591949478780)
-    $name = !empty($user['full_name']) ? trim(explode(' ', $user['full_name'])[0]) : 'User';
+    $name = !empty($user['full_name']) ? trim(explode(' ', $user['full_name'])[0]) : (!empty($user['user_name']) ? $user['user_name'] : 'User');
     $sms_text = "Dear " . $name . ",\n Your Online Law OTP / EVC / Password is: " . $otp . "\n \n Regards\n OLAWIN\n OfferPlant";
     $dlt_te_id = '1207173591949478780';
 
@@ -906,14 +978,8 @@ function send_admin_otp($user, $otp) {
             </div>
         </div>";
 
-        $headers = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $from = $noreply_email ?: 'noreply@olaw.in';
-        $headers .= "From: Online Law Security <{$from}>\r\n";
-        $headers .= "Reply-To: {$from}\r\n";
-        $headers .= "X-Mailer: PHP/" . phpversion();
-
-        $res['email'] = @mail($user_email, $subject, $html_body, $headers);
+        $mail_res = send_system_email($user_email, $name, $subject, $html_body);
+        $res['email'] = !empty($mail_res['sent']);
     }
 
     return $res;
@@ -1070,10 +1136,13 @@ function rtfmail($to, $subject, $msg) // single email
 	$message .= '</table>';
 	$message .= '</body></html>';
 	 
-	// Sending email
-	if(mail($to, $subject, $message, $headers)){
+	// Sending email via Hostinger SMTP / PHPMailer with native fallback
+	$smtp_res = send_system_email($to, '', $subject, $message);
+	if (!empty($smtp_res['sent'])) {
 		return 'Your mail has been sent successfully.';
-	} else{
+	} elseif (mail($to, $subject, $message, $headers)) {
+		return 'Your mail has been sent successfully.';
+	} else {
 		return 'Unable to send email. Please try again.';
 	}
 }

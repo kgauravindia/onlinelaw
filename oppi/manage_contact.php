@@ -211,8 +211,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
             $headers .= "X-Mailer: PHP/" . phpversion();
 
-            // Dispatch email via mail()
-            $mail_sent = @mail($recipient_email, $email_subject, $html_content, $headers);
+            // Dispatch email via send_system_email() with fallback to mail()
+            $mail_sent = false;
+            if (function_exists('send_system_email')) {
+                $smtp_res = send_system_email($recipient_email, '', $email_subject, $html_content);
+                $mail_sent = !empty($smtp_res['sent']);
+            }
+            if (!$mail_sent) {
+                $mail_sent = @mail($recipient_email, $email_subject, $html_content, $headers);
+            }
 
             // Record Reply into Database
             $safe_reply = mysqli_real_escape_string($con, $reply_message);
