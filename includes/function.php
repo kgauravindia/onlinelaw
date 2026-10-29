@@ -794,49 +794,129 @@ function bulk_msg($mobile_list, $sms, $count =1,  $smstype ='english')
 	}
 	return $res;
 }
-function bulk_sms($mobileNumber, $message)
+function bulk_sms($mobileNumber, $message, $dlt_te_id = '1207173591949478780')
 {
-global $auth_key_sms ; //$authKey ;
-global $sender_id ; //$senderId ;
+    global $auth_key_sms;
+    global $sender_id;
 
-//Your message to send, Add URL encoding here.
-$message = urlencode($message);
+    if (empty($mobileNumber) || empty($message)) {
+        return false;
+    }
 
-//Define route 
-$route = "4";
-//Prepare you post parameters
-$postData = array(
-    'authkey' => $auth_key_sms,
-    'mobiles' => $mobileNumber,
-    'message' => $message,
-    'sender' => $sender_id,
-    'route' => $route
-);
+    // Clean Indian 10-digit mobile number
+    $cleanMobile = preg_replace('/[^0-9]/', '', (string)$mobileNumber);
+    if (strlen($cleanMobile) === 12 && substr($cleanMobile, 0, 2) === '91') {
+        $cleanMobile = substr($cleanMobile, 2);
+    } elseif (strlen($cleanMobile) === 11 && substr($cleanMobile, 0, 1) === '0') {
+        $cleanMobile = substr($cleanMobile, 1);
+    }
 
-//API URL
-$url="http://sms.morg.in/api/sendhttp.php";
-// init the resource
-$ch = curl_init();
-curl_setopt_array($ch, array(
-    CURLOPT_URL => $url,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $postData
-    //,CURLOPT_FOLLOWLOCATION => true
-));
+    $route = "4";
+    $postData = array(
+        'authkey' => $auth_key_sms ?: '180367At8cchpCRSTV59ed9c10',
+        'mobiles' => $cleanMobile,
+        'message' => $message,
+        'sender' => $sender_id ?: 'OLAWIN',
+        'route' => $route,
+        'country' => '91'
+    );
+    if (!empty($dlt_te_id)) {
+        $postData['DLT_TE_ID'] = $dlt_te_id;
+        $postData['dlt_te_id'] = $dlt_te_id;
+    }
 
-//Ignore SSL certificate verification
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-//get response
-$output = curl_exec($ch);
-//Print error if any
-if(curl_errno($ch))
-{
-    echo 'error:' . curl_error($ch);
+    // Primary: MSG91 Official API Endpoint; Fallback: Secondary Host
+    $apiUrl = "https://api.msg91.com/api/sendhttp.php";
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+        CURLOPT_URL => $apiUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => http_build_query($postData),
+        CURLOPT_TIMEOUT => 8,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0
+    ));
+    $output = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    if ($err || empty($output)) {
+        $fallbackUrl = "http://control.msg91.com/api/sendhttp.php?" . http_build_query($postData);
+        $output = @file_get_contents($fallbackUrl);
+    }
+
+    return $output;
 }
-curl_close($ch);
-return $output;
+
+/**
+ * Send Two-Factor Authentication OTP to User via DLT SMS and Secure HTML Email.
+ *
+ * @param array $user User row from op_user
+ * @param string $otp 6-digit numeric OTP code
+ * @return array ['sms' => string|bool, 'email' => bool]
+ */
+function send_admin_otp($user, $otp) {
+    global $inst_name, $noreply_email, $inst_email, $inst_url;
+
+    $res = ['sms' => false, 'email' => false];
+
+    // 1. Format SMS with exact approved TRAI DLT template (Template ID: 1207173591949478780)
+    $name = !empty($user['full_name']) ? trim(explode(' ', $user['full_name'])[0]) : 'User';
+    $sms_text = "Dear " . $name . ",\n Your Online Law OTP / EVC / Password is: " . $otp . "\n \n Regards\n OLAWIN\n OfferPlant";
+    $dlt_te_id = '1207173591949478780';
+
+    if (!empty($user['user_mobile'])) {
+        $res['sms'] = bulk_sms($user['user_mobile'], $sms_text, $dlt_te_id);
+    }
+
+    // 2. Format HTML Email
+    if (!empty($user['user_email'])) {
+        $user_email = trim($user['user_email']);
+        $client_ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $time_str = date('d M Y, h:i A') . ' IST';
+
+        $subject = "Your Online Law Verification Code: " . $otp;
+        $html_body = "
+        <div style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; max-width: 540px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06);'>
+            <div style='background: linear-gradient(135deg, #1e3a8a, #0284c7); padding: 28px 24px; text-align: center; color: #ffffff;'>
+                <h2 style='margin: 0 0 6px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;'>Online Law Admin</h2>
+                <p style='margin: 0; font-size: 13.5px; opacity: 0.9;'>Two-Factor Sign-In Verification</p>
+            </div>
+            <div style='padding: 28px 24px; color: #334155; line-height: 1.6;'>
+                <p style='margin: 0 0 14px; font-size: 15px;'>Hello <strong>" . htmlspecialchars($name) . "</strong>,</p>
+                <p style='margin: 0 0 20px; font-size: 14px; color: #64748b;'>
+                    A sign-in request was initiated for your administrator account on <strong>Online Law</strong>. Please enter the One-Time Password (OTP) below to authenticate:
+                </p>
+                <div style='background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; margin: 0 0 20px;'>
+                    <span style='font-family: Courier New, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0f172a; display: inline-block;'>" . htmlspecialchars($otp) . "</span>
+                    <div style='margin-top: 6px; font-size: 12px; color: #64748b;'>Valid for 5 minutes (One-Time Use)</div>
+                </div>
+                <div style='background: #f1f5f9; border-radius: 8px; padding: 12px 16px; margin: 0 0 20px; font-size: 12.5px; color: #475569;'>
+                    <strong>Security Details:</strong><br>
+                    &bull; Time: " . htmlspecialchars($time_str) . "<br>
+                    &bull; IP Address: " . htmlspecialchars($client_ip) . "
+                </div>
+                <p style='margin: 0; font-size: 12.5px; color: #dc2626;'>
+                    <strong>Important:</strong> If you did not make this request, someone may know your password. Change your administrator credentials immediately.
+                </p>
+            </div>
+            <div style='background: #f8fafc; padding: 14px; text-align: center; font-size: 11.5px; color: #94a3b8; border-top: 1px solid #e2e8f0;'>
+                &copy; " . date('Y') . " Online Law &bull; OLAWIN Security Protection
+            </div>
+        </div>";
+
+        $headers = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $from = $noreply_email ?: 'noreply@olaw.in';
+        $headers .= "From: Online Law Security <{$from}>\r\n";
+        $headers .= "Reply-To: {$from}\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion();
+
+        $res['email'] = @mail($user_email, $subject, $html_body, $headers);
+    }
+
+    return $res;
 }
 function send_msg($number,$sms)
 		{

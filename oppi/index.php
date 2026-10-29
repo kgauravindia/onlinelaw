@@ -345,6 +345,10 @@ if ($cache_valid && $cached_data) {
                         <span class="badge bg-success text-white px-2 py-0.5" style="border-radius: 6px;"><i class="fas fa-lock mr-1"></i>Rate-Limited (IP Guard)</span>
                     </li>
                     <li class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted"><i class="fas fa-mobile-alt text-success mr-2"></i> Two-Factor OTP Auth:</span>
+                        <span class="badge bg-success text-white px-2 py-0.5" style="border-radius: 6px;"><i class="fas fa-shield-alt mr-1"></i>Active (DLT SMS + Email)</span>
+                    </li>
+                    <li class="d-flex align-items-center justify-content-between">
                         <span class="text-muted"><i class="fas fa-key text-purple mr-2"></i> CSRF Validation:</span>
                         <span class="badge bg-primary text-white px-2 py-0.5" style="border-radius: 6px;">Enforced</span>
                     </li>

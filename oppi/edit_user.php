@@ -30,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'user_mobile' => trim($_POST['user_mobile']),
             'user_email' => trim($_POST['user_email']),
             'user_type' => trim($_POST['user_type']),
-            'status' => trim($_POST['status'])
+            'status' => trim($_POST['status']),
+            'allow_otp' => (isset($_POST['allow_otp']) && $_POST['allow_otp'] === 'YES') ? 'YES' : 'NO'
         );
 
         // If new password is provided, securely hash with PASSWORD_DEFAULT (Bcrypt)
@@ -115,6 +116,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <select name="status" class="form-control">
                             <option value="ACTIVE" <?php echo ($u['status'] == 'ACTIVE' || $u['user_status'] == 'ACTIVE') ? 'selected' : ''; ?>>ACTIVE</option>
                             <option value="INACTIVE" <?php echo ($u['status'] == 'INACTIVE' || $u['user_status'] == 'INACTIVE') ? 'selected' : ''; ?>>INACTIVE</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        <label class="small font-weight-bold text-muted mb-1"><i class="fas fa-shield-alt text-primary mr-1"></i> Two-Factor OTP Security</label>
+                        <select name="allow_otp" class="form-control font-weight-bold">
+                            <option value="YES" <?php echo (!empty($u['allow_otp']) && $u['allow_otp'] === 'YES') ? 'selected' : ''; ?>>ENABLED - Require OTP (SMS &amp; Email)</option>
+                            <option value="NO" <?php echo (empty($u['allow_otp']) || $u['allow_otp'] !== 'YES') ? 'selected' : ''; ?>>DISABLED - Password Only</option>
                         </select>
                     </div>
 

@@ -55,7 +55,8 @@ if (isset($_GET['del'])) {
                     <th>Mobile</th>
                     <th>Email Address</th>
                     <th style="width: 130px;">Role Type</th>
-                    <th style="width: 120px;">Status</th>
+                    <th style="width: 120px;">2FA (OTP)</th>
+                    <th style="width: 110px;">Status</th>
                     <th style="width: 100px;" class="text-right">Actions</th>
                 </tr>
             </thead>
@@ -89,6 +90,13 @@ if (isset($_GET['del'])) {
                                 </span>
                             </td>
                             <td>
+                                <?php if (!empty($u['allow_otp']) && $u['allow_otp'] === 'YES'): ?>
+                                    <span class="badge badge-success px-2 py-1 font-weight-bold" style="font-size: 11px; border-radius: 6px;"><i class="fas fa-shield-alt mr-1"></i> OTP Active</span>
+                                <?php else: ?>
+                                    <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 11px; border-radius: 6px;">Password Only</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
                                 <?php if (strtoupper($u['status'] ?? '') === 'ACTIVE' || strtoupper($u['user_status'] ?? '') === 'ACTIVE'): ?>
                                     <span class="badge-premium badge-premium-success">Active</span>
                                 <?php else: ?>
@@ -109,7 +117,7 @@ if (isset($_GET['del'])) {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="fas fa-users fa-3x mb-3 d-block text-muted opacity-50"></i>
                             No users found in the database.
                         </td>
