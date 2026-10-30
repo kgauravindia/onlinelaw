@@ -117,6 +117,10 @@ ServerSignature Off
     RewriteEngine On
     ErrorDocument 404 /404.php
 
+    # Redirect legacy /admin URLs to /oppi
+    RewriteCond %{REQUEST_URI} ^(.*)/admin(/.*)?$ [NC]
+    RewriteRule ^admin/?(.*)$ %1/oppi/$1 [R=301,L,NE,NC]
+
     # Security: Block script and binary execution attempts in uploads & tmp directories
     RewriteRule ^(uploads|tmp)/.*\.(php[0-9]?|phtml|phar|inc|cgi|pl|py|sh|bash|bin|bat|cmd|exe|com|msi|vbs|ps1|reg)$ - [F,L,NC]
 
