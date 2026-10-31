@@ -24,91 +24,67 @@ $faq_items = [];
 if (!empty($branch_search)) {
     $safe_term = mysqli_real_escape_string($con, $branch_search);
     $limit = 250;
+    $found_rows = [];
 
-    // 1. Check File Cache for Frequently Requested Searches
-    $cache_dir = __DIR__ . '/tmp/bank_search';
-    $cache_key = md5(strtolower(trim($branch_search)));
-    $cache_file = "$cache_dir/$cache_key.json";
-    $cached_rows = null;
+    // 1. Strategy 1: FULLTEXT Boolean Search (Instant ~2ms via ft_bank_search)
+    $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $branch_search);
+    $words = array_filter(explode(' ', trim($clean_words)));
 
-    if (file_exists($cache_file) && (time() - filemtime($cache_file) < 259200)) { // 3 days
-        $raw_cache = @file_get_contents($cache_file);
-        if ($raw_cache) {
-            $cached_rows = json_decode($raw_cache, true);
+    if (!empty($words)) {
+        $boolean_tokens = [];
+        foreach ($words as $w) {
+            if (mb_strlen($w) >= 2) {
+                $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
+            }
+        }
+        if (!empty($boolean_tokens)) {
+            $ft_query = implode(' ', $boolean_tokens);
+            $ft_sql = "SELECT * FROM bank_ifsc WHERE MATCH(bank, branch, city2, city1, address) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
+            $ft_res = mysqli_query($con, $ft_sql);
+            if ($ft_res && mysqli_num_rows($ft_res) > 0) {
+                while ($r = mysqli_fetch_assoc($ft_res)) {
+                    $found_rows[] = $r;
+                }
+                mysqli_free_result($ft_res);
+            }
         }
     }
 
-    if (is_array($cached_rows)) {
-        $total_found = count($cached_rows);
-        $res_data = $cached_rows;
-    } else {
-        $found_rows = [];
-
-        // 2. Strategy 1: FULLTEXT Boolean Search (Instant ~2ms via ft_bank_search)
-        $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $branch_search);
-        $words = array_filter(explode(' ', trim($clean_words)));
-
-        if (!empty($words)) {
-            $boolean_tokens = [];
-            foreach ($words as $w) {
-                if (mb_strlen($w) >= 2) {
-                    $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
-                }
+    // 2. Strategy 2: Fast Prefix Match using B-Tree index if Fulltext returned 0
+    if (empty($found_rows)) {
+        $pre_sql = "SELECT * FROM bank_ifsc WHERE branch LIKE '$safe_term%' OR city2 LIKE '$safe_term%' OR bank LIKE '$safe_term%' LIMIT $limit";
+        $pre_res = mysqli_query($con, $pre_sql);
+        if ($pre_res && mysqli_num_rows($pre_res) > 0) {
+            while ($r = mysqli_fetch_assoc($pre_res)) {
+                $found_rows[] = $r;
             }
-            if (!empty($boolean_tokens)) {
-                $ft_query = implode(' ', $boolean_tokens);
-                $ft_sql = "SELECT * FROM bank_ifsc WHERE MATCH(bank, branch, city2, city1, address) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
-                $ft_res = mysqli_query($con, $ft_sql);
-                if ($ft_res && mysqli_num_rows($ft_res) > 0) {
-                    while ($r = mysqli_fetch_assoc($ft_res)) {
-                        $found_rows[] = $r;
-                    }
-                    mysqli_free_result($ft_res);
-                }
-            }
+            mysqli_free_result($pre_res);
         }
-
-        // 3. Strategy 2: Fast Prefix Match using B-Tree index if Fulltext returned 0
-        if (empty($found_rows)) {
-            $pre_sql = "SELECT * FROM bank_ifsc WHERE branch LIKE '$safe_term%' OR city2 LIKE '$safe_term%' OR bank LIKE '$safe_term%' LIMIT $limit";
-            $pre_res = mysqli_query($con, $pre_sql);
-            if ($pre_res && mysqli_num_rows($pre_res) > 0) {
-                while ($r = mysqli_fetch_assoc($pre_res)) {
-                    $found_rows[] = $r;
-                }
-                mysqli_free_result($pre_res);
-            }
-        }
-
-        // 4. Strategy 3: Substring Fallback with Strict Limit
-        if (empty($found_rows) && mb_strlen($safe_term) >= 3) {
-            $sub_sql = "SELECT * FROM bank_ifsc WHERE bank LIKE '%$safe_term%' OR branch LIKE '%$safe_term%' OR city2 LIKE '%$safe_term%' LIMIT 50";
-            $sub_res = mysqli_query($con, $sub_sql);
-            if ($sub_res && mysqli_num_rows($sub_res) > 0) {
-                while ($r = mysqli_fetch_assoc($sub_res)) {
-                    $found_rows[] = $r;
-                }
-                mysqli_free_result($sub_res);
-            }
-        }
-
-        // Sort in PHP memory in < 1ms to eliminate MySQL filesort
-        if (!empty($found_rows)) {
-            usort($found_rows, function($a, $b) {
-                $cmpBank = strcmp($a['bank'] ?? '', $b['bank'] ?? '');
-                if ($cmpBank !== 0) return $cmpBank;
-                return strcmp($a['branch'] ?? '', $b['branch'] ?? '');
-            });
-
-            if (!is_dir($cache_dir)) {
-                @mkdir($cache_dir, 0755, true);
-            }
-            @file_put_contents($cache_file, json_encode($found_rows));
-        }
-
-        $total_found = count($found_rows);
-        $res_data = $found_rows;
     }
+
+    // 3. Strategy 3: Substring Fallback with Strict Limit
+    if (empty($found_rows) && mb_strlen($safe_term) >= 3) {
+        $sub_sql = "SELECT * FROM bank_ifsc WHERE bank LIKE '%$safe_term%' OR branch LIKE '%$safe_term%' OR city2 LIKE '%$safe_term%' LIMIT 50";
+        $sub_res = mysqli_query($con, $sub_sql);
+        if ($sub_res && mysqli_num_rows($sub_res) > 0) {
+            while ($r = mysqli_fetch_assoc($sub_res)) {
+                $found_rows[] = $r;
+            }
+            mysqli_free_result($sub_res);
+        }
+    }
+
+    // Sort in PHP memory in < 1ms to eliminate MySQL filesort
+    if (!empty($found_rows)) {
+        usort($found_rows, function($a, $b) {
+            $cmpBank = strcmp($a['bank'] ?? '', $b['bank'] ?? '');
+            if ($cmpBank !== 0) return $cmpBank;
+            return strcmp($a['branch'] ?? '', $b['branch'] ?? '');
+        });
+    }
+
+    $total_found = count($found_rows);
+    $res_data = $found_rows;
 
     $canonical_url = $base_url . "bank-ifsc-by-branch-name?branch=" . urlencode($branch_search);
     $page_title = "Bank IFSC & MICR Codes for '$branch_search' Branches (2026) | Online Law";

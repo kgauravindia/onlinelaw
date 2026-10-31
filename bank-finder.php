@@ -14,17 +14,6 @@
             exit;
         }
 
-        $cache_dir = __DIR__ . '/tmp/bank_cache';
-        $cache_key = md5('st_' . strtolower($bank));
-        $cache_file = "$cache_dir/$cache_key.json";
-        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
-            $raw = @file_get_contents($cache_file);
-            if ($raw) {
-                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
-                exit;
-            }
-        }
-
         $safe_bank = mysqli_real_escape_string($con, $bank);
         $res = mysqli_query($con, "SELECT DISTINCT state FROM bank_ifsc WHERE bank = '$safe_bank' AND state IS NOT NULL AND state != '' ORDER BY state ASC");
         $states = [];
@@ -34,11 +23,6 @@
             }
             mysqli_free_result($res);
         }
-
-        if (!is_dir($cache_dir)) {
-            @mkdir($cache_dir, 0755, true);
-        }
-        @file_put_contents($cache_file, json_encode($states));
 
         echo json_encode(['status' => 'success', 'data' => $states]);
         exit;
@@ -54,17 +38,6 @@
             exit;
         }
 
-        $cache_dir = __DIR__ . '/tmp/bank_cache';
-        $cache_key = md5('dst_' . strtolower($bank . '_' . $state));
-        $cache_file = "$cache_dir/$cache_key.json";
-        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
-            $raw = @file_get_contents($cache_file);
-            if ($raw) {
-                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
-                exit;
-            }
-        }
-
         $safe_bank = mysqli_real_escape_string($con, $bank);
         $safe_state = mysqli_real_escape_string($con, $state);
         $res = mysqli_query($con, "SELECT DISTINCT city2 FROM bank_ifsc WHERE bank = '$safe_bank' AND state = '$safe_state' AND city2 IS NOT NULL AND city2 != '' ORDER BY city2 ASC");
@@ -75,11 +48,6 @@
             }
             mysqli_free_result($res);
         }
-
-        if (!is_dir($cache_dir)) {
-            @mkdir($cache_dir, 0755, true);
-        }
-        @file_put_contents($cache_file, json_encode($districts));
 
         echo json_encode(['status' => 'success', 'data' => $districts]);
         exit;
@@ -96,17 +64,6 @@
             exit;
         }
 
-        $cache_dir = __DIR__ . '/tmp/bank_cache';
-        $cache_key = md5('br_' . strtolower($bank . '_' . $state . '_' . $district));
-        $cache_file = "$cache_dir/$cache_key.json";
-        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
-            $raw = @file_get_contents($cache_file);
-            if ($raw) {
-                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
-                exit;
-            }
-        }
-
         $safe_bank = mysqli_real_escape_string($con, $bank);
         $safe_state = mysqli_real_escape_string($con, $state);
         $safe_district = mysqli_real_escape_string($con, $district);
@@ -118,11 +75,6 @@
             }
             mysqli_free_result($res);
         }
-
-        if (!is_dir($cache_dir)) {
-            @mkdir($cache_dir, 0755, true);
-        }
-        @file_put_contents($cache_file, json_encode($branches));
 
         echo json_encode(['status' => 'success', 'data' => $branches]);
         exit;
@@ -136,15 +88,8 @@
     $selected_district = isset($_GET['district']) ? trim($_GET['district']) : (isset($_POST['district']) ? trim($_POST['district']) : '');
     $selected_branch = isset($_GET['branch']) ? trim($_GET['branch']) : (isset($_POST['branch']) ? trim($_POST['branch']) : '');
 
-    // Fetch All Banks for Step 1 Dropdown (Cached in tmp/ to eliminate 180k-row DISTINCT scan on every load)
-    $banks_cache_file = __DIR__ . '/tmp/bank_list.json';
-    $all_banks = [];
-    if (file_exists($banks_cache_file) && (time() - filemtime($banks_cache_file) < 604800)) {
-        $raw_banks = @file_get_contents($banks_cache_file);
-        if ($raw_banks) {
-            $all_banks = json_decode($raw_banks, true) ?: [];
-        }
-    }
+    // Fetch All Banks for Step 1 Dropdown
+    $all_banks = $_SESSION['all_banks_list'] ?? [];
     if (empty($all_banks)) {
         $banks_res = mysqli_query($con, "SELECT DISTINCT bank FROM bank_ifsc WHERE bank IS NOT NULL AND bank != '' ORDER BY bank ASC");
         if ($banks_res) {
@@ -152,10 +97,7 @@
                 $all_banks[] = $bRow['bank'];
             }
             mysqli_free_result($banks_res);
-            if (!is_dir(__DIR__ . '/tmp')) {
-                @mkdir(__DIR__ . '/tmp', 0755, true);
-            }
-            @file_put_contents($banks_cache_file, json_encode($all_banks));
+            $_SESSION['all_banks_list'] = $all_banks;
         }
     }
 

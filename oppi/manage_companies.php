@@ -24,9 +24,7 @@ if (isset($_REQUEST['toggle_status_id'])) {
     }
 
     $update_res = update_data('companies_incorporated', ['status' => $to_status], $toggle_id);
-    unset($_SESSION['mca_stats_cache']);
-    @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
-    @unlink(__DIR__ . '/../tmp/mca_months_cache.json');
+    unset($_SESSION['mca_stats_cache'], $_SESSION['admin_dashboard_cache'], $_SESSION['mca_months_cache']);
     $is_ajax = isset($_REQUEST['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
     if ($is_ajax) {
@@ -67,9 +65,7 @@ if (isset($_GET['del'])) {
         exit();
     }
     $res = delete_data('companies_incorporated', $del_id);
-    unset($_SESSION['mca_stats_cache']);
-    @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
-    @unlink(__DIR__ . '/../tmp/mca_months_cache.json');
+    unset($_SESSION['mca_stats_cache'], $_SESSION['admin_dashboard_cache'], $_SESSION['mca_months_cache']);
     if ($res['status'] === 'success') {
         echo "<script>alert('Company record deleted successfully'); window.location.href='manage_companies.php';</script>";
     } else {
@@ -175,21 +171,11 @@ $total_pages = ceil($total_records / $limit);
 // Fetch records
 $companies = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY registration_date DESC, id DESC LIMIT $offset, $limit");
 
-// Get distinct months for filter dropdown (Cached for 1 hour to avoid scanning 1M rows on every page change)
-$months_cache_file = __DIR__ . '/../tmp/mca_months_cache.json';
-$months_res = null;
-if (file_exists($months_cache_file) && (time() - filemtime($months_cache_file) < 3600)) {
-    $raw_months = @file_get_contents($months_cache_file);
-    if ($raw_months) {
-        $months_res = json_decode($raw_months, true);
-    }
-}
+// Get distinct months for filter dropdown (Cached in session to avoid scanning rows repeatedly)
+$months_res = $_SESSION['mca_months_cache'] ?? null;
 if (!$months_res) {
     $months_res = direct_sql("SELECT DISTINCT report_month FROM companies_incorporated WHERE report_month IS NOT NULL AND report_month != '' ORDER BY report_month DESC");
-    if (!is_dir(__DIR__ . '/../tmp')) {
-        @mkdir(__DIR__ . '/../tmp', 0755, true);
-    }
-    @file_put_contents($months_cache_file, json_encode($months_res));
+    $_SESSION['mca_months_cache'] = $months_res;
 }
 ?>
 

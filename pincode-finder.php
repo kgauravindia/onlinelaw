@@ -14,17 +14,6 @@
             exit;
         }
 
-        $cache_dir = __DIR__ . '/tmp/pincode_cache';
-        $cache_key = md5('dist_' . strtolower($st));
-        $cache_file = "$cache_dir/$cache_key.json";
-        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
-            $raw = @file_get_contents($cache_file);
-            if ($raw) {
-                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
-                exit;
-            }
-        }
-
         $safe_st = mysqli_real_escape_string($con, $st);
         $res = mysqli_query($con, "SELECT DISTINCT district_name FROM pincode WHERE state_name = '$safe_st' AND district_name != '' ORDER BY district_name ASC");
         $districts = [];
@@ -34,11 +23,6 @@
             }
             mysqli_free_result($res);
         }
-
-        if (!is_dir($cache_dir)) {
-            @mkdir($cache_dir, 0755, true);
-        }
-        @file_put_contents($cache_file, json_encode($districts));
 
         echo json_encode(['status' => 'success', 'data' => $districts]);
         exit;
@@ -54,17 +38,6 @@
             exit;
         }
 
-        $cache_dir = __DIR__ . '/tmp/pincode_cache';
-        $cache_key = md5('reg_' . strtolower($st . '_' . $dist));
-        $cache_file = "$cache_dir/$cache_key.json";
-        if (file_exists($cache_file) && (time() - filemtime($cache_file) < 604800)) { // 7 days
-            $raw = @file_get_contents($cache_file);
-            if ($raw) {
-                echo json_encode(['status' => 'success', 'data' => json_decode($raw, true) ?: []]);
-                exit;
-            }
-        }
-
         $safe_st = mysqli_real_escape_string($con, $st);
         $safe_dist = mysqli_real_escape_string($con, $dist);
         $res = mysqli_query($con, "SELECT DISTINCT sub_district_name FROM pincode WHERE state_name = '$safe_st' AND district_name = '$safe_dist' AND sub_district_name != '' ORDER BY sub_district_name ASC");
@@ -75,11 +48,6 @@
             }
             mysqli_free_result($res);
         }
-
-        if (!is_dir($cache_dir)) {
-            @mkdir($cache_dir, 0755, true);
-        }
-        @file_put_contents($cache_file, json_encode($regions));
 
         echo json_encode(['status' => 'success', 'data' => $regions]);
         exit;
@@ -92,15 +60,8 @@
     $selected_district = isset($_GET['district']) ? trim($_GET['district']) : (isset($_POST['district']) ? trim($_POST['district']) : '');
     $selected_region = isset($_GET['region']) ? trim($_GET['region']) : (isset($_POST['region']) ? trim($_POST['region']) : '');
 
-    // Fetch All States for Initial Dropdown (Cached in tmp/ to eliminate 1M-row DISTINCT scan on every load)
-    $states_cache_file = __DIR__ . '/tmp/pincode_states.json';
-    $all_states = [];
-    if (file_exists($states_cache_file) && (time() - filemtime($states_cache_file) < 604800)) {
-        $raw_states = @file_get_contents($states_cache_file);
-        if ($raw_states) {
-            $all_states = json_decode($raw_states, true) ?: [];
-        }
-    }
+    // Fetch All States for Initial Dropdown
+    $all_states = $_SESSION['all_pincode_states'] ?? [];
     if (empty($all_states)) {
         $states_res = mysqli_query($con, "SELECT DISTINCT state_name FROM pincode WHERE state_name != '' ORDER BY state_name ASC");
         if ($states_res) {
@@ -108,10 +69,7 @@
                 $all_states[] = $sRow['state_name'];
             }
             mysqli_free_result($states_res);
-            if (!is_dir(__DIR__ . '/tmp')) {
-                @mkdir(__DIR__ . '/tmp', 0755, true);
-            }
-            @file_put_contents($states_cache_file, json_encode($all_states));
+            $_SESSION['all_pincode_states'] = $all_states;
         }
     }
 

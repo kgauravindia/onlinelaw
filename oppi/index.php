@@ -1,20 +1,13 @@
 <?php
 require_once('includes/header.php');
 
-// Transient Cache for Dashboard Metrics (5-minute TTL)
+// Transient Cache for Dashboard Metrics (5-minute TTL via Session, Zero Disk Files)
 $force_refresh = isset($_GET['refresh']) && $_GET['refresh'] == '1';
-$cache_file = __DIR__ . '/../tmp/admin_dashboard_cache.json';
 $cache_valid = false;
-$cached_data = null;
+$cached_data = $_SESSION['admin_dashboard_cache'] ?? null;
 
-if (!$force_refresh && file_exists($cache_file)) {
-    $raw_cache = @file_get_contents($cache_file);
-    if ($raw_cache) {
-        $cached_data = json_decode($raw_cache, true);
-        if ($cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['timestamp'] < 300)) {
-            $cache_valid = true;
-        }
-    }
+if (!$force_refresh && $cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['timestamp'] < 300)) {
+    $cache_valid = true;
 }
 
 if ($cache_valid && $cached_data) {
@@ -75,11 +68,8 @@ if ($cache_valid && $cached_data) {
         $chart_values = [12400, 14200, 13800, 15600, 16100, 17200];
     }
 
-    // Persist Cache
-    if (!is_dir(__DIR__ . '/../tmp')) {
-        @mkdir(__DIR__ . '/../tmp', 0755, true);
-    }
-    @file_put_contents($cache_file, json_encode([
+    // Persist Cache in Session (Zero Disk Files)
+    $_SESSION['admin_dashboard_cache'] = [
         'timestamp' => time(),
         'total_companies' => $total_companies,
         'total_ifsc' => $total_ifsc,
@@ -92,7 +82,7 @@ if ($cache_valid && $cached_data) {
         'pct_foreign' => $pct_foreign,
         'chart_labels' => $chart_labels,
         'chart_values' => $chart_values
-    ]));
+    ];
     $cache_time_formatted = date('H:i');
 }
 ?>

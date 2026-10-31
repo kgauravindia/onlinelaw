@@ -57,30 +57,8 @@ echo "\n--- 2. Optimizing `bank_ifsc` table (181K+ rows) ---\n";
 ensure_index($conn, 'bank_ifsc', 'ft_bank_search', 'bank, branch, city2, city1, address', true);
 ensure_index($conn, 'bank_ifsc', 'idx_bank_state_branch', 'bank(50), state(50), branch(50), city2(50), ifsc', false);
 
-// 3. CACHE DIRECTORIES
-echo "\n--- 3. Verifying Cache Storage Directories ---\n";
-$cache_dirs = [
-    __DIR__ . '/tmp',
-    __DIR__ . '/tmp/pincode_search',
-    __DIR__ . '/tmp/pincode_cache',
-    __DIR__ . '/tmp/bank_search',
-    __DIR__ . '/tmp/bank_cache',
-    __DIR__ . '/tmp/bank_near'
-];
-foreach ($cache_dirs as $d) {
-    if (!is_dir($d)) {
-        if (@mkdir($d, 0755, true)) {
-            echo "Created directory: $d\n";
-        } else {
-            echo "Failed to create directory: $d\n";
-        }
-    } else {
-        echo "Directory verified: $d\n";
-    }
-}
-
-// 4. BENCHMARK VERIFICATION
-echo "\n--- 4. Benchmarking Optimized Search Queries ---\n";
+// 3. BENCHMARK VERIFICATION
+echo "\n--- 3. Benchmarking Optimized Search Queries ---\n";
 
 // Test 1: Locality Search
 $start = microtime(true);

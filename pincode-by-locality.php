@@ -26,91 +26,68 @@ $offices_unique = [];
 if (!empty($locality_search)) {
     $safe_query = mysqli_real_escape_string($con, $locality_search);
     $limit = 250;
+    $found_rows = [];
 
-    // 1. Check File Cache for Frequently Requested Searches
-    $cache_dir = __DIR__ . '/tmp/pincode_search';
-    $cache_key = md5(strtolower(trim($locality_search)));
-    $cache_file = "$cache_dir/$cache_key.json";
-    $cached_rows = null;
-
-    if (file_exists($cache_file) && (time() - filemtime($cache_file) < 259200)) { // 3 days
-        $raw_cache = @file_get_contents($cache_file);
-        if ($raw_cache) {
-            $cached_rows = json_decode($raw_cache, true);
+    // 1. Strategy 1: FULLTEXT Boolean Search (Instant < 5ms via ft_pincode_search)
+    $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $locality_search);
+    $words = array_filter(explode(' ', trim($clean_words)));
+    
+    if (!empty($words)) {
+        $boolean_tokens = [];
+        foreach ($words as $w) {
+            if (mb_strlen($w) >= 2) {
+                $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
+            }
+        }
+        if (!empty($boolean_tokens)) {
+            $ft_query = implode(' ', $boolean_tokens);
+            $ft_sql = "SELECT * FROM pincode WHERE MATCH(locality_name, office_name, sub_district_name, district_name) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
+            $ft_res = mysqli_query($con, $ft_sql);
+            if ($ft_res && mysqli_num_rows($ft_res) > 0) {
+                while ($r = mysqli_fetch_assoc($ft_res)) {
+                    $found_rows[] = $r;
+                }
+                mysqli_free_result($ft_res);
+            }
         }
     }
 
-    if (is_array($cached_rows)) {
-        $res = ['count' => count($cached_rows), 'data' => $cached_rows];
-    } else {
-        $found_rows = [];
-
-        // 2. Strategy 1: FULLTEXT Boolean Search (Instant < 5ms via ft_pincode_search)
-        $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $locality_search);
-        $words = array_filter(explode(' ', trim($clean_words)));
-        
-        if (!empty($words)) {
-            $boolean_tokens = [];
-            foreach ($words as $w) {
-                if (mb_strlen($w) >= 2) {
-                    $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
-                }
+    // 2. Strategy 2: Fast B-Tree Prefix Match if Fulltext returned 0 (e.g. rare short token)
+    if (empty($found_rows)) {
+        $pre_sql = "SELECT * FROM pincode WHERE locality_name LIKE '$safe_query%' OR office_name LIKE '$safe_query%' OR district_name LIKE '$safe_query%' LIMIT $limit";
+        $pre_res = mysqli_query($con, $pre_sql);
+        if ($pre_res && mysqli_num_rows($pre_res) > 0) {
+            while ($r = mysqli_fetch_assoc($pre_res)) {
+                $found_rows[] = $r;
             }
-            if (!empty($boolean_tokens)) {
-                $ft_query = implode(' ', $boolean_tokens);
-                $ft_sql = "SELECT * FROM pincode WHERE MATCH(locality_name, office_name, sub_district_name, district_name) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
-                $ft_res = mysqli_query($con, $ft_sql);
-                if ($ft_res && mysqli_num_rows($ft_res) > 0) {
-                    while ($r = mysqli_fetch_assoc($ft_res)) {
-                        $found_rows[] = $r;
-                    }
-                    mysqli_free_result($ft_res);
-                }
-            }
+            mysqli_free_result($pre_res);
         }
-
-        // 3. Strategy 2: Fast B-Tree Prefix Match if Fulltext returned 0 (e.g. rare short token)
-        if (empty($found_rows)) {
-            $pre_sql = "SELECT * FROM pincode WHERE locality_name LIKE '$safe_query%' OR office_name LIKE '$safe_query%' OR district_name LIKE '$safe_query%' LIMIT $limit";
-            $pre_res = mysqli_query($con, $pre_sql);
-            if ($pre_res && mysqli_num_rows($pre_res) > 0) {
-                while ($r = mysqli_fetch_assoc($pre_res)) {
-                    $found_rows[] = $r;
-                }
-                mysqli_free_result($pre_res);
-            }
-        }
-
-        // 4. Strategy 3: Substring Fallback with Strict Limit
-        if (empty($found_rows) && mb_strlen($safe_query) >= 3) {
-            $sub_sql = "SELECT * FROM pincode WHERE locality_name LIKE '%$safe_query%' OR office_name LIKE '%$safe_query%' OR district_name LIKE '%$safe_query%' LIMIT 50";
-            $sub_res = mysqli_query($con, $sub_sql);
-            if ($sub_res && mysqli_num_rows($sub_res) > 0) {
-                while ($r = mysqli_fetch_assoc($sub_res)) {
-                    $found_rows[] = $r;
-                }
-                mysqli_free_result($sub_res);
-            }
-        }
-
-        // Sort in PHP memory in < 1ms to eliminate heavy MySQL filesort
-        if (!empty($found_rows)) {
-            usort($found_rows, function($a, $b) {
-                $cmpState = strcmp($a['state_name'] ?? '', $b['state_name'] ?? '');
-                if ($cmpState !== 0) return $cmpState;
-                $cmpDist = strcmp($a['district_name'] ?? '', $b['district_name'] ?? '');
-                if ($cmpDist !== 0) return $cmpDist;
-                return strcmp($a['locality_name'] ?? '', $b['locality_name'] ?? '');
-            });
-
-            if (!is_dir($cache_dir)) {
-                @mkdir($cache_dir, 0755, true);
-            }
-            @file_put_contents($cache_file, json_encode($found_rows));
-        }
-
-        $res = ['count' => count($found_rows), 'data' => $found_rows];
     }
+
+    // 3. Strategy 3: Substring Fallback with Strict Limit
+    if (empty($found_rows) && mb_strlen($safe_query) >= 3) {
+        $sub_sql = "SELECT * FROM pincode WHERE locality_name LIKE '%$safe_query%' OR office_name LIKE '%$safe_query%' OR district_name LIKE '%$safe_query%' LIMIT 50";
+        $sub_res = mysqli_query($con, $sub_sql);
+        if ($sub_res && mysqli_num_rows($sub_res) > 0) {
+            while ($r = mysqli_fetch_assoc($sub_res)) {
+                $found_rows[] = $r;
+            }
+            mysqli_free_result($sub_res);
+        }
+    }
+
+    // Sort in PHP memory in < 1ms to eliminate heavy MySQL filesort
+    if (!empty($found_rows)) {
+        usort($found_rows, function($a, $b) {
+            $cmpState = strcmp($a['state_name'] ?? '', $b['state_name'] ?? '');
+            if ($cmpState !== 0) return $cmpState;
+            $cmpDist = strcmp($a['district_name'] ?? '', $b['district_name'] ?? '');
+            if ($cmpDist !== 0) return $cmpDist;
+            return strcmp($a['locality_name'] ?? '', $b['locality_name'] ?? '');
+        });
+    }
+
+    $res = ['count' => count($found_rows), 'data' => $found_rows];
     $ct = $res['count'];
 
     $canonical_url = $base_url . "pincode-by-locality?locality=" . urlencode($locality_search);

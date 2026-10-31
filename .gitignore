@@ -22,9 +22,7 @@ error_log
 .php_cs.cache
 
 # Temp
-tmp/*
-!tmp/.gitkeep
-!tmp/.htaccess
+tmp/
 
 # User Uploads
 uploads/*

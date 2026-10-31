@@ -1,20 +1,9 @@
 <?php
 require_once('includes/header.php');
 
-// Fetch counts for each dataset with transient cache support
-$cache_file = __DIR__ . '/../tmp/admin_dashboard_cache.json';
-$cached_data = null;
-if (file_exists($cache_file)) {
-    $raw_cache = @file_get_contents($cache_file);
-    if ($raw_cache) {
-        $c = json_decode($raw_cache, true);
-        if ($c && isset($c['timestamp']) && (time() - $c['timestamp'] < 300)) {
-            $cached_data = $c;
-        }
-    }
-}
-
-if ($cached_data) {
+// Fetch counts for each dataset with transient cache support (Session-based, Zero Disk Files)
+$cached_data = $_SESSION['admin_dashboard_cache'] ?? null;
+if ($cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['timestamp'] < 300)) {
     $total_companies_num = $cached_data['total_companies'];
     $total_ifsc_num = $cached_data['total_ifsc'];
     $total_pincodes_num = $cached_data['total_pincodes'];

@@ -136,9 +136,7 @@ if ($import_result !== null) {
     if (function_exists('set_setting')) {
         set_setting('company_stats_cache', '');
     }
-    unset($_SESSION['mca_stats_cache']);
-    @unlink(__DIR__ . '/../tmp/admin_dashboard_cache.json');
-    @unlink(__DIR__ . '/../tmp/mca_months_cache.json');
+    unset($_SESSION['mca_stats_cache'], $_SESSION['admin_dashboard_cache'], $_SESSION['mca_months_cache']);
 }
 
 // Get current database counts

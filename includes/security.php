@@ -393,26 +393,11 @@ function validate_csrf_token($token, $context = 'global', $consume = false) {
  * @return array ['allowed' => bool, 'remaining_seconds' => int, 'attempts' => int]
  */
 function check_rate_limit($action = 'admin_login', $maxAttempts = 5, $lockoutSeconds = 900) {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $cacheDir = __DIR__ . '/../tmp/security_limits';
-    if (!is_dir($cacheDir)) {
-        @mkdir($cacheDir, 0750, true);
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
-
-    $fileKey = md5($action . '_' . $ip);
-    $limitFile = "$cacheDir/$fileKey.json";
     $now = time();
-
-    $data = ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
-    if (file_exists($limitFile)) {
-        $raw = @file_get_contents($limitFile);
-        if ($raw) {
-            $parsed = json_decode($raw, true);
-            if (is_array($parsed)) {
-                $data = $parsed;
-            }
-        }
-    }
+    $data = $_SESSION['rate_limits'][$action] ?? ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
 
     // Check if lockout is still active
     if (!empty($data['locked_until']) && $data['locked_until'] > $now) {
@@ -424,15 +409,15 @@ function check_rate_limit($action = 'admin_login', $maxAttempts = 5, $lockoutSec
     }
 
     // Reset attempt window if elapsed
-    if (($now - $data['first_attempt']) > $lockoutSeconds) {
+    if (($now - ($data['first_attempt'] ?? $now)) > $lockoutSeconds) {
         $data = ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
-        @file_put_contents($limitFile, json_encode($data));
+        $_SESSION['rate_limits'][$action] = $data;
     }
 
     return [
-        'allowed' => ($data['attempts'] < $maxAttempts),
+        'allowed' => (($data['attempts'] ?? 0) < $maxAttempts),
         'remaining_seconds' => 0,
-        'attempts' => $data['attempts']
+        'attempts' => $data['attempts'] ?? 0
     ];
 }
 
@@ -444,33 +429,18 @@ function check_rate_limit($action = 'admin_login', $maxAttempts = 5, $lockoutSec
  * @param int $lockoutSeconds Lockout duration
  */
 function record_rate_limit_failure($action = 'admin_login', $maxAttempts = 5, $lockoutSeconds = 900) {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $cacheDir = __DIR__ . '/../tmp/security_limits';
-    if (!is_dir($cacheDir)) {
-        @mkdir($cacheDir, 0750, true);
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
-
-    $fileKey = md5($action . '_' . $ip);
-    $limitFile = "$cacheDir/$fileKey.json";
     $now = time();
+    $data = $_SESSION['rate_limits'][$action] ?? ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
 
-    $data = ['attempts' => 0, 'first_attempt' => $now, 'locked_until' => 0];
-    if (file_exists($limitFile)) {
-        $raw = @file_get_contents($limitFile);
-        if ($raw) {
-            $parsed = json_decode($raw, true);
-            if (is_array($parsed)) {
-                $data = $parsed;
-            }
-        }
-    }
-
-    $data['attempts']++;
+    $data['attempts'] = ($data['attempts'] ?? 0) + 1;
     if ($data['attempts'] >= $maxAttempts) {
         $data['locked_until'] = $now + $lockoutSeconds;
-        error_log("[SECURITY] Rate limit lockout triggered for $action from IP: $ip ($maxAttempts failed attempts)");
+        error_log("[SECURITY] Rate limit lockout triggered for $action ($maxAttempts failed attempts)");
     }
-    @file_put_contents($limitFile, json_encode($data));
+    $_SESSION['rate_limits'][$action] = $data;
 }
 
 /**
@@ -479,13 +449,10 @@ function record_rate_limit_failure($action = 'admin_login', $maxAttempts = 5, $l
  * @param string $action Action identifier
  */
 function clear_rate_limit($action = 'admin_login') {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $cacheDir = __DIR__ . '/../tmp/security_limits';
-    $fileKey = md5($action . '_' . $ip);
-    $limitFile = "$cacheDir/$fileKey.json";
-    if (file_exists($limitFile)) {
-        @unlink($limitFile);
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
+    unset($_SESSION['rate_limits'][$action]);
 }
 
 // ============================================================================
