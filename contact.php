@@ -26,42 +26,69 @@
     $is_removal_request = ($req_type === 'removal' || $req_type === 'delete_company' || !empty($req_cin));
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_contact'])) {
-        // 1. Bot Honeypot Check
-        if (!empty($_POST['website_hp'])) {
-            // Silently discard bot spam
+        // 1. Bot Honeypot Traps (Silent discard for bots filling hidden fields)
+        if (!empty($_POST['website_hp']) || !empty($_POST['user_telephone_ext']) || !empty($_POST['company_fax_hp'])) {
             $msg_status = "success";
-            $msg_text = "Thank you! Your message has been received successfully.";
+            $msg_text = "Thank you! Your message has been received successfully. Our team will get back to you shortly.";
         } else {
-            // 2. IP Rate Limiting (Max 5 submissions in 5 minutes)
-            $rate_check = function_exists('check_rate_limit') ? check_rate_limit('contact_submit', 5, 300) : ['allowed' => true];
-            if (!$rate_check['allowed']) {
-                $msg_status = "error";
-                $msg_text = "Security rate limit reached. Please wait a few minutes before submitting another inquiry.";
+            // 2. Submission Time-Trap (Humans take > 3 seconds; bots submit instantaneously)
+            $raw_form_time = isset($_POST['form_time']) ? intval($_POST['form_time']) : 0;
+            $raw_time_token = trim($_POST['form_time_token'] ?? '');
+            $expected_time_token = ($raw_form_time > 0) ? hash_hmac('sha256', (string)$raw_form_time, 'olaw_time_secret_key') : '';
+            $time_elapsed = ($raw_form_time > 0) ? (time() - $raw_form_time) : 0;
+            
+            // 3. Raw Inputs
+            $raw_name = trim($_POST['name'] ?? '');
+            $raw_email = trim($_POST['email'] ?? '');
+            $raw_mobile = trim($_POST['mobile'] ?? '');
+            $raw_area = trim($_POST['area'] ?? 'General Inquiry');
+            $raw_message = trim($_POST['message'] ?? '');
+            
+            // 4. Anti-Spam Bot Heuristic Filters
+            $is_cyrillic = preg_match('/[\x{0400}-\x{04FF}]/u', $raw_name . ' ' . $raw_message . ' ' . $raw_email);
+            $is_bad_name = (mb_strlen($raw_name) > 60 || preg_match('/(https?:\/\/|www\.|\.buzz|\.online|\.top|\.ru|@)/i', $raw_name));
+            $is_bad_email = (!empty($raw_email) && (!filter_var($raw_email, FILTER_VALIDATE_EMAIL) || preg_match('/\.(buzz|shw|dve|xjs|aow|bkf|dat|top)$/i', $raw_email)));
+            
+            $clean_phone = preg_replace('/[^0-9]/', '', $raw_mobile);
+            $is_russian_phone = (strlen($clean_phone) === 11 && str_starts_with($clean_phone, '8'));
+            $is_spam_content = preg_match('/(truetips\.online|\.buzz\/|proton\.me|soccer\s+predictions|sharp\s+soccer|cryptocurrency\s+recovery|casino|руб|возврат|депозит|зачёт\s+долга|комиссия\s+за)/iu', $raw_name . ' ' . $raw_message);
+            $is_fast_bot = ($raw_form_time <= 0 || !hash_equals($expected_time_token, $raw_time_token) || $time_elapsed < 3 || $time_elapsed > 86400);
+
+            // If signature matches automated bot spam, blackhole silently with HTTP success
+            if ($is_cyrillic || $is_bad_name || $is_bad_email || $is_russian_phone || $is_spam_content || $is_fast_bot) {
+                $msg_status = "success";
+                $msg_text = "Thank you! Your message has been received successfully. Our team will get back to you shortly.";
             } else {
-                $name = mysqli_real_escape_string($con, trim($_POST['name'] ?? ''));
-                $email = mysqli_real_escape_string($con, trim($_POST['email'] ?? ''));
-                $mobile = mysqli_real_escape_string($con, trim($_POST['mobile'] ?? ''));
-                $area = mysqli_real_escape_string($con, trim($_POST['area'] ?? 'General Inquiry'));
-                $message = mysqli_real_escape_string($con, trim($_POST['message'] ?? ''));
-                $user_captcha = isset($_POST['captcha_answer']) ? intval(trim($_POST['captcha_answer'])) : null;
-                $posted_token = trim($_POST['captcha_token'] ?? '');
-                $expected_token = ($user_captcha !== null) ? hash_hmac('sha256', (string)$user_captcha, 'olaw_secret_captcha_key') : '';
-                $session_captcha = isset($_SESSION['olaw_contact_captcha']) ? intval($_SESSION['olaw_contact_captcha']) : null;
-
-                $is_captcha_valid = ($posted_token !== '' && $posted_token === $expected_token) || ($session_captcha !== null && $user_captcha === $session_captcha);
-
-                if (!$is_captcha_valid) {
+                // 5. IP Rate Limiting (Max 5 submissions in 5 minutes)
+                $rate_check = function_exists('check_rate_limit') ? check_rate_limit('contact_submit', 5, 300) : ['allowed' => true];
+                if (!$rate_check['allowed']) {
                     $msg_status = "error";
-                    $msg_text = "Security check failed: Incorrect captcha answer. Please calculate the addition problem.";
-                    if (function_exists('record_rate_limit_failure')) {
-                        record_rate_limit_failure('contact_submit', 5, 300);
-                    }
-                } elseif (!empty($name) && !empty($mobile) && !empty($message)) {
-                    if (function_exists('clear_rate_limit')) {
-                        clear_rate_limit('contact_submit');
-                    }
-            $created_by_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
-            $sql = "INSERT INTO contact (name, email, mobile, area, message, status, created_by, updated_by) VALUES ('$name', '$email', '$mobile', '$area', '$message', 'NEW', $created_by_id, $created_by_id)";
+                    $msg_text = "Security rate limit reached. Please wait a few minutes before submitting another inquiry.";
+                } else {
+                    $name = mysqli_real_escape_string($con, $raw_name);
+                    $email = mysqli_real_escape_string($con, $raw_email);
+                    $mobile = mysqli_real_escape_string($con, $raw_mobile);
+                    $area = mysqli_real_escape_string($con, $raw_area);
+                    $message = mysqli_real_escape_string($con, $raw_message);
+                    $user_captcha = isset($_POST['captcha_answer']) ? intval(trim($_POST['captcha_answer'])) : null;
+                    $posted_token = trim($_POST['captcha_token'] ?? '');
+                    $expected_token = ($user_captcha !== null) ? hash_hmac('sha256', (string)$user_captcha, 'olaw_secret_captcha_key') : '';
+                    $session_captcha = isset($_SESSION['olaw_contact_captcha']) ? intval($_SESSION['olaw_contact_captcha']) : null;
+
+                    $is_captcha_valid = ($posted_token !== '' && hash_equals($expected_token, $posted_token)) || ($session_captcha !== null && $user_captcha === $session_captcha);
+
+                    if (!$is_captcha_valid) {
+                        $msg_status = "error";
+                        $msg_text = "Security check failed: Incorrect math verification answer. Please calculate the addition problem.";
+                        if (function_exists('record_rate_limit_failure')) {
+                            record_rate_limit_failure('contact_submit', 5, 300);
+                        }
+                    } elseif (!empty($name) && !empty($mobile) && !empty($message)) {
+                        if (function_exists('clear_rate_limit')) {
+                            clear_rate_limit('contact_submit');
+                        }
+                        $created_by_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+                        $sql = "INSERT INTO contact (name, email, mobile, area, message, status, created_by, updated_by) VALUES ('$name', '$email', '$mobile', '$area', '$message', 'NEW', $created_by_id, $created_by_id)";
             try {
                 if (mysqli_query($con, $sql)) {
                     $insert_id = mysqli_insert_id($con);
@@ -179,9 +206,10 @@
             $msg_status = "error";
             $msg_text = "Please fill in all required fields (Name, Mobile Number, and Message).";
         }
+                    }
+                }
             }
         }
-    }
 
     $canonical_url = $base_url . "contact";
     $page_title = "Contact Us | Support, Inquiries & Helpdesk - Online Law";
@@ -713,22 +741,37 @@
                                 . "Requester's Designation (Director / Authorized Agent): \n";
                         }
 
-                        // Generate Simple Math Addition Captcha
+                        // Generate Math Addition Captcha with Word representation for bot evasion defense
+                        $captcha_words = [1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four', 5 => 'Five', 6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine'];
                         $captcha_n1 = rand(3, 9);
                         $captcha_n2 = rand(1, 9);
                         $captcha_sum = $captcha_n1 + $captcha_n2;
                         $captcha_token = hash_hmac('sha256', (string)$captcha_sum, 'olaw_secret_captcha_key');
                         $_SESSION['olaw_contact_captcha'] = $captcha_sum;
+
+                        // Time-trap defense token (valid for human submission window)
+                        $form_load_time = time();
+                        $form_time_token = hash_hmac('sha256', (string)$form_load_time, 'olaw_time_secret_key');
                     ?>
 
                     <form id="contact-form" action="<?php echo $base_url; ?>contact<?php echo $is_removal_request ? '?type=removal&cin='.urlencode($req_cin).'&name='.urlencode($req_name) : ''; ?>#contact-form-section" method="post">
                         
+                        <!-- Anti-Bot Hidden Verification Tokens & Multi-Honeypot Traps -->
+                        <input type="hidden" name="form_time" value="<?php echo $form_load_time; ?>">
+                        <input type="hidden" name="form_time_token" value="<?php echo $form_time_token; ?>">
+                        <input type="hidden" name="captcha_token" value="<?php echo $captcha_token; ?>">
+                        <div style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+                            <input type="text" name="website_hp" tabindex="-1" autocomplete="off" value="">
+                            <input type="text" name="user_telephone_ext" tabindex="-1" autocomplete="off" value="">
+                            <input type="text" name="company_fax_hp" tabindex="-1" autocomplete="off" value="">
+                        </div>
+
                         <div class="row">
                             <!-- Full Name -->
                             <div class="col-md-6">
                                 <div class="form-group-modern">
                                     <label class="form-label-modern">Full Name <span class="text-danger ml-1">*</span></label>
-                                    <input type="text" class="form-control-modern" name="name" placeholder="e.g. Ramesh Kumar" required value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>">
+                                    <input type="text" class="form-control-modern" name="name" maxlength="60" autocomplete="name" placeholder="e.g. Ramesh Kumar" required value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>">
                                     <i class="fas fa-user form-icon-wrap"></i>
                                 </div>
                             </div>
@@ -737,7 +780,7 @@
                             <div class="col-md-6">
                                 <div class="form-group-modern">
                                     <label class="form-label-modern">Email Address <span class="text-danger ml-1">*</span></label>
-                                    <input type="email" class="form-control-modern" name="email" placeholder="e.g. name@example.com" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                                    <input type="email" class="form-control-modern" name="email" autocomplete="email" placeholder="e.g. name@example.com" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                                     <i class="fas fa-envelope form-icon-wrap"></i>
                                 </div>
                             </div>
@@ -746,7 +789,7 @@
                             <div class="col-md-6">
                                 <div class="form-group-modern">
                                     <label class="form-label-modern">Mobile Number <span class="text-danger ml-1">*</span></label>
-                                    <input type="tel" class="form-control-modern" name="mobile" placeholder="e.g. +91 98765 43210" required value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>">
+                                    <input type="tel" class="form-control-modern" name="mobile" maxlength="15" autocomplete="tel" placeholder="e.g. +91 98765 43210" required value="<?php echo isset($_POST['mobile']) ? htmlspecialchars($_POST['mobile']) : ''; ?>">
                                     <i class="fas fa-phone form-icon-wrap"></i>
                                 </div>
                             </div>
@@ -786,14 +829,10 @@
                                 <div class="form-group-modern mb-0">
                                     <label class="form-label-modern">Security Verification <span class="text-danger ml-1">*</span></label>
                                     <div class="d-flex align-items-center">
-                                        <span class="d-inline-flex align-items-center justify-content-center px-3 py-2 bg-light border text-dark font-weight-bold mr-2" style="border-radius: 10px; font-size: 15.5px; min-width: 120px; border-color: #cbd5e1 !important; height: 48px;">
-                                            <i class="fas fa-calculator text-primary mr-2"></i> <?php echo $captcha_n1; ?> + <?php echo $captcha_n2; ?> =
+                                        <span class="d-inline-flex align-items-center justify-content-center px-3 py-2 bg-light border text-dark font-weight-bold mr-2" style="border-radius: 10px; font-size: 15.5px; min-width: 140px; border-color: #cbd5e1 !important; height: 48px;">
+                                            <i class="fas fa-calculator text-primary mr-2"></i> <?php echo $captcha_words[$captcha_n1] ?? $captcha_n1; ?> + <?php echo $captcha_n2; ?> =
                                         </span>
                                         <input type="number" class="form-control-modern" name="captcha_answer" placeholder="Answer?" required style="height: 48px; font-weight: 600; font-size: 15px;" autocomplete="off">
-                                        <input type="hidden" name="captcha_token" value="<?php echo $captcha_token; ?>">
-                                        <div style="display:none !important;" aria-hidden="true">
-                                            <input type="text" name="website_hp" tabindex="-1" autocomplete="off">
-                                        </div>
                                     </div>
                                 </div>
                             </div>

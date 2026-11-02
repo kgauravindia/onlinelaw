@@ -124,6 +124,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_action'])) {
     exit();
 }
 
+// Handle Bulk Spam Purge
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'purge_spam') {
+    $spam_condition = "id IN (18, 19, 20, 21, 22, 23)
+        OR `name` REGEXP '[а-яА-ЯёЁ]'
+        OR `message` REGEXP '[а-яА-ЯёЁ]'
+        OR `name` LIKE '%Руб%'
+        OR `message` LIKE '%Руб%'
+        OR `name` LIKE '%http://%'
+        OR `name` LIKE '%https://%'
+        OR `name` LIKE '%.buzz%'
+        OR `message` LIKE '%.buzz%'
+        OR `name` LIKE '%proton.me%'
+        OR `message` LIKE '%proton.me%'
+        OR `name` LIKE '%truetips%'
+        OR `message` LIKE '%truetips%'
+        OR `name` LIKE '%meestCex%'
+        OR `email` LIKE '%.shw'
+        OR `email` LIKE '%.dve'
+        OR `email` LIKE '%.xjs'
+        OR `email` LIKE '%.aow'
+        OR `email` LIKE '%.bkf'
+        OR `email` LIKE '%.dat'
+        OR `email` LIKE '% %'
+        OR (LENGTH(`mobile`) = 11 AND `mobile` LIKE '8%')";
+        
+    $cnt_check = mysqli_query($con, "SELECT COUNT(*) as cnt FROM contact WHERE $spam_condition");
+    $cnt_val = ($cnt_check) ? intval(mysqli_fetch_assoc($cnt_check)['cnt'] ?? 0) : 0;
+    
+    if ($cnt_val > 0) {
+        mysqli_query($con, "DELETE FROM contact WHERE $spam_condition");
+        $deleted_cnt = mysqli_affected_rows($con);
+        $_SESSION['flash_msg'] = "Spam Cleanup Complete: Successfully purged $deleted_cnt bot spam inquiry records from the database.";
+        $_SESSION['flash_type'] = "success";
+    } else {
+        $_SESSION['flash_msg'] = "No spam inquiries detected matching bot signatures. The contact database is clean.";
+        $_SESSION['flash_type'] = "info";
+    }
+    unset($_SESSION['unread_contact_count']);
+    header("Location: manage_contact.php");
+    exit();
+}
+
 // Handle Send Email Reply to Contact Inquiry
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_contact_email_reply') {
     $contact_id = intval($_POST['contact_id'] ?? 0);
@@ -317,6 +359,30 @@ $cnt_complaints = direct_sql("SELECT COUNT(*) as total FROM contact WHERE area L
 $cnt_new = direct_sql("SELECT COUNT(*) as total FROM contact WHERE status = 'NEW' OR status = '' OR status IS NULL")['data'][0]['total'] ?? 0;
 $cnt_resolved = direct_sql("SELECT COUNT(*) as total FROM contact WHERE status = 'RESOLVED'")['data'][0]['total'] ?? 0;
 
+$spam_check_condition = "id IN (18, 19, 20, 21, 22, 23)
+    OR `name` REGEXP '[а-яА-ЯёЁ]'
+    OR `message` REGEXP '[а-яА-ЯёЁ]'
+    OR `name` LIKE '%Руб%'
+    OR `message` LIKE '%Руб%'
+    OR `name` LIKE '%http://%'
+    OR `name` LIKE '%https://%'
+    OR `name` LIKE '%.buzz%'
+    OR `message` LIKE '%.buzz%'
+    OR `name` LIKE '%proton.me%'
+    OR `message` LIKE '%proton.me%'
+    OR `name` LIKE '%truetips%'
+    OR `message` LIKE '%truetips%'
+    OR `name` LIKE '%meestCex%'
+    OR `email` LIKE '%.shw'
+    OR `email` LIKE '%.dve'
+    OR `email` LIKE '%.xjs'
+    OR `email` LIKE '%.aow'
+    OR `email` LIKE '%.bkf'
+    OR `email` LIKE '%.dat'
+    OR `email` LIKE '% %'
+    OR (LENGTH(`mobile`) = 11 AND `mobile` LIKE '8%')";
+$cnt_spam = direct_sql("SELECT COUNT(*) as total FROM contact WHERE $spam_check_condition")['data'][0]['total'] ?? 0;
+
 require_once('includes/header.php');
 ?>
 
@@ -326,12 +392,38 @@ require_once('includes/header.php');
         <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">Inquiries &amp; Complaints Desk</h1>
         <p class="text-muted mb-0" style="font-size: 0.9rem;">Review contact messages, user feedback, and corporate data removal / delisting requests.</p>
     </div>
-    <div class="mt-3 mt-md-0 d-flex gap-2">
+    <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2" style="gap: 8px;">
+        <button type="button" class="btn btn-outline-danger px-3 shadow-sm font-weight-bold" data-toggle="modal" data-target="#purgeSpamModal" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
+            <i class="fas fa-broom mr-1"></i> Clean Spam Inquiries
+            <?php if ($cnt_spam > 0): ?>
+                <span class="badge badge-danger ml-1" style="font-size: 11px;"><?php echo $cnt_spam; ?></span>
+            <?php endif; ?>
+        </button>
         <a href="../contact.php" target="_blank" class="btn btn-outline-primary px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-external-link-alt mr-1"></i> Public Contact Form
         </a>
     </div>
 </div>
+
+<?php if ($cnt_spam > 0): ?>
+<!-- Spam Inquiries Detected Alert Banner -->
+<div class="alert alert-warning border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between mb-4 p-3" style="border-radius: var(--radius-md); background: #fffbeb; border-left: 4px solid #f59e0b !important;">
+    <div class="d-flex align-items-center mb-2 mb-md-0">
+        <div class="p-2 bg-warning text-dark rounded-circle mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <i class="fas fa-shield-virus fa-lg"></i>
+        </div>
+        <div>
+            <strong class="text-dark" style="font-size: 15px;"><?php echo $cnt_spam; ?> Spam Inquiries Detected</strong>
+            <div class="small text-muted">Automated bot submissions with Russian Cyrillic script, fake email TLDs, or gambling links were found.</div>
+        </div>
+    </div>
+    <div>
+        <button type="button" class="btn btn-danger font-weight-bold px-3 py-2 shadow-sm" data-toggle="modal" data-target="#purgeSpamModal" style="border-radius: 8px; font-size: 13px;">
+            <i class="fas fa-trash-alt mr-1"></i> Purge All <?php echo $cnt_spam; ?> Spams Now
+        </button>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Flash Message Alert -->
 <?php if (isset($_SESSION['flash_msg'])): ?>
@@ -871,6 +963,43 @@ require_once('includes/header.php');
                     </button>
                     <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" id="btnSubmitReply" style="border-radius: var(--radius-sm, 8px);">
                         <i class="fas fa-paper-plane mr-1.5"></i> Send Email Reply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Purge Spam Confirmation Modal -->
+<div class="modal fade" id="purgeSpamModal" tabindex="-1" role="dialog" aria-labelledby="purgeSpamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header bg-danger text-white py-3 px-4">
+                <h5 class="modal-title font-weight-bold" id="purgeSpamModalLabel">
+                    <i class="fas fa-broom mr-2"></i> Clean &amp; Purge Spam Inquiries
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="manage_contact.php">
+                <input type="hidden" name="action" value="purge_spam">
+                <div class="modal-body p-4 text-center">
+                    <div class="p-3 mb-3 rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-trash-alt fa-2x"></i>
+                    </div>
+                    <h5 class="font-weight-bold text-dark mb-2">Are you sure you want to clean spams?</h5>
+                    <p class="text-muted small mb-3" style="line-height: 1.6;">
+                        This operation will permanently purge inquiries matching known bot fingerprints (IDs 18–23, Cyrillic / Russian text, fake email TLDs like <code>.shw</code>, <code>.dve</code>, <code>.buzz</code>, soccer prediction domains, and Russian telephone formats).
+                    </p>
+                    <div class="alert alert-light border small text-left text-muted mb-0 p-2" style="border-radius: 8px;">
+                        <i class="fas fa-check-circle text-success mr-1"></i> Legitimate inquiries from authentic users will not be affected.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3 border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary px-3 font-weight-bold" data-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                    <button type="submit" class="btn btn-danger px-4 font-weight-bold shadow-sm" style="border-radius: 8px;">
+                        <i class="fas fa-trash-alt mr-1"></i> Yes, Purge All Spam
                     </button>
                 </div>
             </form>
