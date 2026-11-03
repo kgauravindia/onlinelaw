@@ -121,22 +121,22 @@
                             .field-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
                             .label { color: #64748b; font-weight: 600; width: 30%; }
                             .value { color: #0f172a; font-weight: 500; }
-                            .msg-box { background: #f8fafc; border-left: 4px solid #2563eb; padding: 14px; border-radius: 6px; margin-top: 15px; font-size: 14px; color: #334155; }
+                            .msg-box { background: #f8fafc; border-left: 4px solid #ff671f; padding: 14px; border-radius: 6px; margin-top: 15px; font-size: 14px; color: #334155; }
                             .footer { background: #f8fafc; padding: 14px 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
                         </style>
                     </head>
                     <body>
                         <div class='card'>
-                            <div class='header'>
-                                <h2 style='margin: 0; font-size: 20px;'>New Contact Form Inquiry</h2>
-                                <p style='margin: 4px 0 0; color: #94a3b8; font-size: 13px;'>Online Law Portal &bull; olaw.in</p>
+                            <div class='header' style='background: linear-gradient(135deg, #071329 0%, #0b1e3d 100%); border-top: 4px solid #ff671f;'>
+                                <h2 style='margin: 0; font-size: 20px; color: #ffffff;'>New Contact Form Inquiry</h2>
+                                <p style='margin: 4px 0 0; color: #fed7aa; font-size: 13px;'>Online Law Portal &bull; olaw.in</p>
                             </div>
                             <div class='content'>
                                 <table class='field-table'>
                                     <tr><td class='label'>Sender Name:</td><td class='value'><strong>" . htmlspecialchars($name) . "</strong></td></tr>
                                     <tr><td class='label'>Email Address:</td><td class='value'><a href='mailto:" . htmlspecialchars($email) . "'>" . htmlspecialchars($email) . "</a></td></tr>
                                     <tr><td class='label'>Phone Number:</td><td class='value'><a href='tel:" . htmlspecialchars($mobile) . "'>" . htmlspecialchars($mobile) . "</a></td></tr>
-                                    <tr><td class='label'>Area of Inquiry:</td><td class='value'><span style='background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: 600;'>" . htmlspecialchars($area) . "</span></td></tr>
+                                    <tr><td class='label'>Area of Inquiry:</td><td class='value'><span style='background: #fff7ed; color: #c2410c; padding: 3px 8px; border-radius: 4px; font-weight: 600;'>" . htmlspecialchars($area) . "</span></td></tr>
                                 </table>
                                 <div style='margin-top: 20px;'>
                                     <strong style='font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;'>Message:</strong>
@@ -162,9 +162,9 @@
                             <style>
                                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #1e293b; background: #f8fafc; margin: 0; padding: 20px; }
                                 .card { max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-                                .header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; padding: 28px; text-align: center; }
+                                .header { background: linear-gradient(135deg, #071329 0%, #0b1e3d 100%); border-top: 4px solid #ff671f; color: #ffffff; padding: 28px; text-align: center; }
                                 .content { padding: 28px; font-size: 15px; color: #334155; }
-                                .quote-box { background: #f8fafc; border-left: 3px solid #2563eb; padding: 12px 16px; font-style: italic; color: #475569; margin: 16px 0; border-radius: 4px; font-size: 14px; }
+                                .quote-box { background: #f8fafc; border-left: 3px solid #ff671f; padding: 12px 16px; font-style: italic; color: #475569; margin: 16px 0; border-radius: 4px; font-size: 14px; }
                                 .footer { background: #f8fafc; padding: 18px 28px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #f1f5f9; }
                             </style>
                         </head>
@@ -172,7 +172,7 @@
                             <div class='card'>
                                 <div class='header'>
                                     <h2 style='margin: 0; font-size: 22px;'>Thank You for Reaching Out</h2>
-                                    <p style='margin: 6px 0 0; color: #bfdbfe; font-size: 14px;'>Team Online Law &bull; India</p>
+                                    <p style='margin: 6px 0 0; color: #fed7aa; font-size: 14px;'>Team Online Law &bull; India</p>
                                 </div>
                                 <div class='content'>
                                     <p>Dear <strong>" . htmlspecialchars($name) . "</strong>,</p>
@@ -187,7 +187,7 @@
                                     Best Regards,<br>
                                     <strong>Team Online Law</strong><br>
                                     <span style='font-size: 12px; color: #94a3b8;'>An initiative of OfferPlant Technologies Private Limited</span><br>
-                                    <a href='https://olaw.in' style='color: #2563eb; text-decoration: none; font-weight: 600;'>www.olaw.in</a>
+                                    <a href='https://olaw.in' style='color: #ff671f; text-decoration: none; font-weight: 600;'>www.olaw.in</a>
                                 </div>
                             </div>
                         </body>
@@ -260,7 +260,7 @@
 <style>
     /* Hero Header Styling */
     .contact-hero-section {
-        background: linear-gradient(135deg, #090e1a 0%, #0f172a 45%, #1e293b 100%);
+        background: linear-gradient(135deg, #071329 0%, #0b1e3d 45%, #0f274f 100%);
         padding: 56px 0 48px;
         position: relative;
         overflow: hidden;
@@ -273,7 +273,7 @@
         right: -10%;
         width: 480px;
         height: 480px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, rgba(37, 99, 235, 0) 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
         border-radius: 50%;
         pointer-events: none;
     }
@@ -284,12 +284,12 @@
         left: -5%;
         width: 380px;
         height: 380px;
-        background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, rgba(6, 182, 212, 0) 70%);
+        background: radial-gradient(circle, rgba(4, 106, 56, 0.25) 0%, rgba(4, 106, 56, 0) 70%);
         border-radius: 50%;
         pointer-events: none;
     }
     .hero-gradient-text {
-        background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 45%, #a78bfa 100%);
+        background: linear-gradient(135deg, #ffa500 0%, #ff8800 35%, #ffffff 70%, #34d399 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline;
@@ -298,9 +298,9 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(37, 99, 235, 0.2);
-        border: 1px solid rgba(96, 165, 250, 0.4);
-        color: #93c5fd;
+        background: rgba(255, 103, 31, 0.15);
+        border: 1px solid rgba(255, 103, 31, 0.35);
+        color: #ff8800;
         padding: 6px 18px;
         border-radius: var(--radius-pill);
         font-size: 13px;
@@ -327,7 +327,7 @@
     .contact-card-premium:hover {
         transform: translateY(-5px);
         box-shadow: var(--shadow-lg);
-        border-color: rgba(37, 99, 235, 0.3);
+        border-color: rgba(255, 103, 31, 0.3);
     }
     .channel-icon-squircle {
         width: 52px;
@@ -387,7 +387,7 @@
     .form-control-modern:focus {
         background: #ffffff;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 4px rgba(255, 103, 31, 0.12);
         outline: none;
     }
     .form-icon-wrap {
@@ -414,7 +414,7 @@
 
     /* Side Context Sidebar */
     .sidebar-context-card {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(135deg, #071329 0%, #0b1e3d 100%);
         border-radius: var(--radius-xl);
         color: #ffffff;
         padding: 36px 30px;
@@ -429,7 +429,7 @@
         right: -20%;
         width: 250px;
         height: 250px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.25) 0%, transparent 70%);
         border-radius: 50%;
     }
     .context-pill {
@@ -510,21 +510,21 @@
     <div class="container position-relative" style="z-index: 2;">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent p-0 mb-3" style="font-size: 13.5px;">
-                <li class="breadcrumb-item"><a href="<?php echo $base_url; ?>" class="text-white-50 text-decoration-none"><i class="fas fa-home mr-1" style="color: #38bdf8;"></i> Home</a></li>
-                <li class="breadcrumb-item active" style="color: #93c5fd;" aria-current="page">Contact Us</li>
+                <li class="breadcrumb-item"><a href="<?php echo $base_url; ?>" class="text-white-50 text-decoration-none"><i class="fas fa-home mr-1" style="color: #ff8800;"></i> Home</a></li>
+                <li class="breadcrumb-item active" style="color: #fed7aa;" aria-current="page">Contact Us</li>
             </ol>
         </nav>
 
         <div class="row align-items-center">
             <div class="col-lg-10 col-xl-8">
-                <div class="contact-badge-pill mb-3" style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(96, 165, 250, 0.45); color: #93c5fd;">
-                    <i class="fas fa-headset" style="color: #38bdf8;"></i> Helpdesk &amp; Inquiries
+                <div class="contact-badge-pill mb-3">
+                    <i class="fas fa-headset" style="color: #ff8800;"></i> Helpdesk &amp; Inquiries
                 </div>
                 <h1 class="font-weight-bold mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; letter-spacing: -0.02em;">
                     <span class="hero-gradient-text">Let's Connect &amp; Assist You</span>
                 </h1>
                 <p class="lead mb-0" style="font-size: 16.5px; max-width: 680px; line-height: 1.7; color: #cbd5e1;">
-                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #38bdf8; font-weight: 600;">priority 3-day resolution</span>.
+                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #ff8800; font-weight: 600;">priority 3-day resolution</span>.
                 </p>
             </div>
         </div>
@@ -538,7 +538,7 @@
     <div class="container">
         
         <!-- Resolution SLA Banner -->
-        <div class="p-3 mb-4 rounded-xl shadow-sm border d-flex flex-wrap align-items-center justify-content-between" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; border-color: rgba(255,255,255,0.1) !important;">
+        <div class="p-3 mb-4 rounded-xl shadow-sm border d-flex flex-wrap align-items-center justify-content-between" style="background: linear-gradient(135deg, #071329 0%, #0b1e3d 100%); color: #ffffff; border-color: rgba(255,255,255,0.1) !important;">
             <div class="d-flex align-items-center mb-2 mb-md-0">
                 <div class="p-2 rounded-circle bg-primary text-white mr-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                     <i class="fas fa-tachometer-alt"></i>
@@ -565,7 +565,7 @@
                 <div class="contact-card-premium w-100" style="border-top: 3px solid var(--primary-color);">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="channel-icon-squircle bg-primary text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
+                            <div class="channel-icon-squircle bg-primary text-white shadow-sm mb-0" style="background: linear-gradient(135deg, #ff671f, #ea580c) !important;">
                                 <i class="fas fa-edit"></i>
                             </div>
                             <span class="badge badge-primary px-2.5 py-1 text-uppercase font-weight-bold" style="font-size: 10px; border-radius: 20px;">

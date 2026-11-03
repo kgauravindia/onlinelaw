@@ -34,3 +34,4 @@ DELETE FROM `contact` WHERE
 
 -- Optional: Optimize the contact table after cleanup
 OPTIMIZE TABLE `contact`;
+

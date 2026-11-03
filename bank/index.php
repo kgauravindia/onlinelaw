@@ -448,7 +448,7 @@
             <div class="col-lg-4 col-md-6 col-12 mb-4">
                 <div class="bank-feature-card">
                     <div>
-                        <div class="bank-feature-icon" style="background: #eff6ff; color: #2563eb;">
+                        <div class="bank-feature-icon" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-credit-card"></i>
                         </div>
                         <h4 class="font-weight-bold text-dark mb-2" style="font-size: 18px;">Card Helplines &amp; Safety</h4>

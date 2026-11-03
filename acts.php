@@ -143,7 +143,7 @@ $acts_schema = [
             transition: color 0.15s ease;
         }
         .copy-btn-mini:hover {
-            color: #2563eb;
+            color: #ff671f;
         }
 
         .act-card-mobile {
@@ -156,7 +156,7 @@ $acts_schema = [
             transition: all 0.2s ease;
         }
         .act-card-mobile:hover {
-            border-color: #93c5fd;
+            border-color: #fdba74;
             transform: translateY(-2px);
         }
 
@@ -212,7 +212,7 @@ $acts_schema = [
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-12">
-                        <button type="submit" class="btn btn-primary w-100 font-weight-bold" style="height: 52px; font-size: 15px; border-radius: 12px; background: linear-gradient(135deg, #dc2626, #b91c1c); border: none;">
+                        <button type="submit" class="btn btn-primary w-100 font-weight-bold" style="height: 52px; font-size: 15px; border-radius: 12px; background: linear-gradient(135deg, #ff671f, #ea580c); border: none;">
                             <i class="fas fa-search mr-1.5"></i> Search Acts
                         </button>
                     </div>

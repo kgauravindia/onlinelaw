@@ -84,9 +84,9 @@ $schema_graphs = [
 
     <style>
         :root {
-            --about-primary: #2563eb;
-            --about-primary-hover: #1d4ed8;
-            --about-dark: #0f172a;
+            --about-primary: #ff671f;
+            --about-primary-hover: #ea580c;
+            --about-dark: #071329;
             --about-surface: #f8fafc;
             --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             --font-code: 'JetBrains Mono', monospace;
@@ -100,8 +100,8 @@ $schema_graphs = [
 
         /* Hero Header */
         .about-hero-section {
-            background-color: #030712 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #030712 0%, #0f172a 45%, #1e1b4b 100%) !important;
+            background-color: #071329 !important;
+            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 45%, #071329 100%) !important;
             padding: 65px 0 75px 0;
             position: relative;
             overflow: hidden;
@@ -112,7 +112,7 @@ $schema_graphs = [
             width: 520px;
             height: 520px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%);
             top: -140px;
             left: -100px;
             pointer-events: none;
@@ -123,7 +123,7 @@ $schema_graphs = [
             width: 500px;
             height: 500px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, transparent 70%);
             bottom: -140px;
             right: -80px;
             pointer-events: none;
@@ -134,16 +134,16 @@ $schema_graphs = [
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(6, 182, 212, 0.15);
-            border: 1px solid rgba(56, 189, 248, 0.45);
-            color: #67e8f9;
+            background: rgba(255, 103, 31, 0.15);
+            border: 1px solid rgba(255, 103, 31, 0.35);
+            color: #fed7aa;
             padding: 7px 20px;
             border-radius: 50px;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.9px;
             text-transform: uppercase;
-            box-shadow: 0 4px 18px rgba(6, 182, 212, 0.15);
+            box-shadow: 0 4px 18px rgba(255, 103, 31, 0.15);
         }
         .about-pulse-dot {
             width: 8px;
@@ -160,11 +160,11 @@ $schema_graphs = [
         }
 
         .hero-title-highlight {
-            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+            background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
-            filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.25));
+            filter: drop-shadow(0 2px 8px rgba(255, 103, 31, 0.25));
         }
         .hero-title-white {
             color: #ffffff;
@@ -173,12 +173,12 @@ $schema_graphs = [
 
         /* Scale Stat Section */
         .scale-stat-section {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #071329 0%, #0b1e3d 50%, #071329 100%);
             padding: 65px 0;
             position: relative;
             overflow: hidden;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-top: 3.5px solid #ff671f;
+            border-bottom: 3.5px solid #046a38;
         }
         .stat-card-colored {
             background: rgba(255, 255, 255, 0.12);
@@ -272,7 +272,7 @@ $schema_graphs = [
         }
         .tool-explore-item:hover {
             background: #f8fafc;
-            border-color: #2563eb;
+            border-color: #ff671f;
             transform: translateX(4px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
@@ -309,8 +309,8 @@ $schema_graphs = [
             text-decoration: none !important;
         }
         .about-faq-header:hover {
-            background: #f8fafc;
-            color: #2563eb;
+            background: #fff7ed;
+            color: #ff671f;
         }
         .about-faq-body {
             padding: 0 22px 18px 22px;
@@ -394,7 +394,7 @@ $schema_graphs = [
                 <div class="row pt-2 mb-4">
                     <div class="col-sm-6 mb-3">
                         <div class="d-flex align-items-start">
-                            <div style="color: #2563eb; font-size: 18px; margin-right: 12px; margin-top: 2px;">
+                            <div style="color: #ff671f; font-size: 18px; margin-right: 12px; margin-top: 2px;">
                                 <i class="fas fa-check-circle"></i>
                             </div>
                             <div>
@@ -540,7 +540,7 @@ $schema_graphs = [
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="feature-card-modern">
                     <div>
-                        <div class="feature-icon-box" style="background: #eff6ff; color: #2563eb;">
+                        <div class="feature-icon-box" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-map-location-dot"></i>
                         </div>
                         <h5 class="font-weight-bold mb-2 text-dark" style="font-size: 18px;">PIN Code Finder</h5>
@@ -664,7 +664,7 @@ $schema_graphs = [
                             <i class="fas fa-chevron-right text-muted" style="font-size: 12px;"></i>
                         </a>
                         <a href="<?php echo $base_url; ?>pincode-finder" class="tool-explore-item">
-                            <div class="item-icon" style="background: #eff6ff; color: #2563eb;"><i class="fas fa-map-location-dot"></i></div>
+                            <div class="item-icon" style="background: #fff7ed; color: #ff671f;"><i class="fas fa-map-location-dot"></i></div>
                             <div class="flex-grow-1">
                                 <div style="font-weight: 700; font-size: 14px; color: #0f172a;">PIN Code Finder</div>
                                 <div style="font-size: 12px; color: #64748b;">Cascading State &rarr; District &rarr; Region PIN search</div>
@@ -717,7 +717,7 @@ $schema_graphs = [
                         <img src="images/circle/gaurav.jpg" alt="K Gaurav" onerror="this.src='images/logo/logo.png';" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid #bfdbfe;">
                         <div class="ml-3 pl-2">
                             <h5 class="m-0 font-weight-bold text-dark" style="font-size: 16px;">K Gaurav</h5>
-                            <span style="color: #2563eb; font-size: 13px; font-weight: 600;">Director, OfferPlant</span>
+                            <span style="color: #ff671f; font-size: 13px; font-weight: 600;">Director, OfferPlant</span>
                         </div>
                     </div>
                 </div>
@@ -732,7 +732,7 @@ $schema_graphs = [
                         <img src="images/circle/saurabh.jpg" alt="S Nagbanshi" onerror="this.src='images/logo/logo.png';" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid #bfdbfe;">
                         <div class="ml-3 pl-2">
                             <h5 class="m-0 font-weight-bold text-dark" style="font-size: 16px;">S Nagbanshi</h5>
-                            <span style="color: #2563eb; font-size: 13px; font-weight: 600;">CEO, OfferPlant</span>
+                            <span style="color: #ff671f; font-size: 13px; font-weight: 600;">CEO, OfferPlant</span>
                         </div>
                     </div>
                 </div>
@@ -744,12 +744,12 @@ $schema_graphs = [
 <!-- ==========================================================================
      CALL TO ACTION BANNER
      ========================================================================== -->
-<section style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1d4ed8 100%); padding: 56px 0;">
+<section style="background: linear-gradient(135deg, #071329 0%, #0b1e3d 50%, #071329 100%); border-top: 4px solid #ff671f; padding: 56px 0;">
     <div class="container text-center">
         <h2 class="text-white mb-2 font-weight-bold" style="font-size: 28px;">Ready to Search India's Public Directory?</h2>
         <p class="text-light mb-4" style="color: #cbd5e1 !important; font-size: 15px; max-width: 600px; margin: 0 auto 24px;">Find verified Bank IFSC, PIN Codes, Company records, and GST tariffs in seconds.</p>
         <div class="d-inline-flex flex-wrap gap-2 justify-content-center" style="gap: 12px;">
-            <a href="<?php echo $base_url; ?>index" class="btn btn-light font-weight-bold px-4 py-2.5" style="border-radius: 12px; color: #1e3a8a;">
+            <a href="<?php echo $base_url; ?>index" class="btn btn-light font-weight-bold px-4 py-2.5" style="border-radius: 12px; color: #ff671f;">
                 <i class="fas fa-home mr-2"></i> Go to Homepage
             </a>
             <a href="<?php echo $base_url; ?>contact" class="btn btn-outline-light font-weight-bold px-4 py-2.5" style="border-radius: 12px;">

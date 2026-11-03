@@ -1,39 +1,84 @@
 /* ==========================================================================
-   Online Law - Modern Premium Design System (2026 Edition)
+   Online Law - Modern Premium Design System (Indian Flag Tricolor Edition)
    ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Brand Colors */
-    --primary-color: #2563eb;       /* Royal Blue */
-    --primary-hover: #1d4ed8;
-    --primary-light: #eff6ff;
-    --primary-rgb: 37, 99, 235;
-    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
-    --primary-glow: rgba(37, 99, 235, 0.28);
-    
+    /* ======================================================================
+       Indian National Flag (Tiranga) Color System
+       Saffron (Kesari) - Courage, Strength, Energy & Vitality
+       White (Shwet)    - Peace, Purity, Truth & Clarity
+       Green (Bharat)   - Growth, Prosperity & Auspiciousness
+       Navy Blue        - Ashoka Chakra / Dharma, Rule of Law & Justice
+       ====================================================================== */
+    --flag-saffron: #ff671f;          /* Official National Saffron / Kesari */
+    --flag-saffron-hover: #ea580c;    /* Deep Saffron Hover */
+    --flag-saffron-light: #fff7ed;    /* Saffron Cream Tint */
+    --flag-saffron-glow: rgba(255, 103, 31, 0.35);
+
+    --flag-white: #ffffff;            /* Pure White / Shwet */
+    --flag-cream: #fafaf9;            /* Warm Neutral Canvas */
+
+    --flag-green: #046a38;            /* Official Bharat Green */
+    --flag-green-hover: #03542c;      /* Deep Forest Green */
+    --flag-green-light: #f0fdf4;      /* Soft Emerald Tint */
+    --flag-green-glow: rgba(4, 106, 56, 0.32);
+
+    --flag-chakra-navy: #002b7f;      /* Ashoka Chakra Navy Blue */
+    --flag-chakra-hover: #001f5c;
+    --flag-chakra-light: #eff6ff;     /* Soft Blue Tint */
+    --flag-chakra-glow: rgba(0, 43, 127, 0.32);
+
+    /* Primary Brand Assignment (Kesari Saffron as Primary Interactive Color) */
+    --primary-color: #ff671f;
+    --primary-hover: #ea580c;
+    --primary-light: #fff7ed;
+    --primary-rgb: 255, 103, 31;
+    --primary-gradient: linear-gradient(135deg, #ff671f 0%, #f97316 50%, #fb923c 100%);
+    --primary-glow: rgba(255, 103, 31, 0.32);
+    --primary-theme-color: #ff671f;
+
+    /* Secondary Brand Assignment (Bharat Green for Positive Actions & Success) */
+    --secondary-color: #046a38;
+    --secondary-hover: #03542c;
+    --secondary-light: #f0fdf4;
+    --secondary-gradient: linear-gradient(135deg, #046a38 0%, #059669 50%, #10b981 100%);
+
+    /* Tertiary Brand Assignment (Ashoka Chakra Navy for Legal Authority) */
+    --chakra-color: #002b7f;
+    --chakra-hover: #001f5c;
+    --chakra-gradient: linear-gradient(135deg, #002b7f 0%, #1e3a8a 50%, #2563eb 100%);
+
+    /* Tiranga Tricolor Master Gradients */
+    --tiranga-gradient: linear-gradient(90deg, #ff671f 0%, #ffa500 33%, #ffffff 50%, #138808 67%, #046a38 100%);
+    --tiranga-ribbon: linear-gradient(90deg, #ff671f 0%, #ff8800 35%, #002b7f 48%, #002b7f 52%, #138808 65%, #046a38 100%);
+    --tiranga-gradient-card: linear-gradient(135deg, rgba(255, 103, 31, 0.08) 0%, rgba(255, 255, 255, 0.95) 50%, rgba(4, 106, 56, 0.08) 100%);
+
     /* Vibrant Accents */
-    --accent-cyan: #06b6d4;
-    --accent-emerald: #10b981;
-    --accent-amber: #f59e0b;
-    --accent-purple: #8b5cf6;
-    --accent-rose: #f43f5e;
-    --accent-indigo: #6366f1;
+    --accent-saffron: #ff671f;
+    --accent-green: #046a38;
+    --accent-navy: #002b7f;
+    --accent-gold: #f59e0b;
+    --accent-cyan: #0284c7;
+    --accent-emerald: #059669;
+    --accent-purple: #7c3aed;
+    --accent-rose: #e11d48;
+    --accent-indigo: #4338ca;
 
     /* Neutrals & Surfaces */
     --text-main: #0f172a;           /* Deep Slate 900 */
     --text-muted: #64748b;          /* Slate 500 */
     --text-light: #94a3b8;          /* Slate 400 */
-    --bg-body: #f8fafc;             /* Slate 50 */
+    --bg-body: #fafaf9;             /* Warm Pure Neutral Canvas */
     --bg-surface: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.88);
+    --bg-glass: rgba(255, 255, 255, 0.92);
     --border-soft: #e2e8f0;
     --border-glass: rgba(255, 255, 255, 0.6);
     
-    /* Dark Theme Elements */
-    --dark-bg: #0b1120;
-    --dark-surface: #0f172a;
-    --dark-surface-elevated: #1e293b;
+    /* Dark Theme Elements - Deep Ashoka Chakra Navy */
+    --dark-bg: #071329;             /* Deepest Midnight Navy */
+    --dark-surface: #0b1e3d;        /* Ashoka Navy Surface */
+    --dark-surface-elevated: #11284f;
     --dark-border: rgba(255, 255, 255, 0.08);
 
     /* Elevation & Shadows */
@@ -42,7 +87,10 @@
     --shadow-md: 0 6px 12px -2px rgba(15, 23, 42, 0.08), 0 3px 6px -3px rgba(15, 23, 42, 0.04);
     --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.1), 0 6px 12px -6px rgba(15, 23, 42, 0.06);
     --shadow-xl: 0 20px 30px -6px rgba(15, 23, 42, 0.12), 0 10px 15px -8px rgba(15, 23, 42, 0.08);
-    --shadow-glow-blue: 0 10px 25px -5px rgba(37, 99, 235, 0.35);
+    --shadow-glow-blue: 0 10px 25px -5px rgba(255, 103, 31, 0.35); /* Aliased for legacy references */
+    --shadow-glow-saffron: 0 10px 25px -5px rgba(255, 103, 31, 0.38);
+    --shadow-glow-green: 0 10px 25px -5px rgba(4, 106, 56, 0.35);
+    --shadow-glow-navy: 0 10px 25px -5px rgba(0, 43, 127, 0.35);
 
     /* Border Radii */
     --radius-xs: 6px;
@@ -103,8 +151,8 @@ h1, h2, h3, h4, h5, h6, .section-title, .banner-tittle {
 }
 
 ::selection {
-    background-color: var(--primary-light);
-    color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: #ffffff;
 }
 
 a {
@@ -112,13 +160,21 @@ a {
 }
 
 /* ==========================================================================
-   Header & Navigation
+   Header & Navigation (Tiranga Top Ribbon & Brand Accent)
    ========================================================================== */
 #page-header {
     position: sticky;
     top: 0;
     z-index: 1050;
     transition: var(--transition-smooth);
+}
+
+#page-header::before {
+    content: '';
+    display: block;
+    height: 3.5px;
+    width: 100%;
+    background: var(--tiranga-ribbon);
 }
 
 #header-top {
@@ -190,7 +246,7 @@ a {
     background: var(--primary-gradient);
     color: #ffffff !important;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 103, 31, 0.35);
     font-size: 17px;
 }
 
@@ -266,7 +322,7 @@ a {
 }
 
 .nav-badge-new {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: var(--secondary-gradient);
     color: #ffffff !important;
 }
 
@@ -298,24 +354,25 @@ a {
 }
 
 /* ==========================================================================
-   Hero Section & Interactive Elements
+   Hero Section & Interactive Elements (Tiranga Theme)
    ========================================================================== */
 .hero-modern-banner {
     position: relative;
-    background: linear-gradient(135deg, #070d1e 0%, #0f1d38 50%, #0b1528 100%);
+    background: linear-gradient(135deg, #071329 0%, #0c2044 50%, #071329 100%);
     padding: clamp(60px, 8vw, 110px) 0 clamp(70px, 10vw, 130px) 0;
     overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .hero-glow-sphere-1 {
     position: absolute;
     top: -15%;
-    left: 20%;
+    left: 15%;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
+    background: radial-gradient(circle, rgba(255, 103, 31, 0.22) 0%, rgba(255, 103, 31, 0) 70%);
     border-radius: 50%;
-    filter: blur(40px);
+    filter: blur(45px);
     pointer-events: none;
 }
 
@@ -323,11 +380,11 @@ a {
     position: absolute;
     bottom: -10%;
     right: 15%;
-    width: 450px;
-    height: 450px;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0) 70%);
+    width: 460px;
+    height: 460px;
+    background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
     border-radius: 50%;
-    filter: blur(40px);
+    filter: blur(45px);
     pointer-events: none;
 }
 
@@ -372,7 +429,7 @@ a {
 }
 
 .hero-gradient-text {
-    background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 50%, #93c5fd 100%);
+    background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 75%, #34d399 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
@@ -411,12 +468,12 @@ a {
 .hero-tool-btn.primary {
     background: var(--primary-gradient);
     color: #ffffff !important;
-    box-shadow: var(--shadow-glow-blue);
+    box-shadow: var(--shadow-glow-saffron);
 }
 
 .hero-tool-btn.primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 14px 28px -4px rgba(37, 99, 235, 0.45);
+    box-shadow: 0 14px 28px -4px rgba(255, 103, 31, 0.45);
 }
 
 .hero-tool-btn.secondary {
@@ -427,9 +484,10 @@ a {
 }
 
 .hero-tool-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(4, 106, 56, 0.25);
+    border-color: rgba(52, 211, 153, 0.5);
+    color: #ffffff !important;
     transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* ==========================================================================
@@ -458,7 +516,7 @@ a {
 .modern-tool-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-xl);
-    border-color: rgba(37, 99, 235, 0.3);
+    border-color: rgba(255, 103, 31, 0.35);
 }
 
 .tool-card-glow-bg {
@@ -570,7 +628,7 @@ a {
     background: var(--primary-gradient);
     color: #ffffff !important;
     transform: translateY(-2px);
-    box-shadow: var(--shadow-glow-blue);
+    box-shadow: var(--shadow-glow-saffron);
 }
 
 .rpo-pill-link:hover i {
@@ -578,10 +636,10 @@ a {
 }
 
 /* ==========================================================================
-   Metrics / Achievements Section
+   Metrics / Achievements Section (Chakra Navy & Tiranga Accents)
    ========================================================================== */
 .metrics-modern-section {
-    background: linear-gradient(135deg, #070d1e 0%, #0f1d38 100%) !important;
+    background: linear-gradient(135deg, #071329 0%, #0d2247 100%) !important;
     position: relative;
     padding: clamp(60px, 8vw, 90px) 0 !important;
     overflow: hidden;
@@ -599,7 +657,7 @@ a {
 
 .metric-glass-card:hover {
     background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 103, 31, 0.3);
     transform: translateY(-5px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
 }
@@ -640,7 +698,7 @@ a {
    ========================================================================== */
 .inner-page-hero,
 section.bg-img-3.overlay {
-    background: linear-gradient(135deg, #070d1e 0%, #0f1d38 100%) !important;
+    background: linear-gradient(135deg, #071329 0%, #0d2247 100%) !important;
     padding: 36px 0 !important;
     position: relative;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -674,7 +732,7 @@ section.bg-img-3.overlay .banner-text .list-inline {
 
 .inner-page-hero .breadcrumb-nav a,
 section.bg-img-3.overlay .banner-text .list-inline a {
-    color: #93c5fd !important;
+    color: #ffaa44 !important;
     text-decoration: none;
     font-weight: 500;
 }
@@ -725,7 +783,7 @@ textarea:focus {
     outline: none !important;
 }
 
-/* Modern Buttons */
+/* Modern Buttons (Tiranga Theme) */
 .btn-primary, 
 input[type="submit"].btn-primary,
 button.btn-primary {
@@ -736,7 +794,7 @@ button.btn-primary {
     font-weight: 600 !important;
     padding: 12px 26px !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+    box-shadow: 0 4px 14px rgba(255, 103, 31, 0.32) !important;
     transition: var(--transition-smooth) !important;
     letter-spacing: 0.3px;
     display: inline-flex;
@@ -749,8 +807,8 @@ button.btn-primary {
 input[type="submit"].btn-primary:hover,
 button.btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4) !important;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+    box-shadow: 0 8px 20px rgba(255, 103, 31, 0.45) !important;
+    background: linear-gradient(135deg, #ea580c, #ff671f) !important;
 }
 
 .btn-secondary {
@@ -787,7 +845,22 @@ button.btn-primary:hover {
     background: var(--primary-gradient) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: var(--shadow-glow-blue) !important;
+    box-shadow: var(--shadow-glow-saffron) !important;
+    transform: translateY(-2px);
+}
+
+.btn-success,
+button.btn-success {
+    background: var(--secondary-gradient) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(4, 106, 56, 0.3) !important;
+    color: #ffffff !important;
+}
+
+.btn-success:hover,
+button.btn-success:hover {
+    background: linear-gradient(135deg, #03542c, #046a38) !important;
+    box-shadow: 0 8px 20px rgba(4, 106, 56, 0.42) !important;
     transform: translateY(-2px);
 }
 
@@ -872,7 +945,7 @@ table.dataTable tbody td {
 .result-card:hover, .bank-card:hover, .company-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
-    border-color: rgba(37, 99, 235, 0.3);
+    border-color: rgba(255, 103, 31, 0.35);
 }
 
 /* Copy button utility */
@@ -898,7 +971,7 @@ table.dataTable tbody td {
 }
 
 /* ==========================================================================
-   Footer
+   Footer (Tiranga Top Ribbon & Midnight Chakra Navy)
    ========================================================================== */
 footer.bg-dark {
     background-color: var(--dark-bg) !important;
@@ -912,8 +985,8 @@ footer.bg-dark::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #2563eb, #38bdf8, #8b5cf6, #2563eb);
+    height: 4px;
+    background: var(--tiranga-ribbon);
 }
 
 footer p, footer li, footer a, .copyright span {
@@ -941,7 +1014,7 @@ footer a:hover {
 }
 
 .footer-widget ul.quick-links li a:hover {
-    color: #38bdf8 !important;
+    color: #ffa500 !important;
     transform: translateX(4px);
 }
 
@@ -950,7 +1023,7 @@ footer a:hover {
 }
 
 .footer-service-item:hover {
-    color: #38bdf8 !important;
+    color: #ffa500 !important;
     text-decoration: underline !important;
 }
 
@@ -966,7 +1039,7 @@ footer a:hover {
     background: var(--primary-gradient) !important;
     border-color: transparent !important;
     transform: translateY(-4px);
-    box-shadow: var(--shadow-glow-blue);
+    box-shadow: var(--shadow-glow-saffron);
 }
 
 .copyright {
@@ -1231,7 +1304,7 @@ footer a:hover {
     background: var(--primary-color);
     color: #ffffff;
     border-color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 103, 31, 0.35);
 }
 
 .cmd-section {
@@ -1289,7 +1362,7 @@ footer a:hover {
 .cmd-item.active-item .cmd-item-icon {
     background: #ffffff;
     color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 2px 8px rgba(255, 103, 31, 0.22);
 }
 .cmd-item-content {
     flex: 1;
@@ -1475,7 +1548,7 @@ footer a:hover {
 .back-to-top-btn:hover {
     background: var(--primary-color);
     color: #ffffff;
-    box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 10px 25px -4px rgba(255, 103, 31, 0.4);
     transform: translateY(-3px);
 }
 
@@ -1500,7 +1573,7 @@ footer a:hover {
 .copy-btn:hover {
     background: var(--primary-light);
     color: var(--primary-color);
-    border-color: rgba(37, 99, 235, 0.3);
+    border-color: rgba(255, 103, 31, 0.3);
 }
 .copy-btn.copied {
     background: #ecfdf5 !important;
@@ -1542,7 +1615,7 @@ footer a:hover {
 }
 .hero-recent-tag:hover {
     background: var(--primary-light);
-    border-color: rgba(37, 99, 235, 0.3);
+    border-color: rgba(255, 103, 31, 0.3);
     color: var(--primary-color);
 }
 

@@ -253,10 +253,10 @@ if (!empty($faq_items)) {
 
     <style>
         :root {
-            --pin-primary: #2563eb;
-            --pin-primary-hover: #1d4ed8;
-            --pin-accent: #38bdf8;
-            --pin-dark: #0f172a;
+            --pin-primary: #ff671f;
+            --pin-primary-hover: #ea580c;
+            --pin-accent: #046a38;
+            --pin-dark: #071329;
             --pin-surface: #f8fafc;
             --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             --font-code: 'JetBrains Mono', monospace;
@@ -270,8 +270,8 @@ if (!empty($faq_items)) {
 
         /* Hero Banner */
         .hero-pin-banner {
-            background-color: #0b1120 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%) !important;
+            background-color: #071329 !important;
+            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
             color: #ffffff !important;
             position: relative;
             overflow: hidden;
@@ -292,7 +292,7 @@ if (!empty($faq_items)) {
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0) 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
             top: -120px;
             left: -100px;
             pointer-events: none;
@@ -303,7 +303,7 @@ if (!empty($faq_items)) {
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
             bottom: -140px;
             right: -80px;
             pointer-events: none;
@@ -350,9 +350,9 @@ if (!empty($faq_items)) {
             transform: translateY(-1px);
         }
         .tool-switcher-pill.active {
-            background: #2563eb;
+            background: #ff671f;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 4px 12px rgba(255, 103, 31, 0.25);
         }
 
         /* Search input bar */
@@ -372,22 +372,26 @@ if (!empty($faq_items)) {
             transition: all 0.2s ease;
         }
         .search-input-field:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+            border-color: #ff671f;
+            box-shadow: 0 0 0 4px rgba(255, 103, 31, 0.15);
             outline: none;
         }
         .search-btn-primary {
             height: 56px;
             border-radius: 14px;
-            background: #2563eb;
+            background: #ff671f;
             border: none;
             color: #ffffff;
             font-weight: 700;
             font-size: 15px;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 4px 12px rgba(255, 103, 31, 0.25);
         }
         .search-btn-primary:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(255, 103, 31, 0.35);
+        }
             background: #1d4ed8;
             transform: translateY(-1px);
             box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
@@ -490,8 +494,8 @@ if (!empty($faq_items)) {
             text-decoration: none !important;
         }
         .pin-faq-header:hover {
-            background: #f8fafc;
-            color: #2563eb;
+            background: #fff7ed;
+            color: #ff671f;
         }
         .pin-faq-body {
             padding: 0 22px 18px 22px;
@@ -567,17 +571,17 @@ if (!empty($faq_items)) {
                         <span class="text-white font-weight-bold">Locality Search</span>
                         <?php if (!empty($locality_search)): ?>
                             <span class="mx-1">/</span>
-                            <span class="text-primary font-weight-bold" style="color: #60a5fa !important;"><?php echo htmlspecialchars($locality_search); ?></span>
+                            <span class="text-primary font-weight-bold" style="color: #fdba74 !important;"><?php echo htmlspecialchars($locality_search); ?></span>
                         <?php endif; ?>
                     </nav>
                 </div>
 
-                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(30, 27, 75, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #93c5fd; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
-                    <i class="fas fa-map-marked-alt mr-1.5"></i> AREA, VILLAGE &amp; CITY POSTAL DIRECTORY 2026
+                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(255, 103, 31, 0.15); border: 1px solid rgba(255, 103, 31, 0.35); color: #fed7aa; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <i class="fas fa-map-marked-alt mr-1.5" style="color: #ff8800;"></i> AREA, VILLAGE &amp; CITY POSTAL DIRECTORY 2026
                 </div>
 
                 <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
-                    Find PIN Code by <span style="background: linear-gradient(135deg, #93c5fd 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Locality, Village or City</span>
+                    Find PIN Code by <span style="background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Locality, Village or City</span>
                 </h1>
                 <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     Search any Indian town, sector, colony, or village name to uncover official 6-digit PIN codes, delivery status, and post office addresses.
@@ -779,7 +783,7 @@ if (!empty($faq_items)) {
                 <?php if (!empty($faq_items)): ?>
                     <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff;">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="mr-3" style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <div class="mr-3" style="width: 42px; height: 42px; border-radius: 12px; background: #fff7ed; color: #ff671f; display: flex; align-items: center; justify-content: center; font-size: 18px;">
                                 <i class="fas fa-question-circle"></i>
                             </div>
                             <div>

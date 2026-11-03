@@ -235,7 +235,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="service-guide-card">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="service-guide-icon mr-3" style="background: #eff6ff; color: #2563eb;">
+                        <div class="service-guide-icon mr-3" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-sync-alt"></i>
                         </div>
                         <div>

@@ -423,7 +423,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="acc-guide-card">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="acc-guide-icon mr-3" style="background: #eff6ff; color: #2563eb;">
+                        <div class="acc-guide-icon mr-3" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-piggy-bank"></i>
                         </div>
                         <div>

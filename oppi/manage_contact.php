@@ -392,6 +392,7 @@ require_once('includes/header.php');
         <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">Inquiries &amp; Complaints Desk</h1>
         <p class="text-muted mb-0" style="font-size: 0.9rem;">Review contact messages, user feedback, and corporate data removal / delisting requests.</p>
     </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2">
     <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2" style="gap: 8px;">
         <button type="button" class="btn btn-outline-danger px-3 shadow-sm font-weight-bold" data-toggle="modal" data-target="#purgeSpamModal" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-broom mr-1"></i> Clean Spam Inquiries

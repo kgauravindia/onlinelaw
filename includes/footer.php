@@ -15,7 +15,7 @@
 						<div class="brand-icon-badge mr-2" style="width: 36px; height: 36px; font-size: 16px;">
 							<i class="fas fa-balance-scale"></i>
 						</div>
-						<span><span style="color: #60a5fa;">Online</span>Law</span>
+						<span><span style="color: var(--primary-color, #ff671f);">Online</span>Law</span>
 					</a>
 				  </div>
 				  <p class="mb-4" style="max-width: 400px; line-height: 1.8; color: #94a3b8; font-size: 14px;">
@@ -23,7 +23,7 @@
 				  </p>
 				  <p style="font-size: 14.5px;">
 					<a href="mailto:<?php echo $inst_email; ?>" style="color: #cbd5e1; font-weight: 500;" class="d-inline-flex align-items-center text-decoration-none">
-						<i class="fas fa-envelope mr-2" style="color: #38bdf8;"></i> <?php echo $inst_email; ?>
+						<i class="fas fa-envelope mr-2" style="color: var(--primary-color, #ff671f);"></i> <?php echo $inst_email; ?>
 					</a>
 				  </p>
 				</div>
@@ -425,12 +425,12 @@
                     a.className = 'cmd-item';
                     a.href = baseUrl + item.url;
                     a.innerHTML = 
-                        '<div class="cmd-item-icon" style="background: #eff6ff; color: #2563eb;"><i class="' + item.icon + '"></i></div>' +
+                        '<div class="cmd-item-icon" style="background: #fff7ed; color: #ff671f;"><i class="' + item.icon + '"></i></div>' +
                         '<div class="cmd-item-content">' +
                             '<div class="cmd-item-title">' + item.title + '</div>' +
                             '<div class="cmd-item-desc">' + item.desc + '</div>' +
                         '</div>' +
-                        '<span class="cmd-item-badge" style="background: #eff6ff; color: #2563eb;">' + item.badge + '</span>' +
+                        '<span class="cmd-item-badge" style="background: #fff7ed; color: #ff671f;">' + item.badge + '</span>' +
                         '<i class="fas fa-chevron-right cmd-item-arrow"></i>';
                     smartMatchList.appendChild(a);
                 });

@@ -67,9 +67,9 @@ $canonical_url = $base_url . "404";
         :root {
             --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             --font-code: 'JetBrains Mono', monospace;
-            --err-primary: #2563eb;
-            --err-indigo: #4f46e5;
-            --err-slate-900: #0b1120;
+            --err-primary: #ff671f;
+            --err-indigo: #002b7f;
+            --err-slate-900: #071329;
         }
 
         body {
@@ -80,8 +80,8 @@ $canonical_url = $base_url . "404";
 
         /* 404 Hero Section */
         .err-hero-banner {
-            background-color: #0b1120 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%) !important;
+            background-color: #071329 !important;
+            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
             padding: clamp(50px, 7vw, 85px) 0 clamp(40px, 6vw, 70px);
             position: relative;
             overflow: hidden;
@@ -92,7 +92,7 @@ $canonical_url = $base_url . "404";
             width: 550px;
             height: 550px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%);
             top: -120px;
             left: -100px;
             pointer-events: none;
@@ -103,7 +103,7 @@ $canonical_url = $base_url . "404";
             width: 480px;
             height: 480px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, transparent 70%);
             bottom: -140px;
             right: -80px;
             pointer-events: none;
@@ -194,15 +194,15 @@ $canonical_url = $base_url . "404";
             outline: none !important;
         }
         .err-tab-pill:hover {
-            background: #eff6ff;
+            background: #fff7ed;
             color: var(--err-primary);
-            border-color: #bfdbfe;
+            border-color: #fdba74;
         }
         .err-tab-pill.active {
-            background: #2563eb;
+            background: #ff671f;
             color: #ffffff;
-            border-color: #2563eb;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            border-color: #ff671f;
+            box-shadow: 0 4px 12px rgba(255, 103, 31, 0.25);
         }
 
         /* Clean Search Input - NO overlapping icons */
@@ -226,8 +226,8 @@ $canonical_url = $base_url . "404";
         }
         .err-search-input-field:focus {
             background-color: #ffffff;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            border-color: #ff671f;
+            box-shadow: 0 0 0 4px rgba(255, 103, 31, 0.12);
             outline: none;
         }
         .err-search-input-field::placeholder {
@@ -255,15 +255,15 @@ $canonical_url = $base_url . "404";
             border-radius: 12px;
             font-size: 15px;
             font-weight: 700;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #ff671f 0%, #ea580c 100%);
             border: none;
             color: #ffffff;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.3);
             transition: all 0.2s ease;
         }
         .err-search-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 6px 18px rgba(255, 103, 31, 0.4);
             color: #ffffff;
         }
 
@@ -283,9 +283,9 @@ $canonical_url = $base_url . "404";
             gap: 4px;
         }
         .err-chip:hover {
-            background: #eff6ff;
-            color: #2563eb;
-            border-color: #bfdbfe;
+            background: #fff7ed;
+            color: #ff671f;
+            border-color: #fdba74;
             transform: translateY(-1px);
         }
 
@@ -517,14 +517,14 @@ $canonical_url = $base_url . "404";
             <div class="col-lg-4 col-md-6 mb-4">
                 <a href="<?php echo $base_url; ?>pincode-finder" class="err-dir-card">
                     <div>
-                        <span class="err-dir-badge" style="background: #eff6ff; color: #2563eb;">155K+ Locations</span>
-                        <div class="err-dir-icon" style="background: #eff6ff; color: #2563eb;">
+                        <span class="err-dir-badge" style="background: #fff7ed; color: #ff671f;">155K+ Locations</span>
+                        <div class="err-dir-icon" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-map-pin"></i>
                         </div>
                         <h5 class="font-weight-bold text-dark mb-1" style="font-size: 17px;">PIN Code Directory</h5>
                         <p class="text-muted mb-3" style="font-size: 13.5px; line-height: 1.55;">Lookup India Post circles, districts, talukas, and delivery post offices by digit or locality name.</p>
                     </div>
-                    <div class="font-weight-bold" style="color: #2563eb; font-size: 13.5px;">
+                    <div class="font-weight-bold" style="color: #ff671f; font-size: 13.5px;">
                         Open PIN Directory <i class="fas fa-arrow-right ml-1"></i>
                     </div>
                 </a>

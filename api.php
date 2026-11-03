@@ -501,7 +501,7 @@ if (!$is_admin) {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #ff671f 0%, #ea580c 100%);
             color: #ffffff;
             text-decoration: none;
             padding: 12px 24px;
@@ -509,10 +509,10 @@ if (!$is_admin) {
             font-weight: 600;
             font-size: 14px;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.3);
         }
         .btn-primary-home:hover {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
             transform: translateY(-1px);
             color: #fff;
         }
@@ -692,9 +692,9 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
             transform: translateX(3px);
         }
         .doc-sidebar a.active {
-            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #ff671f 0%, #ea580c 100%);
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 4px 12px rgba(255, 103, 31, 0.25);
         }
             color: #2563eb;
         }

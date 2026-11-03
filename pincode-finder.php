@@ -292,8 +292,8 @@
 <style>
     /* Ultra-Modern Design System */
     .hero-finder-banner {
-        background-color: #0b1120 !important;
-        background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%) !important;
+        background-color: #071329 !important;
+        background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
         color: #ffffff !important;
         position: relative;
         overflow: hidden;
@@ -314,7 +314,7 @@
         width: 450px;
         height: 450px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0) 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
         top: -120px;
         left: -100px;
         pointer-events: none;
@@ -324,7 +324,7 @@
         width: 450px;
         height: 450px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%);
+        background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
         bottom: -140px;
         right: -80px;
         pointer-events: none;
@@ -353,15 +353,15 @@
     }
     .form-select-custom:focus {
         background-color: #ffffff;
-        border-color: #2563eb;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+        border-color: #ff671f;
+        box-shadow: 0 0 0 4px rgba(255, 103, 31, 0.14);
     }
 
     .step-badge-num {
         width: 24px;
         height: 24px;
-        background: #eff6ff;
-        color: #2563eb;
+        background: #fff7ed;
+        color: #ff671f;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
@@ -389,9 +389,9 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        background: #eff6ff;
-        color: #1d4ed8;
-        border: 1.5px solid #bfdbfe;
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1.5px solid #ffedd5;
         border-radius: 8px;
         padding: 5px 12px;
         font-size: 13.5px;
@@ -400,11 +400,11 @@
         transition: all 0.2s ease;
     }
     .pincode-pill-badge:hover {
-        background: #2563eb;
+        background: #ff671f;
         color: #ffffff !important;
-        border-color: #2563eb;
+        border-color: #ff671f;
         transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 4px 10px rgba(255, 103, 31, 0.25);
     }
 
     .pincode-card-mobile {
@@ -446,8 +446,8 @@
         cursor: pointer;
     }
     .faq-card-seo .faq-header-btn:hover {
-        background: #f8fafc;
-        color: #2563eb;
+        background: #fff7ed;
+        color: #ff671f;
     }
     .faq-card-seo .faq-body-text {
         padding: 0 20px 16px 20px;
@@ -461,7 +461,7 @@
         position: fixed;
         bottom: 24px;
         right: 24px;
-        background: #0b1329;
+        background: #071329;
         color: #ffffff;
         padding: 12px 20px;
         border-radius: 12px;
@@ -495,15 +495,15 @@
         transition: all 0.2s ease;
     }
     .finder-pagination .page-item.active .page-link {
-        background-color: #2563eb;
-        border-color: #2563eb;
+        background-color: #ff671f;
+        border-color: #ff671f;
         color: #ffffff;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 4px 10px rgba(255, 103, 31, 0.25);
     }
     .finder-pagination .page-item .page-link:hover:not(.active) {
-        background-color: #f1f5f9;
-        color: #1d4ed8;
-        border-color: #cbd5e1;
+        background-color: #fff7ed;
+        color: #ea580c;
+        border-color: #fdba74;
     }
     .finder-pagination .page-item.disabled .page-link {
         color: #94a3b8;
@@ -566,12 +566,12 @@
                     </nav>
                 </div>
 
-                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
-                    <i class="fas fa-map-marked-alt mr-1.5"></i> CASCADING PIN CODE DIRECTORY 2026
+                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(255, 103, 31, 0.15); border: 1px solid rgba(255, 103, 31, 0.35); color: #fed7aa; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <i class="fas fa-map-marked-alt mr-1.5" style="color: #ff8800;"></i> CASCADING PIN CODE DIRECTORY 2026
                 </div>
 
                 <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
-                    Find Your <span style="background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PIN Code</span>
+                    Find Your <span style="background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PIN Code</span>
                 </h1>
                 <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     Select your <strong>State</strong>, <strong>District</strong>, and <strong>Region</strong> to instantly uncover official 6-digit postal index numbers and post office details.
@@ -942,7 +942,7 @@
                 <div class="col-lg-4 col-md-6 col-12 mb-3">
                     <div class="p-4 bg-white rounded-xl border h-100 shadow-sm" style="border-radius: 18px;">
                         <div class="d-flex align-items-center mb-3">
-                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle font-weight-bold text-white mr-2.5" style="width: 34px; height: 34px; background: #2563eb; font-size: 14px;">1</span>
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle font-weight-bold text-white mr-2.5" style="width: 34px; height: 34px; background: #ff671f; font-size: 14px;">1</span>
                             <h5 class="font-weight-bold text-dark mb-0" style="font-size: 17px;">Select Your State</h5>
                         </div>
                         <p class="text-muted small mb-0" style="line-height: 1.6;">
@@ -953,7 +953,7 @@
                 <div class="col-lg-4 col-md-6 col-12 mb-3">
                     <div class="p-4 bg-white rounded-xl border h-100 shadow-sm" style="border-radius: 18px;">
                         <div class="d-flex align-items-center mb-3">
-                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle font-weight-bold text-white mr-2.5" style="width: 34px; height: 34px; background: #7c3aed; font-size: 14px;">2</span>
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle font-weight-bold text-white mr-2.5" style="width: 34px; height: 34px; background: #002b7f; font-size: 14px;">2</span>
                             <h5 class="font-weight-bold text-dark mb-0" style="font-size: 17px;">Select Your District</h5>
                         </div>
                         <p class="text-muted small mb-0" style="line-height: 1.6;">
@@ -964,7 +964,7 @@
                 <div class="col-lg-4 col-md-12 col-12 mb-3">
                     <div class="p-4 bg-white rounded-xl border h-100 shadow-sm" style="border-radius: 18px;">
                         <div class="d-flex align-items-center mb-3">
-                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle font-weight-bold text-white mr-2.5" style="width: 34px; height: 34px; background: #059669; font-size: 14px;">3</span>
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle font-weight-bold text-white mr-2.5" style="width: 34px; height: 34px; background: #046a38; font-size: 14px;">3</span>
                             <h5 class="font-weight-bold text-dark mb-0" style="font-size: 17px;">Select Region &amp; Get PIN</h5>
                         </div>
                         <p class="text-muted small mb-0" style="line-height: 1.6;">
@@ -995,7 +995,7 @@
                     foreach ($popular_states as $pst): 
                     ?>
                         <div class="col-lg-3 col-md-4 col-6 mb-2.5">
-                            <a href="<?php echo $base_url; ?>pincode-finder?state=<?php echo urlencode($pst); ?>" class="p-2.5 rounded border d-flex align-items-center justify-content-between text-decoration-none text-dark bg-light" style="border-radius: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='#eff6ff'; this.style.color='#2563eb'; this.style.borderColor='#93c5fd';" onmouseout="this.style.background='#f8fafc'; this.style.color='#1e293b'; this.style.borderColor='#e2e8f0';">
+                            <a href="<?php echo $base_url; ?>pincode-finder?state=<?php echo urlencode($pst); ?>" class="p-2.5 rounded border d-flex align-items-center justify-content-between text-decoration-none text-dark bg-light" style="border-radius: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='#fff7ed'; this.style.color='#ff671f'; this.style.borderColor='#fdba74';" onmouseout="this.style.background='#f8fafc'; this.style.color='#1e293b'; this.style.borderColor='#e2e8f0';">
                                 <span class="font-weight-bold small"><?php echo htmlspecialchars($pst); ?></span>
                                 <i class="fas fa-chevron-right text-muted" style="font-size: 11px;"></i>
                             </a>

@@ -46,10 +46,10 @@ $website_schema = [
     </script>
 
     <style>
-        /* Hero Banner Custom Ambient Overlays */
+        /* Hero Banner Custom Ambient Overlays (Indian Flag Tricolor Theme) */
         .hero-modern-banner {
             position: relative;
-            background: radial-gradient(135% 100% at 50% 0%, #030712 0%, #0f172a 45%, #1e1b4b 100%);
+            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 45%, #071329 100%);
             padding: clamp(65px, 8vw, 115px) 0 clamp(80px, 9vw, 130px) 0;
             overflow: hidden;
         }
@@ -59,7 +59,7 @@ $website_schema = [
             left: 10%;
             width: 480px;
             height: 480px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, rgba(56, 189, 248, 0) 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.22) 0%, rgba(255, 103, 31, 0) 70%);
             border-radius: 50%;
             filter: blur(50px);
             pointer-events: none;
@@ -71,7 +71,7 @@ $website_schema = [
             right: 10%;
             width: 460px;
             height: 460px;
-            background: radial-gradient(circle, rgba(129, 140, 248, 0.18) 0%, rgba(129, 140, 248, 0) 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
             border-radius: 50%;
             filter: blur(50px);
             pointer-events: none;
@@ -97,7 +97,7 @@ $website_schema = [
             margin-bottom: 16px;
         }
         .hero-radiant-gradient {
-            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+            background: linear-gradient(135deg, #ffa500 0%, #ff8800 45%, #ffffff 75%, #34d399 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
@@ -116,7 +116,7 @@ $website_schema = [
             transition: var(--transition-smooth);
         }
         .hero-search-card:focus-within {
-            box-shadow: 0 30px 70px -12px rgba(37, 99, 235, 0.35), 0 0 0 2px rgba(59, 130, 246, 0.5);
+            box-shadow: 0 30px 70px -12px rgba(255, 103, 31, 0.28), 0 0 0 2px rgba(255, 103, 31, 0.4);
         }
 
         /* Search Tabs Navigation */
@@ -143,9 +143,9 @@ $website_schema = [
             transform: translateY(-1px);
         }
         .hero-tab-pill.active {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: var(--primary-gradient);
             color: #ffffff !important;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.35);
             border-color: transparent;
         }
 
@@ -163,7 +163,7 @@ $website_schema = [
         .hero-search-input-group:focus-within {
             background: #ffffff;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 4px rgba(255, 103, 31, 0.16);
         }
         .hero-search-input-group input {
             border: none !important;
@@ -515,7 +515,7 @@ $website_schema = [
 								</div>
 							</div>
 							<div class="col-md-3 col-12">
-								<button type="submit" class="btn btn-primary btn-block font-weight-bold" style="height: 50px; border-radius: var(--radius-md); font-size: 15px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">
+								<button type="submit" class="btn btn-primary btn-block font-weight-bold" style="height: 50px; border-radius: var(--radius-md); font-size: 15px; background: linear-gradient(135deg, #ff671f, #ea580c); border: none; box-shadow: 0 4px 15px rgba(255, 103, 31, 0.4);">
 									<i class="fas fa-search mr-1"></i> Instant Lookup
 								</button>
 							</div>
@@ -563,7 +563,7 @@ $website_schema = [
 			</div>
 			<div class="col-lg-3 col-sm-6 col-12 mb-3 mb-lg-0">
 				<div class="trust-item">
-					<div class="trust-icon-box" style="background: #eff6ff; color: #2563eb;">
+					<div class="trust-icon-box" style="background: #fff7ed; color: #ff671f;">
 						<i class="fas fa-shield-alt"></i>
 					</div>
 					<div>
@@ -653,17 +653,17 @@ $website_schema = [
 			<!-- Card 3: Company Incorporation -->
 			<div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
 				<div class="modern-tool-card w-100">
-					<div class="tool-card-glow-bg" style="background: #2563eb;"></div>
-					<span class="tool-card-badge" style="background: #eff6ff; color: #2563eb;">3.1M+ Records</span>
+					<div class="tool-card-glow-bg" style="background: #ff671f;"></div>
+					<span class="tool-card-badge" style="background: #fff7ed; color: #ff671f;">3.1M+ Records</span>
 					<div>
-						<div class="tool-icon-squircle" style="background: #eff6ff; color: #2563eb;">
+						<div class="tool-icon-squircle" style="background: #fff7ed; color: #ff671f;">
 							<i class="fas fa-building"></i>
 						</div>
 						<h3 class="tool-card-title">Company Incorporations</h3>
 						<p class="tool-card-desc">Search newly registered Indian Companies, LLPs, and Foreign Entities from official MCA daily incorporation reports.</p>
 					</div>
 					<div class="pt-3 border-top" style="border-color: rgba(226, 232, 240, 0.8) !important;">
-						<a href="<?php echo $base_url; ?>company-incorporation" class="tool-card-link" style="color: #2563eb;">
+						<a href="<?php echo $base_url; ?>company-incorporation" class="tool-card-link" style="color: #ff671f;">
 							Search Companies <i class="fas fa-arrow-right ml-1"></i>
 						</a>
 					</div>
@@ -800,7 +800,7 @@ $website_schema = [
 	<div class="container">
 		<div class="row text-center mb-5 justify-content-center">
 			<div class="col-lg-8 col-12">
-				<div class="badge badge-primary px-3 py-1 mb-2 rounded-pill font-weight-bold" style="background: #eff6ff; color: #2563eb; font-size: 12px; letter-spacing: 1px;">FAST &amp; TRUSTED WORKFLOW</div>
+				<div class="badge badge-primary px-3 py-1 mb-2 rounded-pill font-weight-bold" style="background: #fff7ed; color: #ff671f; font-size: 12px; letter-spacing: 1px;">FAST &amp; TRUSTED WORKFLOW</div>
 				<h2 class="section-title mb-2" style="font-size: clamp(26px, 3.5vw, 34px);">How OnlineLaw Empowers Citizens</h2>
 				<p style="color: var(--text-muted); font-size: 15px;">Designed from the ground up for speed, reliability, and 100% free access to verified government records.</p>
 			</div>
@@ -815,14 +815,14 @@ $website_schema = [
 			</div>
 			<div class="col-lg-4 col-md-6 col-12 mb-4">
 				<div class="workflow-step-card">
-					<div class="step-number-pill" style="background: #ecfdf5; color: #059669;">02</div>
+					<div class="step-number-pill" style="background: #ecfdf5; color: #046a38;">02</div>
 					<h4 class="font-weight-bold text-dark mb-2" style="font-size: 18px; font-family: var(--font-heading);">Instant Verified Query</h4>
 					<p class="text-muted small mb-0" style="line-height: 1.7;">High-speed database engine queries official RBI, India Post, MCA, and CBIC directories with sub-second response times.</p>
 				</div>
 			</div>
 			<div class="col-lg-4 col-md-6 col-12 mb-4">
 				<div class="workflow-step-card">
-					<div class="step-number-pill" style="background: #f5f3ff; color: #7c3aed;">03</div>
+					<div class="step-number-pill" style="background: #eef2ff; color: #002b7f;">03</div>
 					<h4 class="font-weight-bold text-dark mb-2" style="font-size: 18px; font-family: var(--font-heading);">Verify, Copy &amp; Comply</h4>
 					<p class="text-muted small mb-0" style="line-height: 1.7;">Get complete addresses, branch codes, tax rates, and 1-click clipboard copy utilities for your official documentation.</p>
 				</div>
@@ -870,7 +870,7 @@ $website_schema = [
 	<div class="container">
 		<div class="row text-center mb-5 justify-content-center">
 			<div class="col-lg-8 col-12">
-				<div class="badge badge-primary px-3 py-1 mb-2 rounded-pill font-weight-bold" style="background: #eff6ff; color: #2563eb; font-size: 12px; letter-spacing: 1px;">CITIZEN KNOWLEDGE HUB</div>
+				<div class="badge badge-primary px-3 py-1 mb-2 rounded-pill font-weight-bold" style="background: #fff7ed; color: #ff671f; font-size: 12px; letter-spacing: 1px;">CITIZEN KNOWLEDGE HUB</div>
 				<h2 class="section-title mb-2" style="font-size: clamp(26px, 3.5vw, 34px);">Frequently Asked Questions</h2>
 				<p style="color: var(--text-muted); font-size: 15px;">Understand how our directories, lookup tools, and data compliance standards work.</p>
 			</div>

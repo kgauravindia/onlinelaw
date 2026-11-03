@@ -660,7 +660,7 @@ if (!empty($ifsccode)) {
                     <div class="col-lg-6 mb-3 mb-lg-0">
                         <div class="bank-spec-tile">
                             <div class="d-flex align-items-start">
-                                <div class="mr-3" style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                                <div class="mr-3" style="width: 40px; height: 40px; border-radius: 10px; background: #fff7ed; color: #ff671f; display: flex; align-items: center; justify-content: center; font-size: 16px;">
                                     <i class="fas fa-map-marker-alt"></i>
                                 </div>
                                 <div>
@@ -843,7 +843,7 @@ if (!empty($ifsccode)) {
                 <?php if ($near_dist_res['count'] > 0 || $near_state_res['count'] > 0): ?>
                     <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff;">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="mr-3" style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <div class="mr-3" style="width: 42px; height: 42px; border-radius: 12px; background: #fff7ed; color: #ff671f; display: flex; align-items: center; justify-content: center; font-size: 18px;">
                                 <i class="fas fa-code-branch"></i>
                             </div>
                             <div>

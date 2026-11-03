@@ -71,8 +71,8 @@ $passport_schema = [
 
         /* Hero Banner */
         .psk-hero-section {
-            background-color: #0b1120 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%) !important;
+            background-color: #071329 !important;
+            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
             padding: 50px 0 60px 0;
             position: relative;
             overflow: hidden;
@@ -83,7 +83,7 @@ $passport_schema = [
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.22) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%);
             top: -100px;
             left: -60px;
             pointer-events: none;
@@ -94,9 +94,9 @@ $passport_schema = [
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(14, 165, 233, 0.18);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            color: #7dd3fc;
+            background: rgba(255, 103, 31, 0.15);
+            border: 1px solid rgba(255, 103, 31, 0.35);
+            color: #fed7aa;
             padding: 5px 16px;
             border-radius: 50px;
             font-size: 12px;
@@ -126,7 +126,7 @@ $passport_schema = [
             transition: color 0.15s ease;
         }
         .copy-btn-mini:hover {
-            color: #2563eb;
+            color: #ff671f;
         }
 
         .psk-card-mobile {
@@ -139,7 +139,7 @@ $passport_schema = [
             transition: all 0.2s ease;
         }
         .psk-card-mobile:hover {
-            border-color: #93c5fd;
+            border-color: #fdba74;
             transform: translateY(-2px);
         }
 
@@ -167,7 +167,7 @@ $passport_schema = [
                 <div class="psk-badge-pill mb-3">
                     <i class="fas fa-passport mr-1.5"></i> PASSPORT SEVA &bull; PSK &amp; RPO DIRECTORY
                 </div>
-                <h1 class="font-weight-bold mb-2" style="font-family: var(--font-heading); font-size: clamp(26px, 3.8vw, 42px); line-height: 1.22; letter-spacing: -0.5px; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(56, 189, 248, 0.4)); display: inline-block;">
+                <h1 class="font-weight-bold mb-2" style="font-family: var(--font-heading); font-size: clamp(26px, 3.8vw, 42px); line-height: 1.22; letter-spacing: -0.5px; background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(255, 103, 31, 0.4)); display: inline-block;">
                     Passport Office Finder (PSK / POPSK / RPO)
                 </h1>
                 <p class="text-white-50 mb-3" style="font-size: 15px; max-width: 700px; margin: 0 auto;">
@@ -195,7 +195,7 @@ $passport_schema = [
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-12">
-                        <button type="submit" class="btn btn-primary w-100 font-weight-bold" style="height: 52px; font-size: 15px; border-radius: 12px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
+                        <button type="submit" class="btn btn-primary w-100 font-weight-bold" style="height: 52px; font-size: 15px; border-radius: 12px; background: linear-gradient(135deg, #ff671f, #ea580c); border: none;">
                             <i class="fas fa-search mr-1.5"></i> Find Office
                         </button>
                     </div>

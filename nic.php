@@ -162,11 +162,11 @@ $nic_schema = [
        NIC CODE FINDER - CUSTOM MODERN STYLES
        ========================================================= */
     :root {
-        --nic-hero-bg: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%);
+        --nic-hero-bg: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%);
         --nic-section-amber: #d97706;
         --nic-section-amber-bg: #fef3c7;
-        --nic-division-blue: #2563eb;
-        --nic-division-blue-bg: #eff6ff;
+        --nic-division-blue: #ff671f;
+        --nic-division-blue-bg: #fff7ed;
         --nic-group-indigo: #4f46e5;
         --nic-group-indigo-bg: #e0e7ff;
         --nic-class-purple: #7c3aed;
@@ -202,7 +202,7 @@ $nic_schema = [
         width: 550px;
         height: 550px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(99, 102, 241, 0) 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
         top: -140px;
         left: -120px;
         pointer-events: none;
@@ -213,7 +213,7 @@ $nic_schema = [
         width: 500px;
         height: 500px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(14, 165, 233, 0.22) 0%, rgba(14, 165, 233, 0) 70%);
+        background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
         bottom: -160px;
         right: -100px;
         pointer-events: none;
@@ -1189,7 +1189,7 @@ $nic_schema = [
             <div class="row mb-5">
                 <div class="col-lg-2 col-md-4 col-6 mb-3">
                     <div class="nic-stat-card text-center">
-                        <div class="nic-stat-icon-wrap mx-auto" style="background: #eff6ff; color: #2563eb;">
+                        <div class="nic-stat-icon-wrap mx-auto" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-hashtag"></i>
                         </div>
                         <span class="text-muted small text-uppercase font-weight-bold">Total Codes</span>
@@ -1379,7 +1379,7 @@ $nic_schema = [
                             <div class="text-muted small font-weight-bold mb-2 text-uppercase letter-spacing-1">Sample 21-Digit CIN Anatomy</div>
                             <div class="d-flex flex-wrap align-items-center gap-1 mb-3">
                                 <span class="cin-part" style="background: #334155; color: #94a3b8;" title="Listing Status (U = Unlisted)">U</span>
-                                <span class="cin-part" style="background: #2563eb; color: #ffffff; box-shadow: 0 0 12px rgba(37,99,235,0.6);" title="5-Digit NIC Code (72200 = Software)">72200</span>
+                                <span class="cin-part" style="background: #ff671f; color: #ffffff; box-shadow: 0 0 12px rgba(255,103,31,0.6);" title="5-Digit NIC Code (72200 = Software)">72200</span>
                                 <span class="cin-part" style="background: #334155; color: #94a3b8;" title="State Code (DL = Delhi)">DL</span>
                                 <span class="cin-part" style="background: #334155; color: #94a3b8;" title="Year of Incorporation">2023</span>
                                 <span class="cin-part" style="background: #334155; color: #94a3b8;" title="Company Class (PTC = Private Limited)">PTC</span>

@@ -324,7 +324,7 @@
             <div class="col-lg-4 mb-4">
                 <div class="card-guide-box">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="card-guide-icon mr-3" style="background: #eff6ff; color: #2563eb;">
+                        <div class="card-guide-icon mr-3" style="background: #fff7ed; color: #ff671f;">
                             <i class="fas fa-network-wired"></i>
                         </div>
                         <h4 class="font-weight-bold text-dark mb-0" style="font-size: 18px;">Payment Networks</h4>
