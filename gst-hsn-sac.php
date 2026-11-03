@@ -154,19 +154,19 @@ if (!empty($faq_items)) {
 
         /* Hero Banner */
         .hero-gst-banner {
-            background-color: #0b1120 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #0c4a6e 55%, #0f172a 100%) !important;
-            color: #ffffff !important;
+            background-color: #ffffff !important;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
+            color: #0f172a !important;
             position: relative;
             overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #e2e8f0;
             padding: 56px 0 64px 0;
         }
         .hero-gst-banner::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
             background-size: 24px 24px;
             opacity: 0.7;
             pointer-events: none;
@@ -176,7 +176,7 @@ if (!empty($faq_items)) {
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, transparent 70%);
             top: -120px;
             left: -100px;
             pointer-events: none;
@@ -187,7 +187,7 @@ if (!empty($faq_items)) {
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.07) 0%, transparent 70%);
             bottom: -140px;
             right: -80px;
             pointer-events: none;
@@ -403,27 +403,27 @@ if (!empty($faq_items)) {
 
                 <!-- Breadcrumbs -->
                 <div class="d-flex justify-content-center">
-                    <nav class="d-flex align-items-center flex-wrap gap-2 mb-3" style="font-size: 13.5px; color: #94a3b8;" aria-label="breadcrumb">
-                        <a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a>
+                    <nav class="d-flex align-items-center flex-wrap gap-2 mb-3" style="font-size: 13.5px; color: #64748b;" aria-label="breadcrumb">
+                        <a href="<?php echo $base_url; ?>index" style="color: #475569; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a>
                         <span class="mx-1">/</span>
-                        <a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: #cbd5e1; text-decoration: none;">GST Tools</a>
+                        <a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: #475569; text-decoration: none;">GST Tools</a>
                         <span class="mx-1">/</span>
-                        <span class="text-white font-weight-bold">HSN / SAC Code Search</span>
+                        <span class="text-dark font-weight-bold">HSN / SAC Code Search</span>
                         <?php if (!empty($q)): ?>
                             <span class="mx-1">/</span>
-                            <span class="text-info font-weight-bold" style="color: #38bdf8 !important;"><?php echo htmlspecialchars($q); ?></span>
+                            <span class="text-primary font-weight-bold"><?php echo htmlspecialchars($q); ?></span>
                         <?php endif; ?>
                     </nav>
                 </div>
 
-                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(12, 74, 110, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #7dd3fc; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
-                    <i class="fas fa-file-invoice-dollar mr-1.5"></i> OFFICIAL CBIC &amp; GST COUNCIL 2026 DIRECTORY
+                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: #ffffff; border: 1.5px solid #fed7aa; color: #c2410c; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);">
+                    <i class="fas fa-file-invoice-dollar mr-1.5" style="color: #ff671f;"></i> OFFICIAL CBIC &amp; GST COUNCIL 2026 DIRECTORY
                 </div>
 
-                <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
-                    GST HSN &amp; SAC <span style="background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 50%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Code Finder</span>
+                <h1 class="text-dark font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
+                    GST HSN &amp; SAC <span style="background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Code Finder</span>
                 </h1>
-                <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+                <p class="mb-0" style="color: #475569 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     Search 10,000+ official Harmonized System of Nomenclature (HSN) for Goods and Services Accounting Codes (SAC) for accurate GST invoicing and tax classification.
                 </p>
 

@@ -80,19 +80,19 @@ $canonical_url = $base_url . "404";
 
         /* 404 Hero Section */
         .err-hero-banner {
-            background-color: #071329 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
+            background-color: #ffffff !important;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
             padding: clamp(50px, 7vw, 85px) 0 clamp(40px, 6vw, 70px);
             position: relative;
             overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid #e2e8f0;
         }
         .err-ambient-orb-1 {
             position: absolute;
             width: 550px;
             height: 550px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, transparent 70%);
             top: -120px;
             left: -100px;
             pointer-events: none;
@@ -103,7 +103,7 @@ $canonical_url = $base_url . "404";
             width: 480px;
             height: 480px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.07) 0%, transparent 70%);
             bottom: -140px;
             right: -80px;
             pointer-events: none;
@@ -117,11 +117,10 @@ $canonical_url = $base_url . "404";
             font-family: var(--font-code);
             line-height: 0.95;
             letter-spacing: -4px;
-            background: linear-gradient(135deg, #93c5fd 0%, #38bdf8 45%, #c084fc 100%);
+            background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 14px;
-            filter: drop-shadow(0 12px 28px rgba(56, 189, 248, 0.25));
             user-select: none;
         }
 
@@ -130,9 +129,9 @@ $canonical_url = $base_url . "404";
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(30, 27, 75, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: #93c5fd;
+            background: #ffffff;
+            border: 1.5px solid #fed7aa;
+            color: #c2410c;
             padding: 6px 16px;
             border-radius: 9999px;
             font-size: 12px;
@@ -140,7 +139,7 @@ $canonical_url = $base_url . "404";
             letter-spacing: 0.8px;
             text-transform: uppercase;
             margin-bottom: 16px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
         }
         .err-pulse-dot {
             width: 8px;
@@ -386,21 +385,21 @@ $canonical_url = $base_url . "404";
                 <div class="err-number-badge">404</div>
 
                 <!-- Headline -->
-                <h1 class="text-white font-weight-bold mb-3" style="font-size: clamp(24px, 3.8vw, 38px); letter-spacing: -0.5px; line-height: 1.25;">
-                    Objection! Page or Legal Record <span style="background: linear-gradient(135deg, #93c5fd 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Not Found</span>
+                <h1 class="text-dark font-weight-bold mb-3" style="font-size: clamp(24px, 3.8vw, 38px); letter-spacing: -0.5px; line-height: 1.25;">
+                    Objection! Page or Legal Record <span style="background: linear-gradient(135deg, #ff671f 0%, #ea580c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Not Found</span>
                 </h1>
 
                 <!-- Subtitle -->
-                <p class="text-white-50 mb-4" style="font-size: 15.5px; line-height: 1.7; max-width: 680px; margin: 0 auto 28px;">
+                <p class="mb-4" style="color: #475569 !important; font-size: 15.5px; line-height: 1.7; max-width: 680px; margin: 0 auto 28px;">
                     The resource or URL you requested is out of jurisdiction, has expired, or was relocated. Use our multi-directory search below or choose from verified public lookups.
                 </p>
 
                 <!-- Action Buttons -->
                 <div class="d-inline-flex flex-wrap gap-2 justify-content-center" style="gap: 12px;">
-                    <a href="<?php echo $base_url; ?>index" class="btn btn-primary font-weight-bold px-4 py-2.5" style="border-radius: 12px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">
+                    <a href="<?php echo $base_url; ?>index" class="btn btn-primary font-weight-bold px-4 py-2.5" style="border-radius: 12px; background: linear-gradient(135deg, #ff671f, #ea580c); border: none; box-shadow: 0 4px 15px rgba(255, 103, 31, 0.4);">
                         <i class="fas fa-home mr-1.5"></i> Back to Homepage
                     </a>
-                    <a href="<?php echo $base_url; ?>contact" class="btn btn-outline-light font-weight-bold px-4 py-2.5" style="border-radius: 12px; border-color: rgba(255, 255, 255, 0.25);">
+                    <a href="<?php echo $base_url; ?>contact" class="btn btn-outline-secondary font-weight-bold px-4 py-2.5" style="border-radius: 12px; border: 1.5px solid #cbd5e1; color: #1e293b; background: #ffffff;">
                         <i class="fas fa-headset mr-1.5"></i> Contact Support
                     </a>
                 </div>

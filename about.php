@@ -100,19 +100,19 @@ $schema_graphs = [
 
         /* Hero Header */
         .about-hero-section {
-            background-color: #071329 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 45%, #071329 100%) !important;
+            background-color: #ffffff !important;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
             padding: 65px 0 75px 0;
             position: relative;
             overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid #e2e8f0;
         }
         .about-glow-orb-1 {
             position: absolute;
             width: 520px;
             height: 520px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, transparent 70%);
             top: -140px;
             left: -100px;
             pointer-events: none;
@@ -123,7 +123,7 @@ $schema_graphs = [
             width: 500px;
             height: 500px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.07) 0%, transparent 70%);
             bottom: -140px;
             right: -80px;
             pointer-events: none;
@@ -134,46 +134,45 @@ $schema_graphs = [
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255, 103, 31, 0.15);
-            border: 1px solid rgba(255, 103, 31, 0.35);
-            color: #fed7aa;
+            background: #ffffff;
+            border: 1.5px solid #fed7aa;
+            color: #c2410c;
             padding: 7px 20px;
             border-radius: 50px;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.9px;
             text-transform: uppercase;
-            box-shadow: 0 4px 18px rgba(255, 103, 31, 0.15);
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
         }
         .about-pulse-dot {
             width: 8px;
             height: 8px;
-            background: #34d399;
+            background: #10b981;
             border-radius: 50%;
-            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
             animation: aboutPulse 2s infinite;
         }
         @keyframes aboutPulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         .hero-title-highlight {
-            background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%);
+            background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
-            filter: drop-shadow(0 2px 8px rgba(255, 103, 31, 0.25));
         }
         .hero-title-white {
-            color: #ffffff;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            color: #0f172a;
+            text-shadow: none;
         }
 
         /* Scale Stat Section */
         .scale-stat-section {
-            background: linear-gradient(135deg, #071329 0%, #0b1e3d 50%, #071329 100%);
+            background: #ffffff;
             padding: 65px 0;
             position: relative;
             overflow: hidden;
@@ -181,21 +180,19 @@ $schema_graphs = [
             border-bottom: 3.5px solid #046a38;
         }
         .stat-card-colored {
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.24);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
             border-radius: 20px;
             padding: 28px 20px;
             transition: all 0.3s ease;
             text-align: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
         }
         .stat-card-colored:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.45);
+            background: #ffffff;
+            border-color: #cbd5e1;
             transform: translateY(-6px);
-            box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.08);
         }
         .stat-icon-circle {
             width: 54px;
@@ -341,13 +338,13 @@ $schema_graphs = [
                 <h1 class="mb-3 font-weight-bold" style="font-size: clamp(28px, 4.2vw, 44px); letter-spacing: -0.6px; line-height: 1.25;">
                     <span class="hero-title-highlight">Democratizing Access</span> <span class="hero-title-white">to India's Civic, Legal &amp; Financial Data</span>
                 </h1>
-                <p class="text-white-50 mb-4" style="font-size: 16px; line-height: 1.75; max-width: 780px; margin: 0 auto; color: #cbd5e1 !important;">
+                <p class="mb-4" style="font-size: 16px; line-height: 1.75; max-width: 780px; margin: 0 auto; color: #475569 !important;">
                     Online Law is India's fast, 100% free, and unified open public directory engine—designed to connect citizens, startups, legal practitioners, and enterprises with authoritative civic information instantly.
                 </p>
-                <ul class="list-inline mb-0" style="color: #94a3b8; font-size: 14px;">
-                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
+                <ul class="list-inline mb-0" style="color: #64748b; font-size: 14px;">
+                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #475569; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
                     <li class="list-inline-item mx-2 text-muted">/</li>
-                    <li class="list-inline-item text-white font-weight-bold">About Us</li>
+                    <li class="list-inline-item text-dark font-weight-bold">About Us</li>
                 </ul>
             </div>
         </div>
@@ -461,10 +458,10 @@ $schema_graphs = [
     <div class="container position-relative" style="z-index: 2;">
         <div class="row text-center mb-4 pb-2">
             <div class="col-12">
-                <div class="d-inline-flex align-items-center px-3 py-1 rounded-pill mb-2" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); color: #ffffff; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                <div class="d-inline-flex align-items-center px-3 py-1 rounded-pill mb-2" style="background: #fff7ed; border: 1.5px solid #fed7aa; color: #c2410c; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
                     <i class="fas fa-chart-line mr-1.5"></i> PLATFORM SCALE &amp; INDEX
                 </div>
-                <h3 class="text-white mt-1 mb-0 font-weight-bold" style="font-size: clamp(22px, 3vw, 28px);">
+                <h3 class="text-dark mt-1 mb-0 font-weight-bold" style="font-size: clamp(22px, 3vw, 28px);">
                     Millions of Authoritative Records Across India
                 </h3>
             </div>
@@ -475,8 +472,8 @@ $schema_graphs = [
                     <div class="stat-icon-circle" style="background: linear-gradient(135deg, #0284c7, #0ea5e9);">
                         <i class="fas fa-university"></i>
                     </div>
-                    <div class="text-white mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">181K+</div>
-                    <div style="font-size: 13px; font-weight: 700; color: #bfdbfe; text-transform: uppercase; letter-spacing: 0.5px;">Bank Branches (IFSC &amp; MICR)</div>
+                    <div class="text-dark mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">181K+</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Bank Branches (IFSC &amp; MICR)</div>
                 </div>
             </div>
             <div class="col-lg-3 col-6 mb-4 mb-lg-0">
@@ -484,8 +481,8 @@ $schema_graphs = [
                     <div class="stat-icon-circle" style="background: linear-gradient(135deg, #059669, #10b981);">
                         <i class="fas fa-map-marked-alt"></i>
                     </div>
-                    <div class="text-white mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">155K+</div>
-                    <div style="font-size: 13px; font-weight: 700; color: #a7f3d0; text-transform: uppercase; letter-spacing: 0.5px;">PIN Codes &amp; Post Offices</div>
+                    <div class="text-dark mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">155K+</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">PIN Codes &amp; Post Offices</div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -493,8 +490,8 @@ $schema_graphs = [
                     <div class="stat-icon-circle" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
                         <i class="fas fa-building"></i>
                     </div>
-                    <div class="text-white mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">3.1M+</div>
-                    <div style="font-size: 13px; font-weight: 700; color: #fde68a; text-transform: uppercase; letter-spacing: 0.5px;">MCA Companies &amp; NIC</div>
+                    <div class="text-dark mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">3.1M+</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">MCA Companies &amp; NIC</div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
@@ -502,8 +499,8 @@ $schema_graphs = [
                     <div class="stat-icon-circle" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </div>
-                    <div class="text-white mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">22K+</div>
-                    <div style="font-size: 13px; font-weight: 700; color: #e9d5ff; text-transform: uppercase; letter-spacing: 0.5px;">GST HSN / SAC Codes</div>
+                    <div class="text-dark mb-1" style="font-size: 34px; font-weight: 800; font-family: var(--font-code); line-height: 1.1;">22K+</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">GST HSN / SAC Codes</div>
                 </div>
             </div>
         </div>
@@ -744,15 +741,15 @@ $schema_graphs = [
 <!-- ==========================================================================
      CALL TO ACTION BANNER
      ========================================================================== -->
-<section style="background: linear-gradient(135deg, #071329 0%, #0b1e3d 50%, #071329 100%); border-top: 4px solid #ff671f; padding: 56px 0;">
+<section style="background: #ffffff; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 56px 0;">
     <div class="container text-center">
-        <h2 class="text-white mb-2 font-weight-bold" style="font-size: 28px;">Ready to Search India's Public Directory?</h2>
-        <p class="text-light mb-4" style="color: #cbd5e1 !important; font-size: 15px; max-width: 600px; margin: 0 auto 24px;">Find verified Bank IFSC, PIN Codes, Company records, and GST tariffs in seconds.</p>
+        <h2 class="text-dark mb-2 font-weight-bold" style="font-size: 28px;">Ready to Search India's Public Directory?</h2>
+        <p class="text-muted mb-4" style="font-size: 15px; max-width: 600px; margin: 0 auto 24px;">Find verified Bank IFSC, PIN Codes, Company records, and GST tariffs in seconds.</p>
         <div class="d-inline-flex flex-wrap gap-2 justify-content-center" style="gap: 12px;">
-            <a href="<?php echo $base_url; ?>index" class="btn btn-light font-weight-bold px-4 py-2.5" style="border-radius: 12px; color: #ff671f;">
+            <a href="<?php echo $base_url; ?>index" class="btn btn-primary font-weight-bold px-4 py-2.5" style="border-radius: 12px; background: linear-gradient(135deg, #ff671f, #ea580c); border: none; box-shadow: 0 4px 15px rgba(255, 103, 31, 0.4);">
                 <i class="fas fa-home mr-2"></i> Go to Homepage
             </a>
-            <a href="<?php echo $base_url; ?>contact" class="btn btn-outline-light font-weight-bold px-4 py-2.5" style="border-radius: 12px;">
+            <a href="<?php echo $base_url; ?>contact" class="btn btn-outline-secondary font-weight-bold px-4 py-2.5" style="border-radius: 12px; border: 1.5px solid #cbd5e1; color: #1e293b; background: #ffffff;">
                 <i class="fas fa-paper-plane mr-2"></i> Contact Us
             </a>
         </div>

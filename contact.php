@@ -260,11 +260,13 @@
 <style>
     /* Hero Header Styling */
     .contact-hero-section {
-        background: linear-gradient(135deg, #071329 0%, #0b1e3d 45%, #0f274f 100%);
+        background-color: #ffffff !important;
+        background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
+        color: #0f172a !important;
         padding: 56px 0 48px;
         position: relative;
         overflow: hidden;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid #e2e8f0;
     }
     .contact-hero-section::before {
         content: '';
@@ -273,7 +275,7 @@
         right: -10%;
         width: 480px;
         height: 480px;
-        background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, rgba(255, 103, 31, 0) 70%);
         border-radius: 50%;
         pointer-events: none;
     }
@@ -284,12 +286,12 @@
         left: -5%;
         width: 380px;
         height: 380px;
-        background: radial-gradient(circle, rgba(4, 106, 56, 0.25) 0%, rgba(4, 106, 56, 0) 70%);
+        background: radial-gradient(circle, rgba(4, 106, 56, 0.07) 0%, rgba(4, 106, 56, 0) 70%);
         border-radius: 50%;
         pointer-events: none;
     }
     .hero-gradient-text {
-        background: linear-gradient(135deg, #ffa500 0%, #ff8800 35%, #ffffff 70%, #34d399 100%);
+        background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline;
@@ -298,9 +300,10 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 103, 31, 0.15);
-        border: 1px solid rgba(255, 103, 31, 0.35);
-        color: #ff8800;
+        background: #ffffff;
+        border: 1.5px solid #fed7aa;
+        color: #c2410c;
+        box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
         padding: 6px 18px;
         border-radius: var(--radius-pill);
         font-size: 13px;
@@ -414,11 +417,12 @@
 
     /* Side Context Sidebar */
     .sidebar-context-card {
-        background: linear-gradient(135deg, #071329 0%, #0b1e3d 100%);
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
         border-radius: var(--radius-xl);
-        color: #ffffff;
+        color: #0f172a;
         padding: 36px 30px;
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
         position: relative;
         overflow: hidden;
     }
@@ -429,18 +433,18 @@
         right: -20%;
         width: 250px;
         height: 250px;
-        background: radial-gradient(circle, rgba(255, 103, 31, 0.25) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, transparent 70%);
         border-radius: 50%;
     }
     .context-pill {
         display: inline-flex;
         align-items: center;
         padding: 6px 14px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-radius: 50px;
         font-size: 12.5px;
-        color: #cbd5e1;
+        color: #334155;
         margin-bottom: 8px;
         margin-right: 6px;
     }
@@ -448,9 +452,9 @@
         width: 42px;
         height: 42px;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #f8fafc;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #334155;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -459,7 +463,10 @@
         text-decoration: none;
     }
     .social-icon-btn:hover {
-        background: var(--primary-color);
+        background: #fff7ed;
+        border-color: #fdba74;
+        color: #ff671f;
+        transform: translateY(-2px);
         border-color: var(--primary-color);
         color: #ffffff;
         transform: translateY(-3px) scale(1.05);
@@ -510,21 +517,21 @@
     <div class="container position-relative" style="z-index: 2;">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent p-0 mb-3" style="font-size: 13.5px;">
-                <li class="breadcrumb-item"><a href="<?php echo $base_url; ?>" class="text-white-50 text-decoration-none"><i class="fas fa-home mr-1" style="color: #ff8800;"></i> Home</a></li>
-                <li class="breadcrumb-item active" style="color: #fed7aa;" aria-current="page">Contact Us</li>
+                <li class="breadcrumb-item"><a href="<?php echo $base_url; ?>" class="text-muted text-decoration-none"><i class="fas fa-home mr-1" style="color: #ff671f;"></i> Home</a></li>
+                <li class="breadcrumb-item active font-weight-bold" style="color: #0f172a;" aria-current="page">Contact Us</li>
             </ol>
         </nav>
 
         <div class="row align-items-center">
             <div class="col-lg-10 col-xl-8">
                 <div class="contact-badge-pill mb-3">
-                    <i class="fas fa-headset" style="color: #ff8800;"></i> Helpdesk &amp; Inquiries
+                    <i class="fas fa-headset" style="color: #ff671f;"></i> Helpdesk &amp; Inquiries
                 </div>
                 <h1 class="font-weight-bold mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; letter-spacing: -0.02em;">
                     <span class="hero-gradient-text">Let's Connect &amp; Assist You</span>
                 </h1>
-                <p class="lead mb-0" style="font-size: 16.5px; max-width: 680px; line-height: 1.7; color: #cbd5e1;">
-                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #ff8800; font-weight: 600;">priority 3-day resolution</span>.
+                <p class="lead mb-0" style="font-size: 16.5px; max-width: 680px; line-height: 1.7; color: #475569;">
+                    Have questions regarding Indian Company Incorporations, NIC Codes, Bank IFSC, PIN Code directories, Bare Acts, or data removal? Submit your inquiry online for <span style="color: #ff671f; font-weight: 700;">priority 3-day resolution</span>.
                 </p>
             </div>
         </div>
@@ -538,14 +545,14 @@
     <div class="container">
         
         <!-- Resolution SLA Banner -->
-        <div class="p-3 mb-4 rounded-xl shadow-sm border d-flex flex-wrap align-items-center justify-content-between" style="background: linear-gradient(135deg, #071329 0%, #0b1e3d 100%); color: #ffffff; border-color: rgba(255,255,255,0.1) !important;">
+        <div class="p-3 mb-4 rounded-xl shadow-sm border d-flex flex-wrap align-items-center justify-content-between" style="background: #ffffff; color: #0f172a; border-color: #e2e8f0 !important;">
             <div class="d-flex align-items-center mb-2 mb-md-0">
-                <div class="p-2 rounded-circle bg-primary text-white mr-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <div class="p-2 rounded-circle mr-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: #fff7ed; color: #ff671f;">
                     <i class="fas fa-tachometer-alt"></i>
                 </div>
                 <div>
-                    <strong class="d-block" style="font-size: 14.5px;">Resolution Speed &amp; Processing Comparison:</strong>
-                    <span class="small text-white-50">Choose the fastest channel for your inquiry or data correction request.</span>
+                    <strong class="d-block text-dark" style="font-size: 14.5px;">Resolution Speed &amp; Processing Comparison:</strong>
+                    <span class="small text-muted">Choose the fastest channel for your inquiry or data correction request.</span>
                 </div>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2" style="gap: 10px;">
@@ -859,32 +866,32 @@
                     
                     <div>
                         <!-- Header -->
-                        <div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: rgba(255, 255, 255, 0.1) !important;">
+                        <div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: #e2e8f0 !important;">
                             <div class="brand-icon-badge mr-3" style="width: 44px; height: 44px; font-size: 20px;">
                                 <i class="fas fa-balance-scale"></i>
                             </div>
                             <div>
-                                <h4 class="font-weight-bold text-white mb-0" style="font-family: var(--font-heading);">
+                                <h4 class="font-weight-bold text-dark mb-0" style="font-family: var(--font-heading);">
                                     Online<span class="text-primary">Law</span>
                                 </h4>
-                                <span class="small text-white-50">Public Legal &amp; Directory Portal</span>
+                                <span class="small text-muted">Public Legal &amp; Directory Portal</span>
                             </div>
                         </div>
 
                         <!-- Enterprise Parent Info -->
                         <div class="mb-4">
-                            <span class="small text-white-50 text-uppercase font-weight-bold" style="letter-spacing: 1px;">Governing Entity</span>
-                            <h5 class="text-white font-weight-bold mt-1 mb-2" style="font-size: 18px;">
+                            <span class="small text-muted text-uppercase font-weight-bold" style="letter-spacing: 1px;">Governing Entity</span>
+                            <h5 class="text-dark font-weight-bold mt-1 mb-2" style="font-size: 18px;">
                                 OfferPlant Technologies Private Limited
                             </h5>
-                            <p class="text-white-50 small mb-0" style="line-height: 1.6;">
+                            <p class="text-muted small mb-0" style="line-height: 1.6;">
                                 India's dedicated legal technology initiative making statutory records, corporate registrations, IFSC directories, and bare acts accessible to every citizen.
                             </p>
                         </div>
 
                         <!-- Highlights / Quick Topics -->
                         <div class="mb-4">
-                            <span class="small text-white-50 text-uppercase font-weight-bold d-block mb-2" style="letter-spacing: 1px;">Supported Areas</span>
+                            <span class="small text-muted text-uppercase font-weight-bold d-block mb-2" style="letter-spacing: 1px;">Supported Areas</span>
                             <div>
                                 <span class="context-pill"><i class="fas fa-check text-primary mr-1"></i> MCA Incorporations</span>
                                 <span class="context-pill"><i class="fas fa-check text-warning mr-1"></i> NIC 2025 Activity</span>
@@ -896,19 +903,19 @@
                         </div>
 
                         <!-- Direct Help Notice -->
-                        <div class="p-3 rounded-lg mb-4" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(96, 165, 250, 0.25);">
+                        <div class="p-3 rounded-lg mb-4" style="background: #eff6ff; border: 1px solid #bfdbfe;">
                             <div class="d-flex align-items-start">
                                 <i class="fas fa-info-circle text-primary mt-1 mr-2.5" style="font-size: 16px;"></i>
-                                <div class="small text-white-50" style="line-height: 1.5;">
-                                    <strong class="text-white">Commercial API / Bulk Inquiries:</strong> Looking to license Bank IFSC, PIN Code, or Corporate Master Data? Mention "API Licensing" in your inquiry for direct developer support.
+                                <div class="small text-muted" style="line-height: 1.5;">
+                                    <strong class="text-dark">Commercial API / Bulk Inquiries:</strong> Looking to license Bank IFSC, PIN Code, or Corporate Master Data? Mention "API Licensing" in your inquiry for direct developer support.
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Social Media Connectivity -->
-                    <div class="pt-4 border-top" style="border-color: rgba(255, 255, 255, 0.1) !important;">
-                        <span class="small text-white-50 text-uppercase font-weight-bold d-block mb-3" style="letter-spacing: 1px;">Connect on Social Media</span>
+                    <div class="pt-4 border-top" style="border-color: #e2e8f0 !important;">
+                        <span class="small text-muted text-uppercase font-weight-bold d-block mb-3" style="letter-spacing: 1px;">Connect on Social Media</span>
                         <div class="d-flex align-items-center flex-wrap gap-2" style="gap: 10px;">
                             <?php if (!empty($facebook)): ?>
                             <a href="<?php echo $facebook; ?>" target="_blank" class="social-icon-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>

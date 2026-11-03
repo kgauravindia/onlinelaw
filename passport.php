@@ -71,19 +71,20 @@ $passport_schema = [
 
         /* Hero Banner */
         .psk-hero-section {
-            background-color: #071329 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
+            background-color: #ffffff !important;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
+            color: #0f172a !important;
             padding: 50px 0 60px 0;
             position: relative;
             overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #e2e8f0;
         }
         .psk-glow-orb {
             position: absolute;
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, transparent 70%);
             top: -100px;
             left: -60px;
             pointer-events: none;
@@ -94,15 +95,16 @@ $passport_schema = [
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255, 103, 31, 0.15);
-            border: 1px solid rgba(255, 103, 31, 0.35);
-            color: #fed7aa;
+            background: #ffffff;
+            border: 1.5px solid #fed7aa;
+            color: #c2410c;
             padding: 5px 16px;
             border-radius: 50px;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.8px;
             text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
         }
 
         .search-card-container {
@@ -167,16 +169,16 @@ $passport_schema = [
                 <div class="psk-badge-pill mb-3">
                     <i class="fas fa-passport mr-1.5"></i> PASSPORT SEVA &bull; PSK &amp; RPO DIRECTORY
                 </div>
-                <h1 class="font-weight-bold mb-2" style="font-family: var(--font-heading); font-size: clamp(26px, 3.8vw, 42px); line-height: 1.22; letter-spacing: -0.5px; background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(255, 103, 31, 0.4)); display: inline-block;">
+                <h1 class="font-weight-bold mb-2" style="font-family: var(--font-heading); font-size: clamp(26px, 3.8vw, 42px); line-height: 1.22; letter-spacing: -0.5px; background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">
                     Passport Office Finder (PSK / POPSK / RPO)
                 </h1>
-                <p class="text-white-50 mb-3" style="font-size: 15px; max-width: 700px; margin: 0 auto;">
+                <p class="mb-3" style="color: #475569 !important; font-size: 15px; max-width: 700px; margin: 0 auto;">
                     Locate Passport Seva Kendras, Post Office PSKs, Regional Passport Offices, addresses, and official contact numbers.
                 </p>
-                <ul class="list-inline mb-0" style="color: #94a3b8; font-size: 13.5px;">
-                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
+                <ul class="list-inline mb-0" style="color: #64748b; font-size: 13.5px;">
+                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #475569; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
                     <li class="list-inline-item mx-2 text-muted">/</li>
-                    <li class="list-inline-item text-white font-weight-bold">Passport Offices</li>
+                    <li class="list-inline-item text-dark font-weight-bold">Passport Offices</li>
                 </ul>
             </div>
         </div>

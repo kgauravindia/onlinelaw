@@ -74,19 +74,20 @@ $acts_schema = [
 
         /* Hero Banner */
         .acts-hero-section {
-            background-color: #0b1120 !important;
-            background: radial-gradient(135% 100% at 50% 0%, #0b1120 0%, #1e1b4b 55%, #0f172a 100%) !important;
+            background-color: #ffffff !important;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
+            color: #0f172a !important;
             padding: 50px 0 60px 0;
             position: relative;
             overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #e2e8f0;
         }
         .acts-glow-orb {
             position: absolute;
             width: 450px;
             height: 450px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(220, 38, 38, 0.18) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, transparent 70%);
             top: -100px;
             right: -60px;
             pointer-events: none;
@@ -97,15 +98,16 @@ $acts_schema = [
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(220, 38, 38, 0.18);
-            border: 1px solid rgba(248, 113, 113, 0.35);
-            color: #fca5a5;
+            background: #ffffff;
+            border: 1.5px solid #fed7aa;
+            color: #c2410c;
             padding: 5px 16px;
             border-radius: 50px;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.8px;
             text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
         }
 
         .search-card-container {
@@ -184,16 +186,16 @@ $acts_schema = [
                 <div class="acts-badge-pill mb-3">
                     <i class="fas fa-gavel mr-1.5"></i> LEGISLATIVE ACTS &bull; UPDATED 2026
                 </div>
-                <h1 class="font-weight-bold mb-2" style="font-family: var(--font-heading); font-size: clamp(26px, 3.8vw, 42px); line-height: 1.22; letter-spacing: -0.5px; background: linear-gradient(135deg, #fb923c 0%, #f97316 45%, #f43f5e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(251, 146, 60, 0.4)); display: inline-block;">
+                <h1 class="font-weight-bold mb-2" style="font-family: var(--font-heading); font-size: clamp(26px, 3.8vw, 42px); line-height: 1.22; letter-spacing: -0.5px; background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">
                     Indian Central Bare Acts Directory
                 </h1>
-                <p class="text-white-50 mb-3" style="font-size: 15px; max-width: 700px; margin: 0 auto;">
+                <p class="mb-3" style="color: #475569 !important; font-size: 15px; max-width: 700px; margin: 0 auto;">
                     Search official Bare Acts, Act Numbers, Year of Enactment, and Statutory Categories from the Ministry of Law &amp; Justice.
                 </p>
-                <ul class="list-inline mb-0" style="color: #94a3b8; font-size: 13.5px;">
-                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #cbd5e1; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
+                <ul class="list-inline mb-0" style="color: #64748b; font-size: 13.5px;">
+                    <li class="list-inline-item"><a href="<?php echo $base_url; ?>index" style="color: #475569; text-decoration: none;"><i class="fas fa-home mr-1"></i> Home</a></li>
                     <li class="list-inline-item mx-2 text-muted">/</li>
-                    <li class="list-inline-item text-white font-weight-bold">Bare Acts</li>
+                    <li class="list-inline-item text-dark font-weight-bold">Bare Acts</li>
                 </ul>
             </div>
         </div>

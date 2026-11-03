@@ -162,7 +162,7 @@ $nic_schema = [
        NIC CODE FINDER - CUSTOM MODERN STYLES
        ========================================================= */
     :root {
-        --nic-hero-bg: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%);
+        --nic-hero-bg: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%);
         --nic-section-amber: #d97706;
         --nic-section-amber-bg: #fef3c7;
         --nic-division-blue: #ff671f;
@@ -184,6 +184,7 @@ $nic_schema = [
     /* Hero Banner with Grid Pattern */
     .nic-hero-banner {
         background: var(--nic-hero-bg);
+        border-bottom: 1px solid #e2e8f0;
         padding: clamp(45px, 6vw, 75px) 0 clamp(65px, 8vw, 95px);
         position: relative;
         overflow: hidden;
@@ -192,7 +193,7 @@ $nic_schema = [
         content: '';
         position: absolute;
         inset: 0;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
         background-size: 24px 24px;
         opacity: 0.7;
         pointer-events: none;
@@ -202,7 +203,7 @@ $nic_schema = [
         width: 550px;
         height: 550px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.08) 0%, rgba(255, 103, 31, 0) 70%);
         top: -140px;
         left: -120px;
         pointer-events: none;
@@ -213,7 +214,7 @@ $nic_schema = [
         width: 500px;
         height: 500px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
+        background: radial-gradient(circle, rgba(4, 106, 56, 0.07) 0%, rgba(4, 106, 56, 0) 70%);
         bottom: -160px;
         right: -100px;
         pointer-events: none;
@@ -228,17 +229,15 @@ $nic_schema = [
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #e0e7ff;
+        background: #ffffff;
+        border: 1.5px solid #fed7aa;
+        color: #c2410c;
         padding: 6px 16px;
         border-radius: 9999px;
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.5px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
     }
     .nic-pulse-dot {
         width: 8px;
@@ -572,7 +571,7 @@ $nic_schema = [
 <?php require_once('includes/header.php'); ?>
 
 <!-- Banner Section Start -->
-<section class="nic-hero-banner text-white">
+<section class="nic-hero-banner">
     <div class="nic-glow-orb-1"></div>
     <div class="nic-glow-orb-2"></div>
     <div class="container position-relative" style="z-index: 2;">
@@ -583,23 +582,27 @@ $nic_schema = [
                     <span>OFFICIAL MOSPI STANDARDS &bull; NIC 2025 REVISED EDITION</span>
                 </div>
                 <h1 class="font-weight-bold mb-3" style="font-family: var(--font-heading); font-size: clamp(28px, 4.2vw, 44px); line-height: 1.22; letter-spacing: -0.5px;">
-                    <span style="background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 60%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">National Industrial Classification</span> <br class="d-none d-sm-inline">
-                    <span style="background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 40%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; filter: drop-shadow(0 2px 10px rgba(56, 189, 248, 0.4));">(NIC) Finder</span>
+                    <span style="color: #0f172a; display: inline-block;">National Industrial Classification</span> <br class="d-none d-sm-inline">
+                    <span style="background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">(NIC) Finder</span>
                 </h1>
-                <p class="text-white-50 lead mb-3" style="font-size: clamp(15px, 2vw, 17.5px); max-width: 820px; margin: 0 auto; line-height: 1.6;">
-                    Explore <strong>2,715 official activity codes</strong> across 21 broad sections &amp; 87 divisions. Indispensable for <strong class="text-white">MCA SPICe+ Incorporation</strong>, <strong class="text-white">MSME Udyam Registration</strong>, and <strong class="text-white">GST HSN/SAC Mapping</strong>.
+                <p class="lead mb-3" style="color: #475569 !important; font-size: clamp(15px, 2vw, 17.5px); max-width: 820px; margin: 0 auto; line-height: 1.6;">
+                    Explore <strong>2,715 official activity codes</strong> across 21 broad sections &amp; 87 divisions. Indispensable for <strong class="text-dark">MCA SPICe+ Incorporation</strong>, <strong class="text-dark">MSME Udyam Registration</strong>, and <strong class="text-dark">GST HSN/SAC Mapping</strong>.
                 </p>
-                <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 pt-1">
-                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);">
-                        <i class="fas fa-check-circle mr-1" style="color: #38bdf8;"></i> MCA SPICe+ Compliant
+                <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 pt-1" style="gap: 8px;">
+                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+                        <i class="fas fa-check-circle mr-1" style="color: #0284c7;"></i> MCA SPICe+ Compliant
                     </span>
-                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #34d399; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.35); box-shadow: 0 2px 8px rgba(52, 211, 153, 0.15);">
-                        <i class="fas fa-check-circle mr-1" style="color: #34d399;"></i> MSME Udyam 2/4/5 Digit Key
+                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+                        <i class="fas fa-check-circle mr-1" style="color: #16a34a;"></i> MSME Udyam 2/4/5 Digit Key
                     </span>
-                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);">
-                        <i class="fas fa-check-circle mr-1" style="color: #fbbf24;"></i> 21-Digit CIN Industry Segment
+                    <span class="badge px-3 py-1.5 rounded-pill font-weight-bold" style="font-size: 12.5px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+                        <i class="fas fa-check-circle mr-1" style="color: #d97706;"></i> 21-Digit CIN Industry Segment
                     </span>
                 </div>
+            </div>
+        </div>
+    </div>
+</section>
             </div>
         </div>
     </div>

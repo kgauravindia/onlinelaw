@@ -431,19 +431,19 @@ $company_schema = [
     
     /* Modern Hero Banner */
     .hero-incorp-banner {
-        background-color: #071329 !important;
-        background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 55%, #071329 100%) !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%) !important;
+        color: #0f172a !important;
         position: relative;
         overflow: hidden;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid #e2e8f0;
         padding: clamp(45px, 6vw, 75px) 0 clamp(65px, 8vw, 95px);
     }
     .hero-incorp-banner::before {
         content: '';
         position: absolute;
         inset: 0;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
         background-size: 24px 24px;
         opacity: 0.7;
         pointer-events: none;
@@ -453,7 +453,7 @@ $company_schema = [
         width: 550px;
         height: 550px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, rgba(255, 103, 31, 0) 70%);
+        background: radial-gradient(circle, rgba(255, 103, 31, 0.09) 0%, rgba(255, 103, 31, 0) 70%);
         top: -140px;
         left: -120px;
         pointer-events: none;
@@ -464,7 +464,7 @@ $company_schema = [
         width: 500px;
         height: 500px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
+        background: radial-gradient(circle, rgba(4, 106, 56, 0.08) 0%, rgba(4, 106, 56, 0) 70%);
         bottom: -160px;
         right: -100px;
         pointer-events: none;
@@ -479,18 +479,16 @@ $company_schema = [
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 103, 31, 0.15);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 103, 31, 0.35);
-        color: #fed7aa;
+        background: #ffffff;
+        border: 1.5px solid #fed7aa;
+        color: #c2410c;
         padding: 7px 18px;
         border-radius: 50px;
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.8px;
         text-transform: uppercase;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);
         margin-bottom: 14px;
     }
     .hero-pulse-dot {
@@ -509,16 +507,16 @@ $company_schema = [
     }
 
     .hero-incorp-headline {
-        color: #ffffff;
+        color: #0f172a;
         font-size: clamp(28px, 4.2vw, 42px);
         font-weight: 800;
         letter-spacing: -0.6px;
         line-height: 1.25;
         margin-bottom: 12px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        text-shadow: none;
     }
     .hero-incorp-headline .headline-highlight {
-        background: linear-gradient(135deg, #ffa500 0%, #ff8800 40%, #ffffff 70%, #34d399 100%);
+        background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
@@ -528,10 +526,10 @@ $company_schema = [
         margin: 0 auto 24px auto;
         font-size: 15.5px;
         line-height: 1.6;
-        color: #cbd5e1 !important;
+        color: #475569 !important;
     }
     .hero-incorp-subtitle strong {
-        color: #ffffff !important;
+        color: #0f172a !important;
     }
 
     /* Stats Quick Ribbon in Hero */
@@ -543,10 +541,8 @@ $company_schema = [
         margin: 0 auto;
     }
     .hero-stat-card {
-        background: rgba(15, 23, 42, 0.85);
-        border: 1.5px solid rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
         border-radius: 16px;
         padding: 12px 14px;
         text-decoration: none !important;
@@ -558,7 +554,7 @@ $company_schema = [
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
     }
     .hero-stat-card::before {
         content: '';
@@ -571,18 +567,18 @@ $company_schema = [
         transition: background 0.2s ease;
     }
     .hero-stat-card:hover {
-        background: rgba(30, 41, 59, 0.95);
+        background: #ffffff;
         transform: translateY(-3px);
-        border-color: rgba(255, 255, 255, 0.35);
-        box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.5);
+        border-color: #cbd5e1;
+        box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.08);
     }
-    .hero-stat-card.stat-all:hover::before { background: #60a5fa; }
-    .hero-stat-card.stat-pvt:hover::before { background: #3b82f6; }
-    .hero-stat-card.stat-public:hover::before { background: #a855f7; }
-    .hero-stat-card.stat-opc:hover::before { background: #22c55e; }
-    .hero-stat-card.stat-sec8:hover::before { background: #ec4899; }
-    .hero-stat-card.stat-llp:hover::before { background: #14b8a6; }
-    .hero-stat-card.stat-foreign:hover::before { background: #f59e0b; }
+    .hero-stat-card.stat-all:hover::before { background: #ff671f; }
+    .hero-stat-card.stat-pvt:hover::before { background: #2563eb; }
+    .hero-stat-card.stat-public:hover::before { background: #7c3aed; }
+    .hero-stat-card.stat-opc:hover::before { background: #059669; }
+    .hero-stat-card.stat-sec8:hover::before { background: #db2777; }
+    .hero-stat-card.stat-llp:hover::before { background: #0d9488; }
+    .hero-stat-card.stat-foreign:hover::before { background: #d97706; }
 
     .hero-stat-card .stat-label {
         font-size: 11px;
@@ -592,7 +588,7 @@ $company_schema = [
         display: block;
     }
     .hero-stat-card .stat-value {
-        color: #ffffff !important;
+        color: #0f172a !important;
         font-size: 16.5px;
         font-weight: 800;
         margin-top: 4px;
@@ -804,14 +800,14 @@ $company_schema = [
 
     /* CIN Anatomy Visual Diagram */
     .cin-anatomy-diagram {
-        background: radial-gradient(ellipse at top, #1e293b 0%, #0b1329 100%);
-        color: #ffffff;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        color: #0f172a;
         border-radius: 24px;
         padding: 36px 30px;
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 25px 45px -12px rgba(15, 23, 42, 0.5);
+        border: 1.5px solid #e2e8f0;
+        box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.06);
     }
     .cin-segment-pill {
         display: inline-block;
@@ -821,7 +817,7 @@ $company_schema = [
         font-weight: 800;
         font-size: 19px;
         letter-spacing: 1.5px;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
         transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         cursor: default;
     }
@@ -834,13 +830,13 @@ $company_schema = [
         position: fixed;
         bottom: 28px;
         right: 28px;
-        background: #0b1329;
+        background: #0f172a;
         color: #ffffff;
         padding: 14px 22px;
         border-radius: 14px;
         font-size: 14px;
         font-weight: 600;
-        box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.25);
         z-index: 999999;
         display: flex;
         align-items: center;
@@ -863,21 +859,21 @@ $company_schema = [
         flex-wrap: wrap;
         gap: 6px 8px;
         font-size: 13.5px;
-        color: #94a3b8;
+        color: #64748b;
         margin-bottom: 16px;
     }
     .incorp-breadcrumb a {
-        color: #cbd5e1;
+        color: #475569;
         text-decoration: none;
         font-weight: 500;
         transition: color 0.2s;
     }
     .incorp-breadcrumb a:hover {
-        color: #ffffff;
+        color: #ff671f;
         text-decoration: underline;
     }
     .incorp-breadcrumb span.current-page {
-        color: #ffffff;
+        color: #0f172a;
         font-weight: 600;
         max-width: 280px;
         overflow: hidden;
@@ -1137,32 +1133,32 @@ $company_schema = [
                 <!-- Quick Hero Stats Ribbon (7 Responsive Modular Cards) -->
                 <div class="hero-stats-wrapper mt-4">
                     <a href="<?php echo $base_url; ?>company-incorporation" class="hero-stat-card stat-all">
-                        <span class="stat-label text-white-50">TOTAL REGISTRY</span>
-                        <span class="stat-value text-white"><?php echo number_format($stats['TOTAL']); ?>+</span>
+                        <span class="stat-label text-muted">TOTAL REGISTRY</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['TOTAL']); ?>+</span>
                     </a>
                     <a href="<?php echo $base_url; ?>company-incorporation?type=pvt-ltd" class="hero-stat-card stat-pvt">
-                        <span class="stat-label" style="color: #93c5fd;"><i class="fas fa-building mr-1"></i> PVT LTD</span>
-                        <span class="stat-value"><?php echo number_format($stats['PVT_LTD']); ?></span>
+                        <span class="stat-label" style="color: #2563eb;"><i class="fas fa-building mr-1"></i> PVT LTD</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['PVT_LTD']); ?></span>
                     </a>
                     <a href="<?php echo $base_url; ?>company-incorporation?type=public-ltd" class="hero-stat-card stat-public">
-                        <span class="stat-label" style="color: #c4b5fd;"><i class="fas fa-landmark mr-1"></i> PUBLIC LTD</span>
-                        <span class="stat-value"><?php echo number_format($stats['PUBLIC_LTD']); ?></span>
+                        <span class="stat-label" style="color: #7c3aed;"><i class="fas fa-landmark mr-1"></i> PUBLIC LTD</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['PUBLIC_LTD']); ?></span>
                     </a>
                     <a href="<?php echo $base_url; ?>company-incorporation?type=opc" class="hero-stat-card stat-opc">
-                        <span class="stat-label" style="color: #86efac;"><i class="fas fa-user-tie mr-1"></i> OPC</span>
-                        <span class="stat-value"><?php echo number_format($stats['OPC']); ?></span>
+                        <span class="stat-label" style="color: #059669;"><i class="fas fa-user-tie mr-1"></i> OPC</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['OPC']); ?></span>
                     </a>
                     <a href="<?php echo $base_url; ?>company-incorporation?type=section-8" class="hero-stat-card stat-sec8">
-                        <span class="stat-label" style="color: #f472b6;"><i class="fas fa-hand-holding-heart mr-1"></i> SECTION 8</span>
-                        <span class="stat-value"><?php echo number_format($stats['SECTION_8']); ?></span>
+                        <span class="stat-label" style="color: #db2777;"><i class="fas fa-hand-holding-heart mr-1"></i> SECTION 8</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['SECTION_8']); ?></span>
                     </a>
                     <a href="<?php echo $base_url; ?>company-incorporation?type=llp" class="hero-stat-card stat-llp">
-                        <span class="stat-label" style="color: #5eead4;"><i class="fas fa-handshake mr-1"></i> LLPs</span>
-                        <span class="stat-value"><?php echo number_format($stats['LLP']); ?></span>
+                        <span class="stat-label" style="color: #0d9488;"><i class="fas fa-handshake mr-1"></i> LLPs</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['LLP']); ?></span>
                     </a>
                     <a href="<?php echo $base_url; ?>company-incorporation?type=foreign" class="hero-stat-card stat-foreign">
-                        <span class="stat-label" style="color: #fde047;"><i class="fas fa-globe mr-1"></i> FOREIGN</span>
-                        <span class="stat-value"><?php echo number_format($stats['FOREIGN']); ?></span>
+                        <span class="stat-label" style="color: #d97706;"><i class="fas fa-globe mr-1"></i> FOREIGN</span>
+                        <span class="stat-value text-dark"><?php echo number_format($stats['FOREIGN']); ?></span>
                     </a>
                 </div>
 
@@ -1906,25 +1902,25 @@ $company_schema = [
 
             <!-- Infographic 1: Visual CIN Anatomy Breakdown Diagram -->
             <div class="cin-anatomy-diagram mb-5 shadow-xl">
-                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: #e2e8f0 !important;">
                     <div>
                         <span class="badge badge-warning text-dark font-weight-bold px-3 py-1 rounded-pill text-uppercase mb-1" style="font-size: 11px;">
                             INFOGRAPHIC ARCHITECTURE
                         </span>
-                        <h3 class="font-weight-bold text-white mb-1" style="font-size: clamp(20px, 3vw, 26px);">
+                        <h3 class="font-weight-bold text-dark mb-1" style="font-size: clamp(20px, 3vw, 26px);">
                             How Indian Corporate Identification Numbers (CIN) Work
                         </h3>
-                        <p class="text-white-50 small mb-0">Every registered company in India carries a distinct 21-digit alphanumeric identification code containing 6 vital regulatory parameters.</p>
+                        <p class="text-muted small mb-0">Every registered company in India carries a distinct 21-digit alphanumeric identification code containing 6 vital regulatory parameters.</p>
                     </div>
                     <div class="mt-2 mt-md-0">
-                        <span class="badge badge-primary px-3 py-2 rounded-pill font-weight-bold" style="background: rgba(255, 103, 31, 0.25); border: 1px solid rgba(255, 103, 31, 0.45); color: #fed7aa;">
+                        <span class="badge badge-primary px-3 py-2 rounded-pill font-weight-bold" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c;">
                             21 ALPHANUMERIC CHARACTERS
                         </span>
                     </div>
                 </div>
 
                 <!-- Animated Visual CIN Example Banner -->
-                <div class="text-center py-3 px-2 rounded-lg mb-4" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;">
+                <div class="text-center py-3 px-2 rounded-lg mb-4" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px;">
                     <div class="d-flex flex-wrap justify-content-center align-items-center" style="gap: 8px;">
                         <span class="cin-segment-pill" style="background: #ff671f; color: #fff;" title="Listing Status">U</span>
                         <span class="cin-segment-pill" style="background: #059669; color: #fff;" title="NIC Activity Code">47713</span>
@@ -1933,62 +1929,62 @@ $company_schema = [
                         <span class="cin-segment-pill" style="background: #dc2626; color: #fff;" title="Company Classification">PTC</span>
                         <span class="cin-segment-pill" style="background: #7c3aed; color: #fff;" title="ROC Sequential Registration Number">474566</span>
                     </div>
-                    <div class="text-white-50 small mt-2">Example: <code>U47713DC2026PTC474566</code> (Unlisted Specialized Retail Company incorporated in Delhi, 2026)</div>
+                    <div class="text-muted small mt-2">Example: <code class="text-primary font-weight-bold">U47713DC2026PTC474566</code> (Unlisted Specialized Retail Company incorporated in Delhi, 2026)</div>
                 </div>
 
                 <!-- 6 Explanatory Infographic Rows -->
                 <div class="row">
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
                             <span class="badge" style="background: #ff671f; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">1</span>
                             <div>
-                                <h6 class="text-white font-weight-bold mb-1">Listing Status (1 Char)</h6>
-                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;"><strong>U</strong> for Unlisted Company or <strong>L</strong> for Companies listed on stock exchanges (NSE/BSE).</p>
+                                <h6 class="text-dark font-weight-bold mb-1">Listing Status (1 Char)</h6>
+                                <p class="text-muted extra-small mb-0" style="font-size: 12.5px;"><strong>U</strong> for Unlisted Company or <strong>L</strong> for Companies listed on stock exchanges (NSE/BSE).</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
                             <span class="badge" style="background: #059669; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">2</span>
                             <div>
-                                <h6 class="text-white font-weight-bold mb-1">NIC Activity Code (5 Digits)</h6>
-                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">National Industrial Classification code categorizing the primary business sector &amp; economic operations.</p>
+                                <h6 class="text-dark font-weight-bold mb-1">NIC Activity Code (5 Digits)</h6>
+                                <p class="text-muted extra-small mb-0" style="font-size: 12.5px;">National Industrial Classification code categorizing the primary business sector &amp; economic operations.</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
                             <span class="badge" style="background: #d97706; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">3</span>
                             <div>
-                                <h6 class="text-white font-weight-bold mb-1">State / ROC Code (2 Chars)</h6>
-                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">Two-letter state jurisdiction code of the registered office (e.g. DL/DC for Delhi, MH for Maharashtra, KA for Karnataka).</p>
+                                <h6 class="text-dark font-weight-bold mb-1">State / ROC Code (2 Chars)</h6>
+                                <p class="text-muted extra-small mb-0" style="font-size: 12.5px;">Two-letter state jurisdiction code of the registered office (e.g. DL/DC for Delhi, MH for Maharashtra, KA for Karnataka).</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
                             <span class="badge" style="background: #0284c7; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">4</span>
                             <div>
-                                <h6 class="text-white font-weight-bold mb-1">Incorporation Year (4 Digits)</h6>
-                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">The 4-digit calendar year in which the legal Certificate of Incorporation was issued by the Registrar.</p>
+                                <h6 class="text-dark font-weight-bold mb-1">Incorporation Year (4 Digits)</h6>
+                                <p class="text-muted extra-small mb-0" style="font-size: 12.5px;">The 4-digit calendar year in which the legal Certificate of Incorporation was issued by the Registrar.</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
                             <span class="badge" style="background: #dc2626; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">5</span>
                             <div>
-                                <h6 class="text-white font-weight-bold mb-1">Ownership Class (3 Chars)</h6>
-                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;"><strong>PTC</strong> (Private Limited), <strong>PLC</strong> (Public Limited), <strong>FTC</strong> (Foreign Subsidiary), <strong>GAP</strong> (Sec 8 Non-profit).</p>
+                                <h6 class="text-dark font-weight-bold mb-1">Ownership Class (3 Chars)</h6>
+                                <p class="text-muted extra-small mb-0" style="font-size: 12.5px;"><strong>PTC</strong> (Private Limited), <strong>PLC</strong> (Public Limited), <strong>FTC</strong> (Foreign Subsidiary), <strong>GAP</strong> (Sec 8 Non-profit).</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 mb-3">
-                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
                             <span class="badge" style="background: #7c3aed; color: #fff; font-size: 14px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">6</span>
                             <div>
-                                <h6 class="text-white font-weight-bold mb-1">Registration Serial (6 Digits)</h6>
-                                <p class="text-white-50 extra-small mb-0" style="font-size: 12.5px;">Unique sequential registration number allotted by the respective regional Registrar of Companies (ROC).</p>
+                                <h6 class="text-dark font-weight-bold mb-1">Registration Serial (6 Digits)</h6>
+                                <p class="text-muted extra-small mb-0" style="font-size: 12.5px;">Unique sequential registration number allotted by the respective regional Registrar of Companies (ROC).</p>
                             </div>
                         </div>
                     </div>

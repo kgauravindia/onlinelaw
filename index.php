@@ -46,12 +46,23 @@ $website_schema = [
     </script>
 
     <style>
-        /* Hero Banner Custom Ambient Overlays (Indian Flag Tricolor Theme) */
+        /* Hero Banner Custom Ambient Overlays (Indian Flag Tricolor Theme - Whitish Redesign) */
         .hero-modern-banner {
             position: relative;
-            background: radial-gradient(135% 100% at 50% 0%, #071329 0%, #0b1e3d 45%, #071329 100%);
+            background-color: #ffffff;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
             padding: clamp(65px, 8vw, 115px) 0 clamp(80px, 9vw, 130px) 0;
             overflow: hidden;
+        }
+        .hero-modern-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.7;
+            pointer-events: none;
         }
         .hero-ambient-orb-1 {
             position: absolute;
@@ -59,7 +70,7 @@ $website_schema = [
             left: 10%;
             width: 480px;
             height: 480px;
-            background: radial-gradient(circle, rgba(255, 103, 31, 0.22) 0%, rgba(255, 103, 31, 0) 70%);
+            background: radial-gradient(circle, rgba(255, 103, 31, 0.09) 0%, rgba(255, 103, 31, 0) 70%);
             border-radius: 50%;
             filter: blur(50px);
             pointer-events: none;
@@ -71,7 +82,7 @@ $website_schema = [
             right: 10%;
             width: 460px;
             height: 460px;
-            background: radial-gradient(circle, rgba(4, 106, 56, 0.22) 0%, rgba(4, 106, 56, 0) 70%);
+            background: radial-gradient(circle, rgba(4, 106, 56, 0.08) 0%, rgba(4, 106, 56, 0) 70%);
             border-radius: 50%;
             filter: blur(50px);
             pointer-events: none;
@@ -90,14 +101,15 @@ $website_schema = [
         .hero-main-heading {
             font-size: clamp(32px, 5vw, 54px) !important;
             font-weight: 800 !important;
-            color: #ffffff !important;
+            color: #0f172a !important;
             line-height: 1.16 !important;
             letter-spacing: -0.03em;
             margin-top: 15px;
             margin-bottom: 16px;
+            text-shadow: none !important;
         }
         .hero-radiant-gradient {
-            background: linear-gradient(135deg, #ffa500 0%, #ff8800 45%, #ffffff 75%, #34d399 100%);
+            background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
@@ -105,18 +117,17 @@ $website_schema = [
 
         /* Hero Search Card Console */
         .hero-search-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
             border-radius: 22px;
-            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+            box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.03);
             padding: 24px 26px;
             margin-top: 32px;
             transition: var(--transition-smooth);
         }
         .hero-search-card:focus-within {
-            box-shadow: 0 30px 70px -12px rgba(255, 103, 31, 0.28), 0 0 0 2px rgba(255, 103, 31, 0.4);
+            border-color: #cbd5e1;
+            box-shadow: 0 24px 50px -10px rgba(255, 103, 31, 0.15), 0 0 0 2px rgba(255, 103, 31, 0.25);
         }
 
         /* Search Tabs Navigation */
