@@ -9,9 +9,13 @@ require_once(__DIR__ . '/../includes/function.php');
 
 // Self-healing database schema: ensure op_user has otp_code and otp_expiry columns
 if (isset($con) && $con) {
-    $col_check = @mysqli_query($con, "SHOW COLUMNS FROM `op_user` LIKE 'otp_code'");
-    if ($col_check && mysqli_num_rows($col_check) === 0) {
-        @mysqli_query($con, "ALTER TABLE `op_user` ADD COLUMN `otp_code` VARCHAR(10) NULL AFTER `allow_otp`, ADD COLUMN `otp_expiry` DATETIME NULL AFTER `otp_code`");
+    try {
+        $col_check = @mysqli_query($con, "SHOW COLUMNS FROM `op_user` LIKE 'otp_code'");
+        if ($col_check && mysqli_num_rows($col_check) === 0) {
+            @mysqli_query($con, "ALTER TABLE `op_user` ADD COLUMN `otp_code` VARCHAR(10) NULL AFTER `allow_otp`, ADD COLUMN `otp_expiry` DATETIME NULL AFTER `otp_code`");
+        }
+    } catch (\Throwable $e) {
+        // Suppress permission / schema check errors on shared hosting environments
     }
 }
 
