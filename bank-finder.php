@@ -91,14 +91,18 @@
     // Fetch All Banks for Step 1 Dropdown
     $all_banks = $_SESSION['all_banks_list'] ?? [];
     if (empty($all_banks)) {
-        $banks_res = mysqli_query($con, "SELECT DISTINCT bank FROM bank_ifsc WHERE bank IS NOT NULL AND bank != '' ORDER BY bank ASC");
-        if ($banks_res) {
-            while ($bRow = mysqli_fetch_assoc($banks_res)) {
-                $all_banks[] = $bRow['bank'];
+        try {
+            if ($con) {
+                $banks_res = @mysqli_query($con, "SELECT DISTINCT bank FROM bank_ifsc WHERE bank IS NOT NULL AND bank != '' ORDER BY bank ASC");
+                if ($banks_res) {
+                    while ($bRow = mysqli_fetch_assoc($banks_res)) {
+                        $all_banks[] = $bRow['bank'];
+                    }
+                    mysqli_free_result($banks_res);
+                    $_SESSION['all_banks_list'] = $all_banks;
+                }
             }
-            mysqli_free_result($banks_res);
-            $_SESSION['all_banks_list'] = $all_banks;
-        }
+        } catch (Throwable $e) {}
     }
 
     // Fetch States if Bank is selected

@@ -92,24 +92,34 @@ if ($has_search && !$single_nic) {
 }
 
 // Total Stats for Landing
-$stats_query = mysqli_query($con, "SELECT level, count(*) as cnt FROM `nic` WHERE status = 'ACTIVE' GROUP BY level");
 $nic_counts = ['SECTION' => 21, 'DIVISION' => 87, 'GROUP' => 257, 'CLASS' => 463, 'SUBCLASS' => 1886, 'TOTAL' => 2714];
-if ($stats_query) {
-    $nic_counts['TOTAL'] = 0;
-    while ($sq_row = mysqli_fetch_assoc($stats_query)) {
-        $nic_counts[$sq_row['level']] = (int)$sq_row['cnt'];
-        $nic_counts['TOTAL'] += (int)$sq_row['cnt'];
+try {
+    if ($con) {
+        $stats_query = @mysqli_query($con, "SELECT level, count(*) as cnt FROM `nic` WHERE status = 'ACTIVE' GROUP BY level");
+        if ($stats_query) {
+            $nic_counts['TOTAL'] = 0;
+            while ($sq_row = mysqli_fetch_assoc($stats_query)) {
+                $nic_counts[$sq_row['level']] = (int)$sq_row['cnt'];
+                $nic_counts['TOTAL'] += (int)$sq_row['cnt'];
+            }
+            mysqli_free_result($stats_query);
+        }
     }
-}
+} catch (Throwable $e) {}
 
 // All Sections for filter dropdown & landing grid
-$all_sections_res = mysqli_query($con, "SELECT code, title FROM `nic` WHERE level = 'SECTION' ORDER BY code ASC");
 $sections_list = [];
-if ($all_sections_res) {
-    while ($sec_r = mysqli_fetch_assoc($all_sections_res)) {
-        $sections_list[] = $sec_r;
+try {
+    if ($con) {
+        $all_sections_res = @mysqli_query($con, "SELECT code, title FROM `nic` WHERE level = 'SECTION' ORDER BY code ASC");
+        if ($all_sections_res) {
+            while ($sec_r = mysqli_fetch_assoc($all_sections_res)) {
+                $sections_list[] = $sec_r;
+            }
+            mysqli_free_result($all_sections_res);
+        }
     }
-}
+} catch (Throwable $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">

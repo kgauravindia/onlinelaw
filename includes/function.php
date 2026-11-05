@@ -431,35 +431,43 @@ function delete_multi_data( $table_name, $whereArr)
 function direct_sql($sql, $type='get')
 	{
 		global $con;
-		$result =null;
-		$res = mysqli_query($con,$sql) or die("Error In Loading Data : ".mysqli_error($con));
-		if($type=='set')
-		{
-			$ct =mysqli_affected_rows($con);
-			$result['count']=$ct;
-			$result['status']='success';
-			$result['id']=mysqli_insert_id($con);
-		}else{
-			$ct =mysqli_num_rows($res);	
-			if ($ct >=1)
+		$result = ['count' => 0, 'data' => null, 'status' => 'error'];
+		if (!$con) return $result;
+		try {
+			$res = @mysqli_query($con, $sql);
+			if (!$res) return $result;
+			if ($type == 'set')
 			{
-				$data = [];
-				while($row =mysqli_fetch_assoc($res))
+				$ct = mysqli_affected_rows($con);
+				$result['count'] = $ct;
+				$result['status'] = 'success';
+				$result['id'] = mysqli_insert_id($con);
+			} else {
+				$ct = mysqli_num_rows($res);	
+				if ($ct >= 1)
 				{
-					$data[] = $row;
+					$data = [];
+					while ($row = mysqli_fetch_assoc($res))
+					{
+						$data[] = $row;
+					}
+					$result['count'] = $ct;
+					$result['status'] = 'success';
+					$result['data'] = $data;
+				} else {
+					$result['count'] = 0;
+					$result['status'] = 'empty';
+					$result['data'] = [];
 				}
-				$result['count']=$ct;
-				$result['status']='success';
-				$result['data']=$data;
-			}	
-			else{
-				$result['count']=0;
-				$result['status']='error';
-				$result['data']=null;
+				if (is_object($res)) {
+					mysqli_free_result($res);
+				}
 			}
-			if (is_object($res)) {
-				mysqli_free_result($res);
-			}
+		} catch (Throwable $e) {
+			$result['count'] = 0;
+			$result['data'] = null;
+			$result['status'] = 'error';
+			$result['error'] = $e->getMessage();
 		}
 		return $result;
 	}

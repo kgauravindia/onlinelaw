@@ -177,21 +177,23 @@
             'OPC' => 43131,
             'SECTION_8' => 45580
         ];
-        $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') GROUP BY category");
-        if ($stats_res['count'] > 0) {
-            $tot = 0;
-            foreach ($stats_res['data'] as $s) {
-                $cat = strtoupper($s['category']);
-                if (isset($stats[$cat])) {
-                    $stats[$cat] = (int)$s['cnt'];
+        try {
+            $stats_res = direct_sql("SELECT category, COUNT(*) as cnt FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') GROUP BY category");
+            if (!empty($stats_res['count']) && $stats_res['count'] > 0 && !empty($stats_res['data'])) {
+                $tot = 0;
+                foreach ($stats_res['data'] as $s) {
+                    $cat = strtoupper($s['category'] ?? '');
+                    if (isset($stats[$cat])) {
+                        $stats[$cat] = (int)$s['cnt'];
+                    }
+                    $tot += (int)$s['cnt'];
                 }
-                $tot += (int)$s['cnt'];
+                $stats['TOTAL'] = $tot;
             }
-            $stats['TOTAL'] = $tot;
-        }
-        if (function_exists('set_setting')) {
-            set_setting('company_stats_cache', json_encode(['time' => time(), 'data' => $stats]));
-        }
+            if (function_exists('set_setting')) {
+                set_setting('company_stats_cache', json_encode(['time' => time(), 'data' => $stats]));
+            }
+        } catch (Throwable $e) {}
     }
 
     // Helper: Determine exact entity type and visual styling for any company record
