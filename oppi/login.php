@@ -18,6 +18,16 @@ if (isset($con) && $con) {
 $error = '';
 $success = '';
 
+// Retrieve one-time flash messages
+if (!empty($_SESSION['flash_error'])) {
+    $error = $_SESSION['flash_error'];
+    unset($_SESSION['flash_error']);
+}
+if (!empty($_SESSION['flash_success'])) {
+    $success = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
+
 // Check IP Rate Limiting (10 failed attempts per 15-minute window)
 $rate_status = function_exists('check_rate_limit') ? check_rate_limit('admin_login', 10, 900) : ['allowed' => true, 'remaining_seconds' => 0];
 if (!$rate_status['allowed']) {
@@ -71,13 +81,15 @@ function mask_email_addr($email) {
     return $masked_user . '@' . $domain;
 }
 
-// Handle Resend OTP Request
+// Handle Resend OTP Request (Strict 45s cooldown + PRG redirect)
 if (isset($_GET['resend']) && !empty($_SESSION['pending_otp'])) {
     $now = time();
-    $last_sent = $_SESSION['pending_otp']['last_sent'] ?? 0;
-    if ($now - $last_sent < 30) {
-        $wait_sec = 30 - ($now - $last_sent);
-        $error = "Please wait {$wait_sec} second(s) before requesting another verification code.";
+    $last_sent = intval($_SESSION['pending_otp']['last_sent'] ?? 0);
+    if ($now - $last_sent < 45) {
+        $wait_sec = 45 - ($now - $last_sent);
+        $_SESSION['flash_error'] = "Please wait {$wait_sec} second(s) before requesting another verification code.";
+        header("Location: login.php");
+        exit();
     } else {
         $p_uid = intval($_SESSION['pending_otp']['user_id']);
         $p_check = direct_sql("SELECT * FROM op_user WHERE id = $p_uid LIMIT 1");
@@ -90,7 +102,9 @@ if (isset($_GET['resend']) && !empty($_SESSION['pending_otp'])) {
 
             direct_sql("UPDATE op_user SET otp_code = '$new_otp', otp_expiry = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE id = $p_uid", 'set');
             send_admin_otp($pu, $new_otp);
-            $success = "A new verification code has been dispatched to your mobile and email.";
+            $_SESSION['flash_success'] = "A new verification code has been dispatched to your mobile and email.";
+            header("Location: login.php");
+            exit();
         }
     }
 }
@@ -227,11 +241,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $require_otp = (!empty($u['allow_otp']) && strtoupper($u['allow_otp']) === 'YES');
 
                         // ----------------------------------------------------
-                        // REQUIRE 2FA OTP VERIFICATION
+                        // REQUIRE 2FA OTP VERIFICATION (STRICT SINGLE-SEND GUARD)
                         // ----------------------------------------------------
                         if ($require_otp) {
-                            $otp = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
                             $now = time();
+
+                            // 1. Session-level duplicate check (within 45s cooldown)
+                            $sess_otp = $_SESSION['pending_otp'] ?? null;
+                            $has_recent_session_otp = !empty($sess_otp['otp']) && 
+                                                      intval($sess_otp['user_id'] ?? 0) === $user_id && 
+                                                      ($now - intval($sess_otp['last_sent'] ?? 0)) < 45 &&
+                                                      $now < intval($sess_otp['expires'] ?? 0);
+
+                            // 2. Database-level cross-request duplicate check (within 45s cooldown)
+                            // otp_expiry was set to NOW() + 300s. If (expiry - now) > 255s, OTP was dispatched < 45s ago.
+                            $db_expiry_ts = !empty($u['otp_expiry']) ? strtotime($u['otp_expiry']) : 0;
+                            $has_recent_db_otp = !empty($u['otp_code']) && 
+                                                 ($db_expiry_ts > $now) && 
+                                                 (($db_expiry_ts - $now) > 255);
+
+                            if ($has_recent_session_otp || $has_recent_db_otp) {
+                                // OTP was ALREADY sent in the last 45 seconds! DO NOT send duplicate SMS/Email!
+                                $active_otp = $has_recent_session_otp ? $sess_otp['otp'] : $u['otp_code'];
+                                $active_expiry = $has_recent_session_otp ? $sess_otp['expires'] : $db_expiry_ts;
+                                $active_last_sent = $has_recent_session_otp ? $sess_otp['last_sent'] : ($db_expiry_ts - 300);
+
+                                $_SESSION['pending_otp'] = [
+                                    'user_id' => $user_id,
+                                    'otp' => $active_otp,
+                                    'expires' => $active_expiry,
+                                    'attempts' => $sess_otp['attempts'] ?? 0,
+                                    'last_sent' => $active_last_sent,
+                                    'needs_rehash' => $needs_rehash,
+                                    'plain_pass' => $password,
+                                    'mobile' => $u['user_mobile'],
+                                    'email' => $u['user_email'],
+                                    'name' => $u['full_name'] ?: $u['user_name']
+                                ];
+
+                                $_SESSION['flash_success'] = "Verification code already sent to your mobile and email. Please enter it below.";
+                                header("Location: login.php");
+                                exit();
+                            }
+
+                            // Fresh OTP generation & STRICT SINGLE DISPATCH
+                            $otp = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
 
                             $_SESSION['pending_otp'] = [
                                 'user_id' => $user_id,
@@ -249,10 +303,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             // Store in DB for reliability
                             direct_sql("UPDATE op_user SET otp_code = '$otp', otp_expiry = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE id = $user_id", 'set');
 
-                            // Dispatch via DLT SMS & HTML Email
+                            // Dispatch via DLT SMS & HTML Email - STRICTLY ONCE
                             send_admin_otp($u, $otp);
 
-                            $success = "Verification code has been sent to your registered mobile and email.";
+                            $_SESSION['flash_success'] = "Verification code has been sent to your registered mobile and email.";
+                            header("Location: login.php");
+                            exit();
                         }
                         // ----------------------------------------------------
                         // DIRECT SIGN-IN (OTP DISABLED)
@@ -410,7 +466,7 @@ $is_localhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'lo
             </div>
         <?php endif; ?>
 
-        <form method="post" action="">
+        <form method="post" action="" id="otpForm" onsubmit="return handleFormSubmit(this, 'Verifying...');">
             <input type="hidden" name="action" value="verify_otp">
             <?php echo function_exists('get_csrf_input') ? get_csrf_input('admin_otp') : ''; ?>
 
@@ -427,7 +483,7 @@ $is_localhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'lo
                 <a href="login.php?cancel=1" class="text-muted small text-decoration-none">
                     <i class="fas fa-arrow-left mr-1"></i> Back to Sign In
                 </a>
-                <a href="login.php?resend=1" class="text-primary small font-weight-bold text-decoration-none" id="resendLink">
+                <a href="login.php?resend=1" class="text-primary small font-weight-bold text-decoration-none" id="resendLink" onclick="return handleResendClick(this);">
                     <i class="fas fa-redo-alt mr-1"></i> Resend Code
                 </a>
             </div>
@@ -435,7 +491,7 @@ $is_localhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'lo
 
     <!-- STEP 1: USERNAME & PASSWORD SIGN-IN -->
     <?php else: ?>
-        <form method="post" action="">
+        <form method="post" action="" id="loginForm" onsubmit="return handleFormSubmit(this, 'Signing In...');">
             <input type="hidden" name="action" value="login">
             <?php echo function_exists('get_csrf_input') ? get_csrf_input('admin_login') : ''; ?>
             
@@ -472,5 +528,32 @@ $is_localhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'lo
     </div>
 </div>
 
+<script>
+let formSubmitted = false;
+function handleFormSubmit(form, loadingText) {
+    if (formSubmitted) {
+        return false;
+    }
+    formSubmitted = true;
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> ' + loadingText;
+    }
+    return true;
+}
+
+let isResending = false;
+function handleResendClick(link) {
+    if (isResending) {
+        return false;
+    }
+    isResending = true;
+    link.style.pointerEvents = 'none';
+    link.style.opacity = '0.6';
+    link.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
+    return true;
+}
+</script>
 </body>
 </html>

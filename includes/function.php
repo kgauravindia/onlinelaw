@@ -847,11 +847,12 @@ function bulk_sms($mobileNumber, $message, $dlt_te_id = '1207173591949478780')
     ));
 
     $response = curl_exec($curl);
+    $curlErrNo = curl_errno($curl);
     $err = curl_error($curl);
     curl_close($curl);
 
-    // Fallback if cURL fails
-    if ($err || empty($response)) {
+    // Fallback strictly only if cURL connection completely failed (prevents duplicate SMS)
+    if (($response === false || $curlErrNo !== 0) && !empty($err)) {
         $fallbackUrl = "http://msg.morg.in/rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . urlencode($activeAuthKey);
         $context = stream_context_create([
             'http' => [
