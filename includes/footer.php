@@ -582,7 +582,12 @@ $(document).ready(function() {
 <?php 
 $footer_custom_code = function_exists('get_setting') ? get_setting('footer_custom_code', '') : '';
 if (!empty($footer_custom_code)) {
-    echo "\n<!-- Custom Footer Code -->\n" . $footer_custom_code . "\n";
+    if (function_exists('sanitize_custom_code')) {
+        $footer_custom_code = sanitize_custom_code($footer_custom_code);
+    }
+    if (!empty(trim($footer_custom_code))) {
+        echo "\n<!-- Custom Footer Code -->\n" . $footer_custom_code . "\n";
+    }
 }
 ?>
 </body>

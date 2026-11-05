@@ -23,9 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
         'google_site_verification'   => trim($_POST['google_site_verification'] ?? ''),
         'bing_site_verification'     => trim($_POST['bing_site_verification'] ?? ''),
         
-        // Custom Code
-        'header_custom_code'         => trim($_POST['header_custom_code'] ?? ''),
-        'footer_custom_code'         => trim($_POST['footer_custom_code'] ?? ''),
+        // Custom Code (Auto-sanitized to block hidden link farms & spam injections)
+        'header_custom_code'         => function_exists('sanitize_custom_code') ? sanitize_custom_code(trim($_POST['header_custom_code'] ?? '')) : trim($_POST['header_custom_code'] ?? ''),
+        'footer_custom_code'         => function_exists('sanitize_custom_code') ? sanitize_custom_code(trim($_POST['footer_custom_code'] ?? '')) : trim($_POST['footer_custom_code'] ?? ''),
         
         // General & Contact Info
         'site_name'                  => trim($_POST['site_name'] ?? ''),

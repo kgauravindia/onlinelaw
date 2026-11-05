@@ -38,15 +38,20 @@ $current_page = basename($_SERVER['PHP_SELF'] ?? '', '.php');
 <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono with font-display swap -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-<!-- Optimized Core CSS Stylesheets -->
+<?php
+$css_ver = @file_exists(__DIR__ . '/../css/custom-modern.css') ? filemtime(__DIR__ . '/../css/custom-modern.css') : '2026110501';
+$style_ver = @file_exists(__DIR__ . '/../css/style.css') ? filemtime(__DIR__ . '/../css/style.css') : '2026110501';
+$resp_ver = @file_exists(__DIR__ . '/../css/responsive.css') ? filemtime(__DIR__ . '/../css/responsive.css') : '2026110501';
+?>
+<!-- Optimized Core CSS Stylesheets with Cache Busting -->
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/bootstrap-4.1.3.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/style.css">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/responsive.css">
+<link rel="stylesheet" href="<?php echo $base_url; ?>css/style.css?v=<?php echo $style_ver; ?>">
+<link rel="stylesheet" href="<?php echo $base_url; ?>css/responsive.css?v=<?php echo $resp_ver; ?>">
 <!-- Non-blocking DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="<?php echo $base_url; ?>css/custom-modern.css">
+<link rel="stylesheet" href="<?php echo $base_url; ?>css/custom-modern.css?v=<?php echo $css_ver; ?>">
     
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -68,10 +73,16 @@ $current_page = basename($_SERVER['PHP_SELF'] ?? '', '.php');
   gtag('config', '<?php echo htmlspecialchars($ga_id); ?>');
 </script>
 <?php endif; ?>
-<?php if (!empty($header_custom_code)): ?>
-<!-- Custom Header Code -->
-<?php echo $header_custom_code; ?>
-<?php endif; ?>
+<?php 
+if (!empty($header_custom_code)) {
+    if (function_exists('sanitize_custom_code')) {
+        $header_custom_code = sanitize_custom_code($header_custom_code);
+    }
+    if (!empty(trim($header_custom_code))) {
+        echo "<!-- Custom Header Code -->\n" . $header_custom_code . "\n";
+    }
+}
+?>
 </head>
 
 <body>

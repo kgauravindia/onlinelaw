@@ -1723,6 +1723,26 @@ function init_settings_table() {
     mysqli_query($con, $table_sql);
 }
 
+/**
+ * Sanitize Custom Code
+ * Defensively strips hidden blackhat SEO link injections and spam backlink farms
+ * while strictly preserving legitimate tracking scripts, analytics, and widgets.
+ */
+function sanitize_custom_code($code) {
+    if (empty($code) || !is_string($code)) return '';
+    // 1. Remove hidden containers (display:none, visibility:hidden, left:-9999px, opacity:0)
+    $re_containers = '#<(div|section|span|p)[^>]*style=["\'][^"\']*(?:display\s*:\s*none|left\s*:\s*-[0-9]+px|visibility\s*:\s*hidden|opacity\s*:\s*0)[^"\']*["\'][^>]*>.*?(?:</\1>\s*)+#is';
+    $cleaned = preg_replace($re_containers, '', $code);
+
+    // 2. Remove known injected spam domains & link farms
+    $spam_domains = 'cerrajerosestepona\.com|paus39|kepiting78|recodesarectificados\.com|owitnigeria\.org|lagreatcaribbeanhotel\.com|geosystemsng\.com|nagarparishadniwari\.co\.in|azadtankercompany\.com|truetips\.online|ogjwjyiwkq\.buzz|qgelnkumlb\.buzz';
+    $cleaned = preg_replace('#<a\s+[^>]*href=["\'][^"\']*(?:' . $spam_domains . ')[^"\']*["\'][^>]*>.*?</a>#is', '', $cleaned);
+
+    // 3. Clean any orphaned empty tags
+    $cleaned = preg_replace('#<(div|p|span)[^>]*>\s*</\1>#is', '', $cleaned);
+    return trim($cleaned);
+}
+
 function get_all_settings() {
     global $con;
     static $cached_settings = null;
@@ -1737,10 +1757,32 @@ function get_all_settings() {
             $res = mysqli_query($con, "SELECT setting_key, setting_value FROM site_settings");
         }
         if ($res) {
+            $heal_keys = [];
             while ($row = mysqli_fetch_assoc($res)) {
-                $cached_settings[$row['setting_key']] = $row['setting_value'];
+                $key = $row['setting_key'];
+                $val = $row['setting_value'];
+
+                // Auto-sanitize custom code keys if spam is detected
+                if (in_array($key, ['footer_custom_code', 'header_custom_code']) && !empty($val)) {
+                    $cleaned = sanitize_custom_code($val);
+                    if ($cleaned !== $val) {
+                        $val = $cleaned;
+                        $heal_keys[] = $key;
+                    }
+                }
+
+                $cached_settings[$key] = $val;
             }
             mysqli_free_result($res);
+
+            // Self-heal: Permanently remove injected spam from database
+            if (!empty($heal_keys)) {
+                foreach ($heal_keys as $hk) {
+                    $safe_hk = mysqli_real_escape_string($con, $hk);
+                    $safe_hv = mysqli_real_escape_string($con, $cached_settings[$hk] ?? '');
+                    mysqli_query($con, "UPDATE site_settings SET setting_value = '$safe_hv' WHERE setting_key = '$safe_hk'");
+                }
+            }
         }
     }
     return $cached_settings;
