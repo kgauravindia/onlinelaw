@@ -156,11 +156,19 @@
 
         $where_sql = implode(' AND ', $where);
 
-        $count_res = direct_sql("SELECT COUNT(*) as total FROM companies_incorporated WHERE $where_sql");
-        $total_companies = isset($count_res['data'][0]['total']) ? (int)$count_res['data'][0]['total'] : 0;
-        $total_pages = ceil($total_companies / $limit);
+        // Fetch paginated results with index-optimized ordering (avoids heavy unindexed filesort across 1M rows)
+        $companies_list = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY id DESC LIMIT $offset, $limit");
+        $fetched_count = (!empty($companies_list['count']) && !empty($companies_list['data'])) ? $companies_list['count'] : 0;
 
-        $companies_list = direct_sql("SELECT * FROM companies_incorporated WHERE $where_sql ORDER BY registration_date DESC, id DESC LIMIT $offset, $limit");
+        // Efficient bounded total count
+        if ($page === 1 && $fetched_count < $limit) {
+            $total_companies = $fetched_count;
+            $total_pages = 1;
+        } else {
+            $count_res = direct_sql("SELECT COUNT(*) as total FROM (SELECT id FROM companies_incorporated WHERE $where_sql LIMIT 300) as t");
+            $total_companies = isset($count_res['data'][0]['total']) ? (int)$count_res['data'][0]['total'] : $fetched_count;
+            $total_pages = max(1, ceil($total_companies / $limit));
+        }
     }
 
     // Stats breakdown (Cached for 24 hours to eliminate 4-second full-table scan across 1M rows)
