@@ -1714,13 +1714,17 @@ function resolve_company_incorporation($param) {
 function init_settings_table() {
     global $con;
     if (!$con) return;
-    $table_sql = "CREATE TABLE IF NOT EXISTS site_settings (
-        setting_key VARCHAR(100) NOT NULL PRIMARY KEY,
-        setting_value LONGTEXT NULL,
-        setting_group VARCHAR(50) DEFAULT 'general',
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-    mysqli_query($con, $table_sql);
+    try {
+        $table_sql = "CREATE TABLE IF NOT EXISTS site_settings (
+            setting_key VARCHAR(100) NOT NULL PRIMARY KEY,
+            setting_value LONGTEXT NULL,
+            setting_group VARCHAR(50) DEFAULT 'general',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        @mysqli_query($con, $table_sql);
+    } catch (Throwable $e) {
+        // Table creation fail-safe
+    }
 }
 
 /**
@@ -1751,38 +1755,39 @@ function get_all_settings() {
     }
     $cached_settings = [];
     if ($con) {
-        $res = mysqli_query($con, "SELECT setting_key, setting_value FROM site_settings");
-        if (!$res && mysqli_errno($con) == 1146) {
+        try {
             init_settings_table();
-            $res = mysqli_query($con, "SELECT setting_key, setting_value FROM site_settings");
-        }
-        if ($res) {
-            $heal_keys = [];
-            while ($row = mysqli_fetch_assoc($res)) {
-                $key = $row['setting_key'];
-                $val = $row['setting_value'];
+            $res = @mysqli_query($con, "SELECT setting_key, setting_value FROM site_settings");
+            if ($res) {
+                $heal_keys = [];
+                while ($row = mysqli_fetch_assoc($res)) {
+                    $key = $row['setting_key'];
+                    $val = $row['setting_value'];
 
-                // Auto-sanitize custom code keys if spam is detected
-                if (in_array($key, ['footer_custom_code', 'header_custom_code']) && !empty($val)) {
-                    $cleaned = sanitize_custom_code($val);
-                    if ($cleaned !== $val) {
-                        $val = $cleaned;
-                        $heal_keys[] = $key;
+                    // Auto-sanitize custom code keys if spam is detected
+                    if (in_array($key, ['footer_custom_code', 'header_custom_code']) && !empty($val)) {
+                        $cleaned = sanitize_custom_code($val);
+                        if ($cleaned !== $val) {
+                            $val = $cleaned;
+                            $heal_keys[] = $key;
+                        }
+                    }
+
+                    $cached_settings[$key] = $val;
+                }
+                mysqli_free_result($res);
+
+                // Self-heal: Permanently remove injected spam from database
+                if (!empty($heal_keys)) {
+                    foreach ($heal_keys as $hk) {
+                        $safe_hk = mysqli_real_escape_string($con, $hk);
+                        $safe_hv = mysqli_real_escape_string($con, $cached_settings[$hk] ?? '');
+                        @mysqli_query($con, "UPDATE site_settings SET setting_value = '$safe_hv' WHERE setting_key = '$safe_hk'");
                     }
                 }
-
-                $cached_settings[$key] = $val;
             }
-            mysqli_free_result($res);
-
-            // Self-heal: Permanently remove injected spam from database
-            if (!empty($heal_keys)) {
-                foreach ($heal_keys as $hk) {
-                    $safe_hk = mysqli_real_escape_string($con, $hk);
-                    $safe_hv = mysqli_real_escape_string($con, $cached_settings[$hk] ?? '');
-                    mysqli_query($con, "UPDATE site_settings SET setting_value = '$safe_hv' WHERE setting_key = '$safe_hk'");
-                }
-            }
+        } catch (Throwable $e) {
+            // Fail-safe: DB query failure should never crash page rendering
         }
     }
     return $cached_settings;
@@ -1795,15 +1800,19 @@ function get_setting($key, $default = '') {
 
 function set_setting($key, $value, $group = 'general') {
     global $con;
-    init_settings_table();
     if (!$con) return false;
-    $safe_key = mysqli_real_escape_string($con, trim($key));
-    $safe_val = mysqli_real_escape_string($con, $value);
-    $safe_grp = mysqli_real_escape_string($con, trim($group));
-    $sql = "INSERT INTO site_settings (setting_key, setting_value, setting_group) 
-            VALUES ('$safe_key', '$safe_val', '$safe_grp')
-            ON DUPLICATE KEY UPDATE setting_value = '$safe_val', setting_group = '$safe_grp'";
-    return mysqli_query($con, $sql);
+    try {
+        init_settings_table();
+        $safe_key = mysqli_real_escape_string($con, trim($key));
+        $safe_val = mysqli_real_escape_string($con, $value);
+        $safe_grp = mysqli_real_escape_string($con, trim($group));
+        $sql = "INSERT INTO site_settings (setting_key, setting_value, setting_group) 
+                VALUES ('$safe_key', '$safe_val', '$safe_grp')
+                ON DUPLICATE KEY UPDATE setting_value = '$safe_val', setting_group = '$safe_grp'";
+        return @mysqli_query($con, $sql);
+    } catch (Throwable $e) {
+        return false;
+    }
 }
 
 /**

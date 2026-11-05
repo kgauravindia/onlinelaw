@@ -39,9 +39,26 @@ $current_page = basename($_SERVER['PHP_SELF'] ?? '', '.php');
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
 <?php
-$css_ver = @file_exists(__DIR__ . '/../css/custom-modern.css') ? filemtime(__DIR__ . '/../css/custom-modern.css') : '2026110501';
-$style_ver = @file_exists(__DIR__ . '/../css/style.css') ? filemtime(__DIR__ . '/../css/style.css') : '2026110501';
-$resp_ver = @file_exists(__DIR__ . '/../css/responsive.css') ? filemtime(__DIR__ . '/../css/responsive.css') : '2026110501';
+$css_ver = '2026110502';
+$style_ver = '2026110502';
+$resp_ver = '2026110502';
+try {
+    $c_path = __DIR__ . '/../css/custom-modern.css';
+    if (@file_exists($c_path)) {
+        $m = @filemtime($c_path);
+        if ($m) $css_ver = (string)$m;
+    }
+    $s_path = __DIR__ . '/../css/style.css';
+    if (@file_exists($s_path)) {
+        $m = @filemtime($s_path);
+        if ($m) $style_ver = (string)$m;
+    }
+    $r_path = __DIR__ . '/../css/responsive.css';
+    if (@file_exists($r_path)) {
+        $m = @filemtime($r_path);
+        if ($m) $resp_ver = (string)$m;
+    }
+} catch (Throwable $e) {}
 ?>
 <!-- Optimized Core CSS Stylesheets with Cache Busting -->
 <link rel="stylesheet" href="<?php echo $base_url; ?>css/bootstrap-4.1.3.min.css">
