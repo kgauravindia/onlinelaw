@@ -561,7 +561,7 @@ if (!$is_admin) {
             <a href="<?php echo $base_url; ?>" class="btn-primary-home">
                 <i class="fas fa-home"></i> Back to Homepage
             </a>
-            <a href="<?php echo $base_url; ?>contact-us.php" class="btn-secondary-link">
+            <a href="<?php echo $base_url; ?>contact" class="btn-secondary-link">
                 <i class="fas fa-envelope"></i> Contact Support
             </a>
         </div>
@@ -695,8 +695,6 @@ $meta_desc = "Integrate real-time Bank IFSC, PIN Code, GST HSN/SAC, MCA Companie
             background: linear-gradient(135deg, #ff671f 0%, #ea580c 100%);
             color: #ffffff !important;
             box-shadow: 0 4px 12px rgba(255, 103, 31, 0.25);
-        }
-            color: #2563eb;
         }
 
         .endpoint-card {
