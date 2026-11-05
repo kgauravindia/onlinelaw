@@ -62,7 +62,8 @@
     // Fetch related companies when viewing a single company without separate search filters
     $related_companies = ['count' => 0, 'data' => []];
     if ($single_company && !$has_search) {
-        $r_where = [$is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')", "id != " . intval($single_company['id'])];
+        $comp_status_filter = function_exists('get_company_status_filter') ? get_company_status_filter() : "1=1";
+        $r_where = [$comp_status_filter, "id != " . intval($single_company['id'])];
         if (!empty($single_company['activity_code'])) {
             $r_act = mysqli_real_escape_string($con, $single_company['activity_code']);
             $r_where[] = "activity_code = '$r_act'";
@@ -80,25 +81,31 @@
 
     // Query database for search results when a query or filter is active
     if ($has_search) {
-        $where = [$is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')"];
+        $comp_status_filter = function_exists('get_company_status_filter') ? get_company_status_filter() : "1=1";
+        $where = [$comp_status_filter];
         if (!empty($q_param)) {
             $sq = mysqli_real_escape_string($con, $q_param);
             $sub_clauses = ["cin LIKE '%$sq%'", "company_name LIKE '%$sq%'", "activity_code = '$sq'"];
 
             // Check if search keyword matches any NIC activity title or description in table nic
-            $nic_kw_res = mysqli_query($con, "SELECT DISTINCT division_code FROM `nic` WHERE (title LIKE '%$sq%' OR description LIKE '%$sq%') AND division_code != '' LIMIT 15");
-            if ($nic_kw_res && mysqli_num_rows($nic_kw_res) > 0) {
-                $matched_divs = [];
-                while ($ndr = mysqli_fetch_assoc($nic_kw_res)) {
-                    $matched_divs[] = "'" . mysqli_real_escape_string($con, $ndr['division_code']) . "'";
-                    if (str_starts_with($ndr['division_code'], '0')) {
-                        $matched_divs[] = "'" . (int)$ndr['division_code'] . "'";
+            try {
+                if ($con) {
+                    $nic_kw_res = @mysqli_query($con, "SELECT DISTINCT division_code FROM `nic` WHERE (title LIKE '%$sq%' OR description LIKE '%$sq%') AND division_code != '' LIMIT 15");
+                    if ($nic_kw_res && mysqli_num_rows($nic_kw_res) > 0) {
+                        $matched_divs = [];
+                        while ($ndr = mysqli_fetch_assoc($nic_kw_res)) {
+                            $matched_divs[] = "'" . mysqli_real_escape_string($con, $ndr['division_code']) . "'";
+                            if (str_starts_with($ndr['division_code'], '0')) {
+                                $matched_divs[] = "'" . (int)$ndr['division_code'] . "'";
+                            }
+                        }
+                        if (!empty($matched_divs)) {
+                            $sub_clauses[] = "activity_code IN (" . implode(',', array_unique($matched_divs)) . ")";
+                        }
+                        mysqli_free_result($nic_kw_res);
                     }
                 }
-                if (!empty($matched_divs)) {
-                    $sub_clauses[] = "activity_code IN (" . implode(',', array_unique($matched_divs)) . ")";
-                }
-            }
+            } catch (Throwable $e) {}
             $where[] = "(" . implode(' OR ', $sub_clauses) . ")";
         }
         if (!empty($activity_param)) {

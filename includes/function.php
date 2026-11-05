@@ -1656,6 +1656,35 @@ function company_url($name_or_row, $cin = null) {
 }
 
 /**
+ * Get dynamic active filter for companies_incorporated
+ * Checks if status column exists in table to avoid unknown column fatal errors
+ */
+function get_company_status_filter() {
+    global $con;
+    static $status_clause = null;
+    if ($status_clause !== null) {
+        return $status_clause;
+    }
+    $is_admin = (check_admin_auth(false) !== false);
+    if ($is_admin) {
+        $status_clause = "1=1";
+        return $status_clause;
+    }
+    $has_col = false;
+    if ($con) {
+        try {
+            $chk = @mysqli_query($con, "SHOW COLUMNS FROM `companies_incorporated` LIKE 'status'");
+            if ($chk && mysqli_num_rows($chk) > 0) {
+                $has_col = true;
+                mysqli_free_result($chk);
+            }
+        } catch (Throwable $e) {}
+    }
+    $status_clause = $has_col ? "(status = 'ACTIVE' OR status IS NULL OR status = '')" : "1=1";
+    return $status_clause;
+}
+
+/**
  * Resolve company record from CIN, LLPIN, FCIN, or composite name-cin slug
  */
 function resolve_company_incorporation($param) {
@@ -1664,8 +1693,7 @@ function resolve_company_incorporation($param) {
     if (empty($param)) return null;
 
     $safe = mysqli_real_escape_string($con, $param);
-    $is_admin = (check_admin_auth(false) !== false);
-    $active_filter = $is_admin ? "1=1" : "(status = 'ACTIVE' OR status IS NULL OR status = '')";
+    $active_filter = get_company_status_filter();
     
     // 1. Direct CIN match (e.g. U88100ME2026NPL476032, ADB-7416, F07073)
     $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe' AND $active_filter LIMIT 1");
