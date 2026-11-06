@@ -131,3 +131,4 @@ if (isset($_GET['action']) && $_GET['action'] === 'refresh_captcha') {
     ]);
     exit;
 }
+
