@@ -1,6 +1,7 @@
 <?php
     require_once('includes/config.php');
     require_once('includes/function.php');
+    require_once('includes/captcha.php');
 
     // --------------------------------------------------------------------------
     // AJAX Endpoints for Dynamic 4-Step Cascading Dropdowns
@@ -156,46 +157,53 @@
     $total_unique_ifsc_count = 0;
     $total_unique_branches_count = 0;
     $total_unique_districts_count = 0;
+    $captcha_error = false;
 
     if ($has_search) {
-        $where_clauses = [];
-        $safe_bank = mysqli_real_escape_string($con, $selected_bank);
-        $where_clauses[] = "bank = '$safe_bank'";
-
-        if (!empty($selected_state)) {
-            $safe_state = mysqli_real_escape_string($con, $selected_state);
-            $where_clauses[] = "state = '$safe_state'";
+        if (!olaw_validate_search_captcha()) {
+            $captcha_error = true;
         }
 
-        if (!empty($selected_district)) {
-            $safe_dist = mysqli_real_escape_string($con, $selected_district);
-            $where_clauses[] = "city2 = '$safe_dist'";
+        if (!$captcha_error) {
+            $where_clauses = [];
+            $safe_bank = mysqli_real_escape_string($con, $selected_bank);
+            $where_clauses[] = "bank = '$safe_bank'";
+
+            if (!empty($selected_state)) {
+                $safe_state = mysqli_real_escape_string($con, $selected_state);
+                $where_clauses[] = "state = '$safe_state'";
+            }
+
+            if (!empty($selected_district)) {
+                $safe_dist = mysqli_real_escape_string($con, $selected_district);
+                $where_clauses[] = "city2 = '$safe_dist'";
+            }
+
+            if (!empty($selected_branch)) {
+                $safe_br = mysqli_real_escape_string($con, $selected_branch);
+                $where_clauses[] = "branch = '$safe_br'";
+            }
+
+            $where_sql = implode(' AND ', $where_clauses);
+
+            // Get total count
+            $count_res = mysqli_query($con, "SELECT COUNT(*) as total, COUNT(DISTINCT ifsc) as total_ifscs, COUNT(DISTINCT branch) as total_branches, COUNT(DISTINCT city2) as total_districts FROM bank_ifsc WHERE $where_sql");
+            if ($count_res && ($cRow = mysqli_fetch_assoc($count_res))) {
+                $total_records = (int)$cRow['total'];
+                $total_unique_ifsc_count = (int)$cRow['total_ifscs'];
+                $total_unique_branches_count = (int)$cRow['total_branches'];
+                $total_unique_districts_count = (int)$cRow['total_districts'];
+            }
+
+            $total_pages = max(1, (int)ceil($total_records / $per_page));
+            if ($page > $total_pages) {
+                $page = $total_pages;
+            }
+            $offset = ($page - 1) * $per_page;
+
+            // Fetch paginated results
+            $results = direct_sql("SELECT * FROM bank_ifsc WHERE $where_sql ORDER BY state ASC, city2 ASC, branch ASC LIMIT $offset, $per_page");
         }
-
-        if (!empty($selected_branch)) {
-            $safe_br = mysqli_real_escape_string($con, $selected_branch);
-            $where_clauses[] = "branch = '$safe_br'";
-        }
-
-        $where_sql = implode(' AND ', $where_clauses);
-
-        // Get total count
-        $count_res = mysqli_query($con, "SELECT COUNT(*) as total, COUNT(DISTINCT ifsc) as total_ifscs, COUNT(DISTINCT branch) as total_branches, COUNT(DISTINCT city2) as total_districts FROM bank_ifsc WHERE $where_sql");
-        if ($count_res && ($cRow = mysqli_fetch_assoc($count_res))) {
-            $total_records = (int)$cRow['total'];
-            $total_unique_ifsc_count = (int)$cRow['total_ifscs'];
-            $total_unique_branches_count = (int)$cRow['total_branches'];
-            $total_unique_districts_count = (int)$cRow['total_districts'];
-        }
-
-        $total_pages = max(1, (int)ceil($total_records / $per_page));
-        if ($page > $total_pages) {
-            $page = $total_pages;
-        }
-        $offset = ($page - 1) * $per_page;
-
-        // Fetch paginated results
-        $results = direct_sql("SELECT * FROM bank_ifsc WHERE $where_sql ORDER BY state ASC, city2 ASC, branch ASC LIMIT $offset, $per_page");
     }
 
     // --------------------------------------------------------------------------
@@ -781,6 +789,14 @@
                         </div>
                     </div>
 
+                    <div class="col-12 mt-3 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap" style="border-color: #f1f5f9 !important; gap: 8px;">
+                        <div class="d-inline-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-success mr-1"></i> Security Code:</span>
+                            <?php echo olaw_render_search_captcha_widget('_bankfinder'); ?>
+                        </div>
+                        <span class="small text-muted"><i class="fas fa-lock mr-1"></i> Quick session verification for seamless bank directory browsing.</span>
+                    </div>
+
                 </div>
             </form>
 
@@ -792,6 +808,16 @@
                     <a href="<?php echo $base_url; ?>bank-ifsc-by-branch-name" class="text-success font-weight-bold ml-1">Search by Branch Name</a>
                 </div>
                 <?php if ($has_search): ?>
+
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view bank details.</p>
+                </div>
+            </div>
+            <?php endif; ?>
                     <a href="<?php echo $base_url; ?>bank-finder" class="btn btn-sm btn-outline-danger font-weight-bold px-3 py-1" style="border-radius: 20px; font-size: 12px;">
                         <i class="fas fa-times mr-1"></i> Reset Filters
                     </a>
@@ -803,6 +829,16 @@
              SEARCH RESULTS SECTION
              ====================================================================== -->
         <?php if ($has_search): ?>
+
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view bank details.</p>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <?php if ($results['count'] > 0): ?>
 

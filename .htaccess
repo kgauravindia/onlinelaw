@@ -115,12 +115,10 @@ ServerSignature Off
 # ----------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
     Options -MultiViews
-    ErrorDocument 404 /404.php
 
-    # Redirect legacy /admin URLs to /oppi
-    RewriteRule ^admin(/.*)?$ /oppi$1 [R=301,L,NE,NC]
+    # Redirect legacy /admin URLs to oppi
+    RewriteRule ^admin(/.*)?$ oppi$1 [R=301,L,NE,NC]
 
     # Security: Block composer files and git / dotfiles
     RewriteRule (^|/)composer\.(json|lock)$ - [F,L,NC]
@@ -140,33 +138,31 @@ ServerSignature Off
     RewriteRule .* - [F,L]
 
     # Legal Page Aliases
-    RewriteRule ^terms/?$ /terms-and-conditions [R=301,L,NC]
-    RewriteRule ^privacy/?$ /privacy-policy [R=301,L,NC]
+    RewriteRule ^terms/?$ terms-and-conditions [R=301,L,NC]
+    RewriteRule ^privacy/?$ privacy-policy [R=301,L,NC]
 
     # 1. Search tool detail URLs
-    RewriteRule ^company-incorporation/([a-zA-Z0-9_\-]+)/?$ /company-incorporation.php?cin=$1 [L,QSA]
-    RewriteRule ^pincode/([0-9]+)/?$ /pincode.php?pincode=$1 [L,QSA]
-    RewriteRule ^bank-ifsc/([a-zA-Z0-9]+)/?$ /bank-ifsc.php?ifsc=$1 [L,QSA]
-    RewriteRule ^bank-ifsc-by-branch-name/([^/]+)/?$ /bank-ifsc-by-branch-name.php?branch=$1 [L,QSA]
-    RewriteRule ^pincode-by-locality/([^/]+)/?$ /pincode-by-locality.php?locality=$1 [L,QSA]
-    RewriteRule ^gst-hsn-sac/([^/]+)/?$ /gst-hsn-sac.php?q=$1 [L,QSA]
-    RewriteRule ^nic/([a-zA-Z0-9_\-]+)/?$ /nic.php?code=$1 [L,QSA]
-    RewriteRule ^passport/([^/]+)/?$ /passport.php?q=$1 [L,QSA]
-    RewriteRule ^acts/([^/]+)/?$ /acts.php?q=$1 [L,QSA]
+    RewriteRule ^company-incorporation/([a-zA-Z0-9_\-]+)/?$ company-incorporation.php?cin=$1 [L,QSA]
+    RewriteRule ^pincode/([0-9]+)/?$ pincode.php?pincode=$1 [L,QSA]
+    RewriteRule ^bank-ifsc/([a-zA-Z0-9]+)/?$ bank-ifsc.php?ifsc=$1 [L,QSA]
+    RewriteRule ^bank-ifsc-by-branch-name/([^/]+)/?$ bank-ifsc-by-branch-name.php?branch=$1 [L,QSA]
+    RewriteRule ^pincode-by-locality/([^/]+)/?$ pincode-by-locality.php?locality=$1 [L,QSA]
+    RewriteRule ^gst-hsn-sac/([^/]+)/?$ gst-hsn-sac.php?q=$1 [L,QSA]
+    RewriteRule ^nic/([a-zA-Z0-9_\-]+)/?$ nic.php?code=$1 [L,QSA]
+    RewriteRule ^passport/([^/]+)/?$ passport.php?q=$1 [L,QSA]
+    RewriteRule ^acts/([^/]+)/?$ acts.php?q=$1 [L,QSA]
 
     # 2. Redirect trailing slashes for non-directories for SEO & clean URL mapping
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.+)/$ /$1 [R=301,L]
+    RewriteRule ^(.+)/$ $1 [R=301,L]
 
-    # 3. Subdirectory extensionless URLs (e.g. bank/services -> /bank/services.php)
+    # 3. Subdirectory extensionless URLs (e.g. oppi/login -> oppi/login.php)
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{DOCUMENT_ROOT}/$1/$2.php -f [OR]
     RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+)$ /$1/$2.php [L,QSA]
+    RewriteRule ^([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+)$ $1/$2.php [L,QSA]
 
-    # 4. Root extensionless URLs (e.g. about -> /about.php, contact -> /contact.php)
+    # 4. Root extensionless URLs (e.g. about -> about.php, contact -> contact.php)
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{DOCUMENT_ROOT}/$1.php -f [OR]
     RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^([a-zA-Z0-9_\-]+)$ /$1.php [L,QSA]
+    RewriteRule ^([a-zA-Z0-9_\-]+)$ $1.php [L,QSA]
 </IfModule>

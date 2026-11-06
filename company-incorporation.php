@@ -1,6 +1,7 @@
 <?php
     require_once('includes/config.php');
     require_once('includes/function.php');
+    require_once('includes/captcha.php');
 
     // AJAX Endpoint for Live NIC Search
     if (isset($_GET['ajax_nic_search'])) {
@@ -90,10 +91,18 @@
     }
 
     // Query database for search results when a query or filter is active
+    $captcha_error = false;
     if ($has_search) {
         $meta_robots = "noindex, follow"; // Prevent crawlers from hammering dynamic search queries
-        $comp_status_filter = function_exists('get_company_status_filter') ? get_company_status_filter() : "1=1";
-        $where = [$comp_status_filter];
+
+        // Verify CAPTCHA for keyword searches if session is not verified
+        if (!empty($q_param) && !olaw_validate_search_captcha()) {
+            $captcha_error = true;
+        }
+
+        if (!$captcha_error) {
+            $comp_status_filter = function_exists('get_company_status_filter') ? get_company_status_filter() : "1=1";
+            $where = [$comp_status_filter];
 
         if (!empty($q_param)) {
             $sq = mysqli_real_escape_string($con, trim($q_param));
@@ -221,6 +230,7 @@
             $count_res = direct_sql("SELECT COUNT(*) as total FROM (SELECT id FROM companies_incorporated WHERE $where_sql LIMIT 300) as t");
             $total_companies = isset($count_res['data'][0]['total']) ? (int)$count_res['data'][0]['total'] : $fetched_count;
             $total_pages = max(1, ceil($total_companies / $limit));
+        }
         }
     }
 
@@ -1316,6 +1326,13 @@ $company_schema = [
                             <span class="d-inline d-lg-none">Search Incorporations</span>
                         </button>
                     </div>
+                    <div class="col-12 mt-2 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap" style="border-color: #f1f5f9 !important; gap: 8px;">
+                        <div class="d-inline-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-primary mr-1"></i> Security Code:</span>
+                            <?php echo olaw_render_search_captcha_widget('_comp'); ?>
+                        </div>
+                        <span class="small text-muted"><i class="fas fa-info-circle mr-1"></i> Verify once every 30 minutes to search millions of records instantly.</span>
+                    </div>
                 </div>
             </form>
 
@@ -1343,6 +1360,16 @@ $company_schema = [
         </div>
 
         <?php if ($has_search || $single_company !== null || (!empty($cin_param) && !$single_company)): ?>
+
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">To protect against automated scrapers and ensure high database performance, please enter the security code shown in the search console above and click Search.</p>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- Not Found State -->
             <?php if (!empty($cin_param) && !$single_company): ?>

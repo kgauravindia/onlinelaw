@@ -5,6 +5,7 @@
  */
 require_once('includes/config.php');
 require_once('includes/function.php');
+require_once('includes/captcha.php');
 
 // Retrieve search parameter (support GET ?micr=..., ?micrcode=..., ?ifsc=..., and POST)
 $micrcode = "";
@@ -586,6 +587,10 @@ if (!empty($micrcode)) {
                         <button type="submit" class="btn btn-block search-btn-primary d-flex align-items-center justify-content-center">
                             <i class="fas fa-search mr-2"></i> Search MICR
                         </button>
+                    </div>
+                    <div class="col-12 mt-2 pt-2 d-flex align-items-center justify-content-center flex-wrap" style="gap: 8px;">
+                        <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-success mr-1"></i> Security Code:</span>
+                        <?php echo olaw_render_search_captcha_widget('_micr'); ?>
                     </div>
                 </div>
             </form>

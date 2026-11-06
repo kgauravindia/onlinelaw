@@ -1,6 +1,7 @@
 <?php
 require_once('includes/config.php');
 require_once('includes/function.php');
+require_once('includes/captcha.php');
 
 $code_param = isset($_GET['code']) ? trim($_GET['code']) : '';
 $q_param = isset($_GET['q']) ? trim($_GET['q']) : $code_param;
@@ -53,40 +54,47 @@ if ($single_nic) {
 $results_list = [];
 $total_results = 0;
 $total_pages = 0;
+$captcha_error = false;
 
 if ($has_search && !$single_nic) {
-    $where = ["status = 'ACTIVE'"];
-
-    if (!empty($q_param)) {
-        $sq = mysqli_real_escape_string($con, $q_param);
-        $where[] = "(code LIKE '%$sq%' OR code_5digit LIKE '%$sq%' OR title LIKE '%$sq%' OR description LIKE '%$sq%')";
-    }
-    if (!empty($level_param) && in_array($level_param, ['SECTION', 'DIVISION', 'GROUP', 'CLASS', 'SUBCLASS'])) {
-        $where[] = "level = '$level_param'";
-    }
-    if (!empty($section_param)) {
-        $sec_esc = mysqli_real_escape_string($con, $section_param);
-        $where[] = "(section_code = '$sec_esc' OR (level = 'SECTION' AND code = '$sec_esc'))";
-    }
-    if (!empty($division_param)) {
-        $div_esc = mysqli_real_escape_string($con, $division_param);
-        $div_pad = str_pad($div_esc, 2, '0', STR_PAD_LEFT);
-        $where[] = "(division_code = '$div_esc' OR division_code = '$div_pad' OR (level = 'DIVISION' AND code = '$div_pad'))";
+    if (!empty($q_param) && !olaw_validate_search_captcha()) {
+        $captcha_error = true;
     }
 
-    $where_sql = implode(' AND ', $where);
+    if (!$captcha_error) {
+        $where = ["status = 'ACTIVE'"];
 
-    $count_res = mysqli_query($con, "SELECT COUNT(*) as total FROM `nic` WHERE $where_sql");
-    if ($count_res) {
-        $r_cnt = mysqli_fetch_assoc($count_res);
-        $total_results = (int)$r_cnt['total'];
-        $total_pages = ceil($total_results / $limit);
-    }
+        if (!empty($q_param)) {
+            $sq = mysqli_real_escape_string($con, $q_param);
+            $where[] = "(code LIKE '%$sq%' OR code_5digit LIKE '%$sq%' OR title LIKE '%$sq%' OR description LIKE '%$sq%')";
+        }
+        if (!empty($level_param) && in_array($level_param, ['SECTION', 'DIVISION', 'GROUP', 'CLASS', 'SUBCLASS'])) {
+            $where[] = "level = '$level_param'";
+        }
+        if (!empty($section_param)) {
+            $sec_esc = mysqli_real_escape_string($con, $section_param);
+            $where[] = "(section_code = '$sec_esc' OR (level = 'SECTION' AND code = '$sec_esc'))";
+        }
+        if (!empty($division_param)) {
+            $div_esc = mysqli_real_escape_string($con, $division_param);
+            $div_pad = str_pad($div_esc, 2, '0', STR_PAD_LEFT);
+            $where[] = "(division_code = '$div_esc' OR division_code = '$div_pad' OR (level = 'DIVISION' AND code = '$div_pad'))";
+        }
 
-    $data_res = mysqli_query($con, "SELECT * FROM `nic` WHERE $where_sql ORDER BY CHAR_LENGTH(code) ASC, code ASC LIMIT $offset, $limit");
-    if ($data_res) {
-        while ($row = mysqli_fetch_assoc($data_res)) {
-            $results_list[] = $row;
+        $where_sql = implode(' AND ', $where);
+
+        $count_res = mysqli_query($con, "SELECT COUNT(*) as total FROM `nic` WHERE $where_sql");
+        if ($count_res) {
+            $r_cnt = mysqli_fetch_assoc($count_res);
+            $total_results = (int)$r_cnt['total'];
+            $total_pages = ceil($total_results / $limit);
+        }
+
+        $data_res = mysqli_query($con, "SELECT * FROM `nic` WHERE $where_sql ORDER BY CHAR_LENGTH(code) ASC, code ASC LIMIT $offset, $limit");
+        if ($data_res) {
+            while ($row = mysqli_fetch_assoc($data_res)) {
+                $results_list[] = $row;
+            }
         }
     }
 }
@@ -674,6 +682,14 @@ $nic_schema = [
                             <i class="fas fa-search mr-2"></i> Search
                         </button>
                     </div>
+
+                    <div class="col-12 mt-3 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap" style="border-color: #f1f5f9 !important; gap: 8px;">
+                        <div class="d-inline-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-primary mr-1"></i> Security Code:</span>
+                            <?php echo olaw_render_search_captcha_widget('_nic'); ?>
+                        </div>
+                        <span class="small text-muted"><i class="fas fa-lock mr-1"></i> Quick verification for seamless code searches.</span>
+                    </div>
                 </div>
             </form>
 
@@ -973,6 +989,16 @@ $nic_schema = [
             </div>
 
         <?php elseif ($has_search && !$single_nic): ?>
+
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above in the search console to view industry classification records.</p>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- =========================================================
                  2. SEARCH RESULTS VIEW (GRID / TABLE)

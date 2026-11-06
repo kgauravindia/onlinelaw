@@ -5,6 +5,7 @@
  */
 require_once('includes/config.php');
 require_once('includes/function.php'); 
+require_once('includes/captcha.php'); 
 
 $q = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 
@@ -201,6 +202,10 @@ $passport_schema = [
                             <i class="fas fa-search mr-1.5"></i> Find Office
                         </button>
                     </div>
+                    <div class="col-12 mt-2 pt-2 d-flex align-items-center justify-content-center flex-wrap" style="gap: 8px;">
+                        <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-primary mr-1"></i> Security Code:</span>
+                        <?php echo olaw_render_search_captcha_widget('_passport'); ?>
+                    </div>
                 </div>
             </form>
 
@@ -224,20 +229,51 @@ $passport_schema = [
 
             <!-- Table Results -->
             <?php 
+                $captcha_error = false;
+                $page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
+                $limit = 20;
+                $offset = ($page - 1) * $limit;
+                $total_records = 0;
+                $total_pages = 1;
+
                 if (empty($q)) {
-                    $sql = "SELECT * FROM passport ORDER BY name ASC LIMIT 100";
+                    $count_res = direct_sql("SELECT COUNT(*) as cnt FROM passport");
+                    $total_records = (int)($count_res['data'][0]['cnt'] ?? 0);
+                    $total_pages = max(1, ceil($total_records / $limit));
+                    $sql = "SELECT * FROM passport ORDER BY name ASC LIMIT $offset, $limit";
                     $res = direct_sql($sql);
                     $results_title = "Featured Passport Offices";
                 } else {
-                    $safe_q = addslashes($q);
-                    $sql = "SELECT * FROM passport WHERE name LIKE '%$safe_q%' OR address LIKE '%$safe_q%' OR rpo LIKE '%$safe_q%' ORDER BY name ASC LIMIT 500";
-                    $res = direct_sql($sql);
-                    $results_title = 'Results for "' . htmlentities($q) . '"';
+                    if (!olaw_validate_search_captcha()) {
+                        $captcha_error = true;
+                        $res = ['count' => 0, 'data' => []];
+                        $results_title = "Security Verification Required";
+                    } else {
+                        $safe_q = mysqli_real_escape_string($con, $q);
+                        $where_q = "(name LIKE '%$safe_q%' OR address LIKE '%$safe_q%' OR rpo LIKE '%$safe_q%')";
+                        $count_res = direct_sql("SELECT COUNT(*) as cnt FROM passport WHERE $where_q");
+                        $total_records = (int)($count_res['data'][0]['cnt'] ?? 0);
+                        $total_pages = max(1, ceil($total_records / $limit));
+                        $sql = "SELECT * FROM passport WHERE $where_q ORDER BY name ASC LIMIT $offset, $limit";
+                        $res = direct_sql($sql);
+                        $results_title = 'Results for "' . htmlentities($q) . '"';
+                    }
                 }
                 
                 $count = $res['count'] ?? 0;
-                if ($count > 0) {
             ?>
+
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4 mt-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view passport office records.</p>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($count > 0) { ?>
                 <div class="mt-4">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h4 class="font-weight-bold text-dark mb-0" style="font-size: 18px;">
@@ -311,6 +347,34 @@ $passport_schema = [
                             </div>
                         <?php endforeach; ?>
                     </div>
+
+                    <!-- Pagination -->
+                    <?php if ($total_pages > 1): ?>
+                    <div class="d-flex justify-content-center mt-3 mb-4">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination" style="gap: 5px;">
+                                <?php
+                                $queryParams = $_GET;
+                                if ($page > 1) {
+                                    $queryParams['p'] = $page - 1;
+                                    echo '<li class="page-item"><a class="page-link rounded-pill px-3 shadow-xs" href="?' . http_build_query($queryParams) . '">&laquo; Prev</a></li>';
+                                }
+                                $startPage = max(1, $page - 2);
+                                $endPage = min($total_pages, $page + 2);
+                                for ($i = $startPage; $i <= $endPage; $i++) {
+                                    $queryParams['p'] = $i;
+                                    $active = ($i == $page) ? 'active' : '';
+                                    echo '<li class="page-item ' . $active . '"><a class="page-link rounded-circle text-center font-weight-bold" style="width: 38px; height: 38px; line-height: 24px;" href="?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                                }
+                                if ($page < $total_pages) {
+                                    $queryParams['p'] = $page + 1;
+                                    echo '<li class="page-item"><a class="page-link rounded-pill px-3 shadow-xs" href="?' . http_build_query($queryParams) . '">Next &raquo;</a></li>';
+                                }
+                                ?>
+                            </ul>
+                        </nav>
+                    </div>
+                    <?php endif; ?>
                 </div>
             <?php } else { ?>
                 <?php if (!empty($q)): ?>

@@ -5,6 +5,7 @@
  */
 require_once('includes/config.php');
 require_once('includes/function.php');
+require_once('includes/captcha.php');
 
 // Retrieve locality search query (support GET ?locality=..., ?q=..., and POST)
 $locality_search = "";
@@ -23,72 +24,90 @@ $faq_items = [];
 $pincodes_unique = [];
 $offices_unique = [];
 
+$captcha_error = false;
+$page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
+$per_page = 20;
+$total_pages = 1;
+
 if (!empty($locality_search)) {
-    $safe_query = mysqli_real_escape_string($con, $locality_search);
-    $limit = 250;
+    if (!olaw_validate_search_captcha()) {
+        $captcha_error = true;
+    }
+
     $found_rows = [];
 
-    // 1. Strategy 1: FULLTEXT Boolean Search (Instant < 5ms via ft_pincode_search)
-    $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $locality_search);
-    $words = array_filter(explode(' ', trim($clean_words)));
-    
-    if (!empty($words)) {
-        $boolean_tokens = [];
-        foreach ($words as $w) {
-            if (mb_strlen($w) >= 2) {
-                $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
+    if (!$captcha_error) {
+        $safe_query = mysqli_real_escape_string($con, $locality_search);
+        $limit = 200;
+
+        // 1. Strategy 1: FULLTEXT Boolean Search (Instant < 5ms via ft_pincode_search)
+        $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $locality_search);
+        $words = array_filter(explode(' ', trim($clean_words)));
+        
+        if (!empty($words)) {
+            $boolean_tokens = [];
+            foreach ($words as $w) {
+                if (mb_strlen($w) >= 2) {
+                    $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
+                }
+            }
+            if (!empty($boolean_tokens)) {
+                $ft_query = implode(' ', $boolean_tokens);
+                $ft_sql = "SELECT * FROM pincode WHERE MATCH(locality_name, office_name, sub_district_name, district_name) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
+                $ft_res = mysqli_query($con, $ft_sql);
+                if ($ft_res && mysqli_num_rows($ft_res) > 0) {
+                    while ($r = mysqli_fetch_assoc($ft_res)) {
+                        $found_rows[] = $r;
+                    }
+                    mysqli_free_result($ft_res);
+                }
             }
         }
-        if (!empty($boolean_tokens)) {
-            $ft_query = implode(' ', $boolean_tokens);
-            $ft_sql = "SELECT * FROM pincode WHERE MATCH(locality_name, office_name, sub_district_name, district_name) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
-            $ft_res = mysqli_query($con, $ft_sql);
-            if ($ft_res && mysqli_num_rows($ft_res) > 0) {
-                while ($r = mysqli_fetch_assoc($ft_res)) {
+
+        // 2. Strategy 2: Fast B-Tree Prefix Match if Fulltext returned 0 (e.g. rare short token)
+        if (empty($found_rows)) {
+            $pre_sql = "SELECT * FROM pincode WHERE locality_name LIKE '$safe_query%' OR office_name LIKE '$safe_query%' OR district_name LIKE '$safe_query%' LIMIT $limit";
+            $pre_res = mysqli_query($con, $pre_sql);
+            if ($pre_res && mysqli_num_rows($pre_res) > 0) {
+                while ($r = mysqli_fetch_assoc($pre_res)) {
                     $found_rows[] = $r;
                 }
-                mysqli_free_result($ft_res);
+                mysqli_free_result($pre_res);
             }
+        }
+
+        // 3. Strategy 3: Substring Fallback with Strict Limit
+        if (empty($found_rows) && mb_strlen($safe_query) >= 3) {
+            $sub_sql = "SELECT * FROM pincode WHERE locality_name LIKE '%$safe_query%' OR office_name LIKE '%$safe_query%' OR district_name LIKE '%$safe_query%' LIMIT 50";
+            $sub_res = mysqli_query($con, $sub_sql);
+            if ($sub_res && mysqli_num_rows($sub_res) > 0) {
+                while ($r = mysqli_fetch_assoc($sub_res)) {
+                    $found_rows[] = $r;
+                }
+                mysqli_free_result($sub_res);
+            }
+        }
+
+        // Sort in PHP memory in < 1ms to eliminate heavy MySQL filesort
+        if (!empty($found_rows)) {
+            usort($found_rows, function($a, $b) {
+                $cmpState = strcmp($a['state_name'] ?? '', $b['state_name'] ?? '');
+                if ($cmpState !== 0) return $cmpState;
+                $cmpDist = strcmp($a['district_name'] ?? '', $b['district_name'] ?? '');
+                if ($cmpDist !== 0) return $cmpDist;
+                return strcmp($a['locality_name'] ?? '', $b['locality_name'] ?? '');
+            });
         }
     }
 
-    // 2. Strategy 2: Fast B-Tree Prefix Match if Fulltext returned 0 (e.g. rare short token)
-    if (empty($found_rows)) {
-        $pre_sql = "SELECT * FROM pincode WHERE locality_name LIKE '$safe_query%' OR office_name LIKE '$safe_query%' OR district_name LIKE '$safe_query%' LIMIT $limit";
-        $pre_res = mysqli_query($con, $pre_sql);
-        if ($pre_res && mysqli_num_rows($pre_res) > 0) {
-            while ($r = mysqli_fetch_assoc($pre_res)) {
-                $found_rows[] = $r;
-            }
-            mysqli_free_result($pre_res);
-        }
-    }
+    $total_found = count($found_rows);
+    $total_pages = max(1, (int)ceil($total_found / $per_page));
+    if ($page > $total_pages) $page = $total_pages;
+    $offset = ($page - 1) * $per_page;
+    $paged_rows = array_slice($found_rows, $offset, $per_page);
 
-    // 3. Strategy 3: Substring Fallback with Strict Limit
-    if (empty($found_rows) && mb_strlen($safe_query) >= 3) {
-        $sub_sql = "SELECT * FROM pincode WHERE locality_name LIKE '%$safe_query%' OR office_name LIKE '%$safe_query%' OR district_name LIKE '%$safe_query%' LIMIT 50";
-        $sub_res = mysqli_query($con, $sub_sql);
-        if ($sub_res && mysqli_num_rows($sub_res) > 0) {
-            while ($r = mysqli_fetch_assoc($sub_res)) {
-                $found_rows[] = $r;
-            }
-            mysqli_free_result($sub_res);
-        }
-    }
-
-    // Sort in PHP memory in < 1ms to eliminate heavy MySQL filesort
-    if (!empty($found_rows)) {
-        usort($found_rows, function($a, $b) {
-            $cmpState = strcmp($a['state_name'] ?? '', $b['state_name'] ?? '');
-            if ($cmpState !== 0) return $cmpState;
-            $cmpDist = strcmp($a['district_name'] ?? '', $b['district_name'] ?? '');
-            if ($cmpDist !== 0) return $cmpDist;
-            return strcmp($a['locality_name'] ?? '', $b['locality_name'] ?? '');
-        });
-    }
-
-    $res = ['count' => count($found_rows), 'data' => $found_rows];
-    $ct = $res['count'];
+    $res = ['count' => count($paged_rows), 'data' => $paged_rows];
+    $ct = $total_found;
 
     $canonical_url = $base_url . "pincode-by-locality?locality=" . urlencode($locality_search);
 
@@ -570,6 +589,15 @@ if (!empty($faq_items)) {
                         <span class="mx-1">/</span>
                         <span class="text-dark font-weight-bold">Locality Search</span>
                         <?php if (!empty($locality_search)): ?>
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view locality postal records.</p>
+                </div>
+            </div>
+            <?php endif; ?>
                             <span class="mx-1">/</span>
                             <span class="text-primary font-weight-bold"><?php echo htmlspecialchars($locality_search); ?></span>
                         <?php endif; ?>
@@ -627,6 +655,10 @@ if (!empty($faq_items)) {
                             <i class="fas fa-search mr-2"></i> Search Locality
                         </button>
                     </div>
+                    <div class="col-12 mt-2 pt-2 d-flex align-items-center justify-content-center flex-wrap" style="gap: 8px;">
+                        <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-primary mr-1"></i> Security Code:</span>
+                        <?php echo olaw_render_search_captcha_widget('_locality'); ?>
+                    </div>
                 </div>
             </form>
 
@@ -646,6 +678,15 @@ if (!empty($faq_items)) {
              SEARCH RESULTS DISPLAY
              ====================================================================== -->
         <?php if (!empty($locality_search)): ?>
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view locality postal records.</p>
+                </div>
+            </div>
+            <?php endif; ?>
             <?php if ($ct > 0): ?>
                 
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
@@ -776,6 +817,34 @@ if (!empty($faq_items)) {
                         </div>
                     <?php endforeach; ?>
                 </div>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                <div class="d-flex justify-content-center mt-3 mb-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination" style="gap: 5px;">
+                            <?php
+                            $queryParams = $_GET;
+                            if ($page > 1) {
+                                $queryParams['p'] = $page - 1;
+                                echo '<li class="page-item"><a class="page-link rounded-pill px-3 shadow-xs" href="?' . http_build_query($queryParams) . '">&laquo; Prev</a></li>';
+                            }
+                            $startPage = max(1, $page - 2);
+                            $endPage = min($total_pages, $page + 2);
+                            for ($i = $startPage; $i <= $endPage; $i++) {
+                                $queryParams['p'] = $i;
+                                $active = ($i == $page) ? 'active' : '';
+                                echo '<li class="page-item ' . $active . '"><a class="page-link rounded-circle text-center font-weight-bold" style="width: 38px; height: 38px; line-height: 24px;" href="?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                            }
+                            if ($page < $total_pages) {
+                                $queryParams['p'] = $page + 1;
+                                echo '<li class="page-item"><a class="page-link rounded-pill px-3 shadow-xs" href="?' . http_build_query($queryParams) . '">Next &raquo;</a></li>';
+                            }
+                            ?>
+                        </ul>
+                    </nav>
+                </div>
+                <?php endif; ?>
 
                 <!-- ==============================================================
                      FAQ SECTION

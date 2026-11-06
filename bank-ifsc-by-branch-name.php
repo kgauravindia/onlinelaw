@@ -5,6 +5,7 @@
  */
 require_once('includes/config.php');
 require_once('includes/function.php');
+require_once('includes/captcha.php');
 
 // Retrieve search query (support GET ?branch=..., ?q=..., and POST)
 $branch_search = "";
@@ -20,71 +21,85 @@ $schema_graphs = [];
 $res_data = [];
 $total_found = 0;
 $faq_items = [];
+$captcha_error = false;
+$page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
+$per_page = 20;
+$total_pages = 1;
 
 if (!empty($branch_search)) {
-    $safe_term = mysqli_real_escape_string($con, $branch_search);
-    $limit = 250;
+    if (!olaw_validate_search_captcha()) {
+        $captcha_error = true;
+    }
+
     $found_rows = [];
 
-    // 1. Strategy 1: FULLTEXT Boolean Search (Instant ~2ms via ft_bank_search)
-    $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $branch_search);
-    $words = array_filter(explode(' ', trim($clean_words)));
+    if (!$captcha_error) {
+        $safe_term = mysqli_real_escape_string($con, $branch_search);
+        $limit = 200;
 
-    if (!empty($words)) {
-        $boolean_tokens = [];
-        foreach ($words as $w) {
-            if (mb_strlen($w) >= 2) {
-                $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
+        // 1. Strategy 1: FULLTEXT Boolean Search (Instant ~2ms via ft_bank_search)
+        $clean_words = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $branch_search);
+        $words = array_filter(explode(' ', trim($clean_words)));
+
+        if (!empty($words)) {
+            $boolean_tokens = [];
+            foreach ($words as $w) {
+                if (mb_strlen($w) >= 2) {
+                    $boolean_tokens[] = '+' . mysqli_real_escape_string($con, $w) . '*';
+                }
+            }
+            if (!empty($boolean_tokens)) {
+                $ft_query = implode(' ', $boolean_tokens);
+                $ft_sql = "SELECT * FROM bank_ifsc WHERE MATCH(bank, branch, city2, city1, address) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
+                $ft_res = mysqli_query($con, $ft_sql);
+                if ($ft_res && mysqli_num_rows($ft_res) > 0) {
+                    while ($r = mysqli_fetch_assoc($ft_res)) {
+                        $found_rows[] = $r;
+                    }
+                    mysqli_free_result($ft_res);
+                }
             }
         }
-        if (!empty($boolean_tokens)) {
-            $ft_query = implode(' ', $boolean_tokens);
-            $ft_sql = "SELECT * FROM bank_ifsc WHERE MATCH(bank, branch, city2, city1, address) AGAINST('$ft_query' IN BOOLEAN MODE) LIMIT $limit";
-            $ft_res = mysqli_query($con, $ft_sql);
-            if ($ft_res && mysqli_num_rows($ft_res) > 0) {
-                while ($r = mysqli_fetch_assoc($ft_res)) {
+
+        // 2. Strategy 2: Fast Prefix Match using B-Tree index if Fulltext returned 0
+        if (empty($found_rows)) {
+            $pre_sql = "SELECT * FROM bank_ifsc WHERE branch LIKE '$safe_term%' OR city2 LIKE '$safe_term%' OR bank LIKE '$safe_term%' LIMIT $limit";
+            $pre_res = mysqli_query($con, $pre_sql);
+            if ($pre_res && mysqli_num_rows($pre_res) > 0) {
+                while ($r = mysqli_fetch_assoc($pre_res)) {
                     $found_rows[] = $r;
                 }
-                mysqli_free_result($ft_res);
+                mysqli_free_result($pre_res);
             }
         }
-    }
 
-    // 2. Strategy 2: Fast Prefix Match using B-Tree index if Fulltext returned 0
-    if (empty($found_rows)) {
-        $pre_sql = "SELECT * FROM bank_ifsc WHERE branch LIKE '$safe_term%' OR city2 LIKE '$safe_term%' OR bank LIKE '$safe_term%' LIMIT $limit";
-        $pre_res = mysqli_query($con, $pre_sql);
-        if ($pre_res && mysqli_num_rows($pre_res) > 0) {
-            while ($r = mysqli_fetch_assoc($pre_res)) {
-                $found_rows[] = $r;
+        // 3. Strategy 3: Substring Fallback with Strict Limit
+        if (empty($found_rows) && mb_strlen($safe_term) >= 3) {
+            $sub_sql = "SELECT * FROM bank_ifsc WHERE bank LIKE '%$safe_term%' OR branch LIKE '%$safe_term%' OR city2 LIKE '%$safe_term%' LIMIT 50";
+            $sub_res = mysqli_query($con, $sub_sql);
+            if ($sub_res && mysqli_num_rows($sub_res) > 0) {
+                while ($r = mysqli_fetch_assoc($sub_res)) {
+                    $found_rows[] = $r;
+                }
+                mysqli_free_result($sub_res);
             }
-            mysqli_free_result($pre_res);
         }
-    }
 
-    // 3. Strategy 3: Substring Fallback with Strict Limit
-    if (empty($found_rows) && mb_strlen($safe_term) >= 3) {
-        $sub_sql = "SELECT * FROM bank_ifsc WHERE bank LIKE '%$safe_term%' OR branch LIKE '%$safe_term%' OR city2 LIKE '%$safe_term%' LIMIT 50";
-        $sub_res = mysqli_query($con, $sub_sql);
-        if ($sub_res && mysqli_num_rows($sub_res) > 0) {
-            while ($r = mysqli_fetch_assoc($sub_res)) {
-                $found_rows[] = $r;
-            }
-            mysqli_free_result($sub_res);
+        // Sort in PHP memory in < 1ms to eliminate MySQL filesort
+        if (!empty($found_rows)) {
+            usort($found_rows, function($a, $b) {
+                $cmpBank = strcmp($a['bank'] ?? '', $b['bank'] ?? '');
+                if ($cmpBank !== 0) return $cmpBank;
+                return strcmp($a['branch'] ?? '', $b['branch'] ?? '');
+            });
         }
-    }
-
-    // Sort in PHP memory in < 1ms to eliminate MySQL filesort
-    if (!empty($found_rows)) {
-        usort($found_rows, function($a, $b) {
-            $cmpBank = strcmp($a['bank'] ?? '', $b['bank'] ?? '');
-            if ($cmpBank !== 0) return $cmpBank;
-            return strcmp($a['branch'] ?? '', $b['branch'] ?? '');
-        });
     }
 
     $total_found = count($found_rows);
-    $res_data = $found_rows;
+    $total_pages = max(1, (int)ceil($total_found / $per_page));
+    if ($page > $total_pages) $page = $total_pages;
+    $offset = ($page - 1) * $per_page;
+    $res_data = array_slice($found_rows, $offset, $per_page);
 
     $canonical_url = $base_url . "bank-ifsc-by-branch-name?branch=" . urlencode($branch_search);
     $page_title = "Bank IFSC & MICR Codes for '$branch_search' Branches (2026) | Online Law";
@@ -484,6 +499,15 @@ if (!empty($branch_search)) {
                         <span class="mx-1">/</span>
                         <span class="text-white font-weight-bold">Branch Name Search</span>
                         <?php if (!empty($branch_search)): ?>
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view branch records.</p>
+                </div>
+            </div>
+            <?php endif; ?>
                             <span class="mx-1">/</span>
                             <span class="text-success font-weight-bold"><?php echo htmlspecialchars($branch_search); ?></span>
                         <?php endif; ?>
@@ -547,6 +571,10 @@ if (!empty($branch_search)) {
                             <i class="fas fa-search mr-2"></i> Search Branch
                         </button>
                     </div>
+                    <div class="col-12 mt-2 pt-2 d-flex align-items-center justify-content-center flex-wrap" style="gap: 8px;">
+                        <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-success mr-1"></i> Security Code:</span>
+                        <?php echo olaw_render_search_captcha_widget('_branch'); ?>
+                    </div>
                 </div>
             </form>
 
@@ -566,6 +594,15 @@ if (!empty($branch_search)) {
              SEARCH RESULTS DISPLAY
              ====================================================================== -->
         <?php if (!empty($branch_search)): ?>
+            <?php if (!empty($captcha_error)): ?>
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 14px; background: #fffbeb; color: #b45309; border-left: 5px solid #f59e0b !important; padding: 18px 24px;">
+                <i class="fas fa-shield-alt fa-2x mr-3 text-warning"></i>
+                <div>
+                    <h6 class="font-weight-bold mb-1" style="color: #92400e;">Security Verification Required</h6>
+                    <p class="small mb-0 text-muted">Please enter the security verification code displayed above to view branch records.</p>
+                </div>
+            </div>
+            <?php endif; ?>
             <?php if ($total_found > 0): ?>
                 
                 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
@@ -695,6 +732,34 @@ if (!empty($branch_search)) {
                         </div>
                     <?php endforeach; ?>
                 </div>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                <div class="d-flex justify-content-center mt-3 mb-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination" style="gap: 5px;">
+                            <?php
+                            $queryParams = $_GET;
+                            if ($page > 1) {
+                                $queryParams['p'] = $page - 1;
+                                echo '<li class="page-item"><a class="page-link rounded-pill px-3 shadow-xs" href="?' . http_build_query($queryParams) . '">&laquo; Prev</a></li>';
+                            }
+                            $startPage = max(1, $page - 2);
+                            $endPage = min($total_pages, $page + 2);
+                            for ($i = $startPage; $i <= $endPage; $i++) {
+                                $queryParams['p'] = $i;
+                                $active = ($i == $page) ? 'active' : '';
+                                echo '<li class="page-item ' . $active . '"><a class="page-link rounded-circle text-center font-weight-bold" style="width: 38px; height: 38px; line-height: 24px;" href="?' . http_build_query($queryParams) . '">' . $i . '</a></li>';
+                            }
+                            if ($page < $total_pages) {
+                                $queryParams['p'] = $page + 1;
+                                echo '<li class="page-item"><a class="page-link rounded-pill px-3 shadow-xs" href="?' . http_build_query($queryParams) . '">Next &raquo;</a></li>';
+                            }
+                            ?>
+                        </ul>
+                    </nav>
+                </div>
+                <?php endif; ?>
 
                 <!-- ==============================================================
                      FAQ SECTION

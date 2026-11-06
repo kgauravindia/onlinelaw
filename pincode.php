@@ -5,6 +5,7 @@
  */
 require_once('includes/config.php');
 require_once('includes/function.php');
+require_once('includes/captcha.php');
 
 $pincode = isset($_REQUEST['pincode']) ? trim($_REQUEST['pincode']) : '';
 $res = ['count' => 0, 'data' => []];
@@ -578,6 +579,10 @@ if (!empty($faq_items)) {
                         <button type="submit" class="btn btn-block search-btn-primary d-flex align-items-center justify-content-center">
                             <i class="fas fa-search mr-2"></i> Search PIN Code
                         </button>
+                    </div>
+                    <div class="col-12 mt-2 pt-2 d-flex align-items-center justify-content-center flex-wrap" style="gap: 8px;">
+                        <span class="small font-weight-bold text-muted"><i class="fas fa-shield-alt text-primary mr-1"></i> Security Code:</span>
+                        <?php echo olaw_render_search_captcha_widget('_pincode'); ?>
                     </div>
                 </div>
             </form>

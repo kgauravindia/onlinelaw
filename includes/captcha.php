@@ -132,3 +132,84 @@ if (isset($_GET['action']) && $_GET['action'] === 'refresh_captcha') {
     exit;
 }
 
+/**
+ * Check if the user is already verified for search in the current session
+ */
+function olaw_is_search_verified() {
+    $verified_at = $_SESSION['olaw_search_verified_at'] ?? 0;
+    return ($verified_at > 0 && (time() - $verified_at < 1800)); // 30 minutes window
+}
+
+/**
+ * Validate search CAPTCHA request.
+ * Returns true if session is verified or valid code is provided.
+ */
+function olaw_validate_search_captcha() {
+    // 1. If session is already verified within 30 mins, allow seamless pagination & searches
+    if (olaw_is_search_verified()) {
+        return true;
+    }
+
+    // 2. If captcha_code is submitted with the search
+    $submitted_code = trim($_REQUEST['captcha_code'] ?? '');
+    if (!empty($submitted_code)) {
+        if (olaw_verify_captcha($submitted_code)) {
+            $_SESSION['olaw_search_verified_at'] = time();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Render compact inline Search CAPTCHA input HTML
+ */
+function olaw_render_search_captcha_widget($id_suffix = '') {
+    global $base_url;
+    $is_verified = olaw_is_search_verified();
+    if ($is_verified) {
+        return '<div class="d-inline-flex align-items-center text-success small font-weight-bold px-2 py-1 bg-white rounded border border-success" style="font-size: 11.5px; height: 38px;">
+            <i class="fas fa-shield-alt mr-1 text-success"></i> Verified Human
+        </div>';
+    }
+
+    $new_code = olaw_generate_captcha_code(5);
+    $svg = olaw_render_captcha_svg($new_code, 120, 38);
+    $img_id = 'searchCaptchaImg' . $id_suffix;
+    $input_id = 'searchCaptchaInput' . $id_suffix;
+    $btn_id = 'searchCaptchaBtn' . $id_suffix;
+
+    $base = !empty($base_url) ? $base_url : '/';
+
+    $html = '
+    <div class="search-captcha-wrapper d-inline-flex align-items-center" style="gap: 6px; background: #ffffff; padding: 3px 6px; border-radius: 8px; border: 1px solid #cbd5e1;">
+        <img id="' . $img_id . '" src="' . $svg . '" alt="CAPTCHA" style="height: 32px; width: 110px; border-radius: 6px; border: 1px solid #e2e8f0; display: block;" user-select="none">
+        <button type="button" id="' . $btn_id . '" class="btn btn-sm btn-light border py-0 px-2 text-muted" onclick="olawRefreshSearchCaptcha(\'' . $img_id . '\', \'' . $btn_id . '\')" title="Refresh security code" style="height: 32px;">
+            <i class="fas fa-sync-alt" style="font-size: 11px;"></i>
+        </button>
+        <input type="text" name="captcha_code" id="' . $input_id . '" class="form-control form-control-sm text-uppercase font-weight-bold" placeholder="Code" maxlength="6" required style="width: 75px; height: 32px; font-size: 13px; letter-spacing: 1.5px; text-align: center; border-color: #cbd5e1;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <script>
+    if (typeof olawRefreshSearchCaptcha === "undefined") {
+        function olawRefreshSearchCaptcha(imgId, btnId) {
+            var img = document.getElementById(imgId);
+            var btn = document.getElementById(btnId);
+            if (btn) { var icon = btn.querySelector("i"); if (icon) icon.classList.add("fa-spin"); }
+            fetch("' . $base . 'includes/captcha.php?action=refresh_captcha")
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d && d.status === "success" && d.image && img) {
+                        img.src = d.image;
+                    }
+                })
+                .finally(function() {
+                    if (btn) { var icon = btn.querySelector("i"); if (icon) icon.classList.remove("fa-spin"); }
+                });
+        }
+    }
+    </script>
+    ';
+    return $html;
+}
+
