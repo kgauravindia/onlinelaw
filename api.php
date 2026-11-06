@@ -290,7 +290,15 @@ if (!empty($api_key_input) && isset($_REQUEST['action'])) {
                     $res = direct_sql("SELECT * FROM companies_incorporated WHERE cin = '$safe_q' AND (status = 'ACTIVE' OR status IS NULL OR status = '') LIMIT 1");
                 }
                 if (empty($res['count'])) {
-                    $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (cin LIKE '$safe_q%' OR company_name LIKE '%$safe_q%') LIMIT 50");
+                    $words = array_filter(explode(' ', trim($safe_q)));
+                    if (count($words) >= 2) {
+                        $ft_terms = implode(' ', array_map(function($w) {
+                            return '+' . preg_replace('/[^A-Za-z0-9]/', '', $w) . '*';
+                        }, $words));
+                        $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (MATCH(company_name) AGAINST('$ft_terms' IN BOOLEAN MODE) OR company_name LIKE '$safe_q%') LIMIT 50");
+                    } else {
+                        $res = direct_sql("SELECT * FROM companies_incorporated WHERE (status = 'ACTIVE' OR status IS NULL OR status = '') AND (cin LIKE '$safe_q%' OR company_name LIKE '$safe_q%') LIMIT 50");
+                    }
                 }
                 if ($res['count'] > 0) {
                     foreach ($res['data'] as &$row) {

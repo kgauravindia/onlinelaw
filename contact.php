@@ -76,16 +76,12 @@
                     $mobile = mysqli_real_escape_string($con, $raw_mobile);
                     $area = mysqli_real_escape_string($con, $raw_area);
                     $message = mysqli_real_escape_string($con, $raw_message);
-                    $user_captcha = isset($_POST['captcha_answer']) ? intval(trim($_POST['captcha_answer'])) : null;
-                    $posted_token = trim($_POST['captcha_token'] ?? '');
-                    $expected_token = ($user_captcha !== null) ? hash_hmac('sha256', (string)$user_captcha, 'olaw_secret_captcha_key') : '';
-                    $session_captcha = isset($_SESSION['olaw_contact_captcha']) ? intval($_SESSION['olaw_contact_captcha']) : null;
-
-                    $is_captcha_valid = ($posted_token !== '' && hash_equals($expected_token, $posted_token)) || ($session_captcha !== null && $user_captcha === $session_captcha);
+                    $user_captcha = trim($_POST['captcha_code'] ?? ($_POST['captcha_answer'] ?? ''));
+                    $is_captcha_valid = function_exists('olaw_verify_captcha') ? olaw_verify_captcha($user_captcha) : false;
 
                     if (!$is_captcha_valid) {
                         $msg_status = "error";
-                        $msg_text = "Security check failed: Incorrect math verification answer. Please calculate the addition problem.";
+                        $msg_text = "Security check failed: Incorrect CAPTCHA verification code. Please enter the characters shown in the image.";
                         if (function_exists('record_rate_limit_failure')) {
                             record_rate_limit_failure('contact_submit', 5, 300);
                         }
@@ -754,13 +750,9 @@
                                 . "Requester's Designation (Director / Authorized Agent): \n";
                         }
 
-                        // Generate Math Addition Captcha with Word representation for bot evasion defense
-                        $captcha_words = [1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four', 5 => 'Five', 6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine'];
-                        $captcha_n1 = rand(3, 9);
-                        $captcha_n2 = rand(1, 9);
-                        $captcha_sum = $captcha_n1 + $captcha_n2;
-                        $captcha_token = hash_hmac('sha256', (string)$captcha_sum, 'olaw_secret_captcha_key');
-                        $_SESSION['olaw_contact_captcha'] = $captcha_sum;
+                        // Generate Anti-Bot Graphical SVG Captcha
+                        $captcha_code = function_exists('olaw_generate_captcha_code') ? olaw_generate_captcha_code(5) : '';
+                        $captcha_svg_data = function_exists('olaw_render_captcha_svg') ? olaw_render_captcha_svg($captcha_code) : '';
 
                         // Time-trap defense token (valid for human submission window)
                         $form_load_time = time();
@@ -772,7 +764,6 @@
                         <!-- Anti-Bot Hidden Verification Tokens & Multi-Honeypot Traps -->
                         <input type="hidden" name="form_time" value="<?php echo $form_load_time; ?>">
                         <input type="hidden" name="form_time_token" value="<?php echo $form_time_token; ?>">
-                        <input type="hidden" name="captcha_token" value="<?php echo $captcha_token; ?>">
                         <div style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
                             <input type="text" name="website_hp" tabindex="-1" autocomplete="off" value="">
                             <input type="text" name="user_telephone_ext" tabindex="-1" autocomplete="off" value="">
@@ -837,15 +828,21 @@
                                 </div>
                             </div>
 
-                            <!-- Simple Math Addition Captcha -->
-                            <div class="col-md-7 col-lg-6 mb-3">
+                            <!-- Anti-Bot Graphical SVG CAPTCHA with 1-Click Instant Refresh -->
+                            <div class="col-md-8 col-lg-7 mb-3">
                                 <div class="form-group-modern mb-0">
-                                    <label class="form-label-modern">Security Verification <span class="text-danger ml-1">*</span></label>
-                                    <div class="d-flex align-items-center">
-                                        <span class="d-inline-flex align-items-center justify-content-center px-3 py-2 bg-light border text-dark font-weight-bold mr-2" style="border-radius: 10px; font-size: 15.5px; min-width: 140px; border-color: #cbd5e1 !important; height: 48px;">
-                                            <i class="fas fa-calculator text-primary mr-2"></i> <?php echo $captcha_words[$captcha_n1] ?? $captcha_n1; ?> + <?php echo $captcha_n2; ?> =
-                                        </span>
-                                        <input type="number" class="form-control-modern" name="captcha_answer" placeholder="Answer?" required style="height: 48px; font-weight: 600; font-size: 15px;" autocomplete="off">
+                                    <label class="form-label-modern d-flex justify-content-between align-items-center">
+                                        <span>Security Verification <span class="text-danger ml-1">*</span></span>
+                                        <small class="text-muted" style="font-size: 11.5px;">Case-insensitive</small>
+                                    </label>
+                                    <div class="d-flex align-items-center" style="gap: 8px; flex-wrap: wrap;">
+                                        <div style="position: relative; flex-shrink: 0;">
+                                            <img id="olawCaptchaImg" src="<?php echo $captcha_svg_data; ?>" alt="CAPTCHA Code" style="height: 46px; width: 160px; border-radius: 8px; border: 1px solid #cbd5e1; display: block;" user-select="none">
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" id="btnRefreshCaptcha" onclick="refreshContactCaptcha();" title="Get new security code" style="height: 46px; width: 44px; border-radius: 8px; border-color: #cbd5e1; flex-shrink: 0; background: #ffffff;">
+                                            <i class="fas fa-sync-alt text-muted"></i>
+                                        </button>
+                                        <input type="text" class="form-control-modern text-uppercase font-weight-bold" name="captcha_code" id="captchaInput" maxlength="6" placeholder="Enter Code" required style="height: 46px; font-size: 16px; letter-spacing: 2px; text-align: center; border-radius: 8px; min-width: 120px; flex: 1;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                     </div>
                                 </div>
                             </div>
@@ -1117,5 +1114,33 @@
 
     </div>
 </section>
+
+<script>
+function refreshContactCaptcha() {
+    var img = document.getElementById('olawCaptchaImg');
+    var btn = document.getElementById('btnRefreshCaptcha');
+    var input = document.getElementById('captchaInput');
+    if (!img) return;
+    if (btn) {
+        var icon = btn.querySelector('i');
+        if (icon) icon.classList.add('fa-spin');
+    }
+    fetch('<?php echo $base_url; ?>includes/captcha.php?action=refresh_captcha')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.status === 'success' && data.image) {
+                img.src = data.image;
+                if (input) input.value = '';
+            }
+        })
+        .catch(function(err) { console.error('Captcha refresh failed:', err); })
+        .finally(function() {
+            if (btn) {
+                var icon = btn.querySelector('i');
+                if (icon) icon.classList.remove('fa-spin');
+            }
+        });
+}
+</script>
 
 <?php require_once ('includes/footer.php'); ?> 

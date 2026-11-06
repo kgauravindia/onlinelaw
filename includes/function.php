@@ -1,6 +1,7 @@
 <?php
 require_once(__DIR__ . '/config.php');
 require_once(__DIR__ . '/security.php');
+require_once(__DIR__ . '/captcha.php');
 $con = mysqli_connect($host_name, $db_user, $db_password, $db_name) or die("Unable to Connect, Check the Connection Parameter. " . mysqli_connect_error());
 mysqli_set_charset($con, 'utf8mb4');
 /*-------------- DUMMY DATA------------------------*/

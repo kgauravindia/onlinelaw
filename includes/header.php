@@ -19,7 +19,7 @@ $current_page = basename($_SERVER['PHP_SELF'] ?? '', '.php');
 ?> 
 <link rel="icon" type="image/png" href="<?php echo $base_url; ?>images/favicon.png">
 <link rel="canonical" href="<?php echo !empty($canonical_url) ? htmlspecialchars($canonical_url) : ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="<?php echo !empty($meta_robots) ? htmlspecialchars($meta_robots) : 'index, follow'; ?>">
 <?php if (!empty($g_site_verification)): ?>
 <!-- Google Search Console Verification -->
 <meta name="google-site-verification" content="<?php echo htmlspecialchars($g_site_verification); ?>" />
