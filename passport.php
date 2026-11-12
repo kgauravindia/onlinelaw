@@ -220,7 +220,10 @@ $passport_schema = [
                         <span class="text-muted small">For appointment bookings, fee payment, and tracking, visit <a href="https://www.passportindia.gov.in/" target="_blank" class="text-primary font-weight-bold">passportindia.gov.in</a>.</span>
                     </div>
                 </div>
-                <div>
+                <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                    <a href="<?php echo $base_url; ?>visa-in-india" class="badge badge-warning px-3 py-2 font-weight-bold" style="font-size: 13px; border-radius: 8px; text-decoration: none; background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;">
+                        <i class="fas fa-globe-asia mr-1"></i> India Visa Amendments (2026)
+                    </a>
                     <a href="tel:18002581800" class="badge badge-primary px-3 py-2 font-weight-bold" style="font-size: 13px; border-radius: 8px; text-decoration: none; background: #0284c7;">
                         <i class="fas fa-phone-alt mr-1"></i> 1800-258-1800 (National Call Center)
                     </a>

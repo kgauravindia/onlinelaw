@@ -157,7 +157,7 @@ if (!empty($header_custom_code)) {
 						  <ul class="navbar-nav ml-auto align-items-lg-center">
 							<li class="nav-item <?php echo ($current_page == 'index' || empty($current_page)) ? 'active' : ''; ?>"> <a class="nav-link" href="<?php echo $base_url; ?>index"><i class="fas fa-home d-lg-none mr-2"></i>Home</a> </li>
 							<li class="nav-item <?php echo ($current_page == 'about') ? 'active' : ''; ?>"> <a class="nav-link" href="<?php echo $base_url; ?>about"><i class="fas fa-info-circle d-lg-none mr-2"></i>About Us</a> </li>
-							<li class="nav-item dropdown <?php echo in_array($current_page, ['company-incorporation', 'nic', 'pincode-finder', 'pincode', 'pincode-by-locality', 'gst-hsn-sac', 'passport', 'acts']) ? 'active' : ''; ?>"> 
+							<li class="nav-item dropdown <?php echo in_array($current_page, ['company-incorporation', 'nic', 'pincode-finder', 'pincode', 'pincode-by-locality', 'gst-hsn-sac', 'passport', 'visa-in-india', 'acts']) ? 'active' : ''; ?>"> 
 								<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									<i class="fas fa-search d-lg-none mr-2"></i>Search Tools
 								</a>
@@ -198,6 +198,12 @@ if (!empty($header_custom_code)) {
 								<li>
 									<a class="dropdown-item" href="<?php echo $base_url; ?>passport">
 										<span><i class="fas fa-passport text-danger mr-2" style="width: 16px;"></i>Passport Office Locator</span>
+									</a>
+								</li>
+								<li>
+									<a class="dropdown-item" href="<?php echo $base_url; ?>visa-in-india">
+										<span><i class="fas fa-globe-asia text-success mr-2" style="width: 16px;"></i>Visa in India (2026 Amendments)</span>
+										<span class="nav-badge-pill nav-badge-new">NEW</span>
 									</a>
 								</li>
 								<li>

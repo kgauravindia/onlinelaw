@@ -41,6 +41,7 @@
 					<li class="mb-2"><a href="<?php echo $base_url; ?>pincode-by-locality"><i class="fas fa-angle-right mr-2 text-primary" style="font-size: 12px;"></i>PIN Code by Locality</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>gst-hsn-sac"><i class="fas fa-angle-right mr-2 text-primary" style="font-size: 12px;"></i>GST HSN &amp; SAC Finder</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>passport"><i class="fas fa-angle-right mr-2 text-primary" style="font-size: 12px;"></i>Passport Seva Locator</a></li>
+					<li class="mb-2"><a href="<?php echo $base_url; ?>visa-in-india"><i class="fas fa-angle-right mr-2 text-primary" style="font-size: 12px;"></i>Visa in India (2026 Rules)</a></li>
 					<li class="mb-2"><a href="<?php echo $base_url; ?>acts"><i class="fas fa-angle-right mr-2 text-primary" style="font-size: 12px;"></i>Bare Acts Directory</a></li>
 				  </ul>
 				</div>
@@ -116,6 +117,8 @@
 					<a href="<?php echo $base_url; ?>gst-hsn-sac" style="color: #cbd5e1; text-decoration: none;" class="footer-service-item">GST HSN &amp; SAC</a>
 					<span class="text-muted" style="color: #475569 !important;">&bull;</span>
 					<a href="<?php echo $base_url; ?>passport" style="color: #cbd5e1; text-decoration: none;" class="footer-service-item">Passport Seva Locator</a>
+					<span class="text-muted" style="color: #475569 !important;">&bull;</span>
+					<a href="<?php echo $base_url; ?>visa-in-india" style="color: #cbd5e1; text-decoration: none;" class="footer-service-item">Visa in India (2026 Amendments)</a>
 					<span class="text-muted" style="color: #475569 !important;">&bull;</span>
 					<a href="<?php echo $base_url; ?>acts" style="color: #cbd5e1; text-decoration: none;" class="footer-service-item">Bare Acts Directory</a>
 					<span class="text-muted" style="color: #475569 !important;">&bull;</span>
@@ -343,6 +346,7 @@
         { title: 'NIC 2025 Activity Codes', desc: 'Search 2,715 MoSPI industrial classification codes for CIN & Udyam', url: 'nic', cat: 'corporate', icon: 'fas fa-sitemap', badge: 'MoSPI Codes' },
         { title: 'GST HSN & SAC Codes', desc: 'Search 22,000+ Goods & Service tax tariff codes', url: 'gst-hsn-sac', cat: 'legal', icon: 'fas fa-file-invoice-dollar', badge: 'GST Directory' },
         { title: 'Passport Seva Locator', desc: 'Locate 784+ Regional Passport Offices, PSKs & POPSKs', url: 'passport', cat: 'legal', icon: 'fas fa-passport', badge: '784+ Centres' },
+        { title: 'Visa in India (2026 Amendments)', desc: 'Latest Nov 2026 MHA Exemption Order, 9 categories & Visitor Visa (V-1/V-2)', url: 'visa-in-india', cat: 'legal', icon: 'fas fa-globe-asia', badge: 'Nov 2026 Rules' },
         { title: 'Bare Acts Directory', desc: 'Browse comprehensive Indian Central Acts & Statutes', url: 'acts', cat: 'legal', icon: 'fas fa-gavel', badge: 'Central Acts' },
         { title: 'Bank Customer Care Helplines', desc: 'Official toll-free numbers and email contacts for all banks', url: 'bank/contact-details', cat: 'bank', icon: 'fas fa-headset', badge: 'Helplines' },
         { title: 'ATM Card Hotlisting Numbers', desc: 'Emergency debit and credit card blocking hotlines', url: 'bank/card', cat: 'bank', icon: 'fas fa-credit-card', badge: 'Hotline' },
