@@ -895,14 +895,14 @@ function send_system_email($to_email, $to_name, $subject, $body_html) {
             $mail->isSMTP();
             $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = defined('SMTP_USER') ? SMTP_USER : 'info@saranindex.com';
+            $mail->Username   = defined('SMTP_USER') ? SMTP_USER : 'care@olaw.in';
             $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : (getenv('SMTP_PASS') ?: '');
             $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = defined('SMTP_PORT') ? intval(SMTP_PORT) : 587;
             $mail->Timeout    = 15;
             $mail->CharSet    = 'UTF-8';
 
-            $from_email = defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : 'info@saranindex.com';
+            $from_email = defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : 'care@olaw.in';
             $from_name  = defined('SYSTEM_FROM_NAME') ? SYSTEM_FROM_NAME : 'Online Law Security';
 
             $mail->setFrom($from_email, $from_name);

@@ -99,10 +99,10 @@ $auth_key_sms = getenv('SMS_AUTH_KEY') ?: '';
 // Hostinger SMTP Email Configuration (Environment-driven, no secrets in repository)
 if (!defined('SMTP_HOST')) define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
 if (!defined('SMTP_PORT')) define('SMTP_PORT', getenv('SMTP_PORT') ? (int)getenv('SMTP_PORT') : 587);
-if (!defined('SMTP_USER')) define('SMTP_USER', getenv('SMTP_USER') ?: 'info@saranindex.com');
+if (!defined('SMTP_USER')) define('SMTP_USER', getenv('SMTP_USER') ?: 'care@olaw.in');
 if (!defined('SMTP_PASS')) define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 if (!defined('SMTP_SECURE')) define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'tls');
-if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', getenv('SYSTEM_FROM_EMAIL') ?: 'info@saranindex.com');
+if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', getenv('SYSTEM_FROM_EMAIL') ?: 'care@olaw.in');
 if (!defined('SYSTEM_FROM_NAME')) define('SYSTEM_FROM_NAME', getenv('SYSTEM_FROM_NAME') ?: 'Online Law Security');
 // Determine if the request is over HTTPS (support Cloudflare, reverse proxies, and direct SSL)
 $protocol = "http";
