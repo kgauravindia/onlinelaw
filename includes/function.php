@@ -811,7 +811,7 @@ function bulk_sms($mobileNumber, $message, $dlt_te_id = '1207173591949478780')
         return false;
     }
 
-    $activeAuthKey = !empty($auth_key_msg) ? $auth_key_msg : (!empty($auth_key_sms) ? $auth_key_sms : 'b0e99bea1fa7d15e27e1c5fd8e3c868');
+    $activeAuthKey = !empty($auth_key_msg) ? $auth_key_msg : (!empty($auth_key_sms) ? $auth_key_sms : (getenv('SMS_AUTH_KEY') ?: ''));
     $activeSenderId = !empty($sender_id) ? $sender_id : 'OLAWIN';
 
     // Clean Indian 10-digit mobile number
@@ -895,19 +895,24 @@ function send_system_email($to_email, $to_name, $subject, $body_html) {
             $mail->isSMTP();
             $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = defined('SMTP_USER') ? SMTP_USER : 'care@olaw.in';
-            $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : (getenv('SMTP_PASS') ?: '');
+            $mail->Username   = defined('SMTP_USER') && SMTP_USER !== '' ? SMTP_USER : (getenv('SMTP_USER') ?: '');
+            $mail->Password   = defined('SMTP_PASS') && SMTP_PASS !== '' ? SMTP_PASS : (getenv('SMTP_PASS') ?: '');
             $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = defined('SMTP_PORT') ? intval(SMTP_PORT) : 587;
             $mail->Timeout    = 15;
             $mail->CharSet    = 'UTF-8';
 
-            $from_email = defined('SYSTEM_FROM_EMAIL') ? SYSTEM_FROM_EMAIL : 'care@olaw.in';
-            $from_name  = defined('SYSTEM_FROM_NAME') ? SYSTEM_FROM_NAME : 'Online Law Security';
+            $from_email = defined('SYSTEM_FROM_EMAIL') && SYSTEM_FROM_EMAIL !== '' ? SYSTEM_FROM_EMAIL : (getenv('SYSTEM_FROM_EMAIL') ?: '');
+            $from_name  = defined('SYSTEM_FROM_NAME') && SYSTEM_FROM_NAME !== '' ? SYSTEM_FROM_NAME : 'Online Law Security';
 
-            $mail->setFrom($from_email, $from_name);
+            if (!empty($from_email)) {
+                $mail->setFrom($from_email, $from_name);
+            }
             $mail->addAddress($to_email, $to_name ?: '');
-            $mail->addReplyTo('care@olaw.in', 'Online Law Support');
+            $reply_email = !empty($inst_email) ? $inst_email : (!empty($from_email) ? $from_email : (getenv('INST_EMAIL') ?: ''));
+            if (!empty($reply_email)) {
+                $mail->addReplyTo($reply_email, 'Online Law Support');
+            }
 
             $mail->isHTML(true);
             $mail->Subject = $subject;
@@ -921,10 +926,18 @@ function send_system_email($to_email, $to_name, $subject, $body_html) {
     }
 
     // Fallback to PHP native mail()
+    $from_email = defined('SYSTEM_FROM_EMAIL') && SYSTEM_FROM_EMAIL !== '' ? SYSTEM_FROM_EMAIL : (getenv('SYSTEM_FROM_EMAIL') ?: '');
+    $from_name  = defined('SYSTEM_FROM_NAME') && SYSTEM_FROM_NAME !== '' ? SYSTEM_FROM_NAME : 'Online Law Security';
+    $reply_email = !empty($inst_email) ? $inst_email : (!empty($from_email) ? $from_email : (getenv('INST_EMAIL') ?: ''));
+
     $headers  = "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: Online Law Security <care@olaw.in>\r\n";
-    $headers .= "Reply-To: care@olaw.in\r\n";
+    if (!empty($from_email)) {
+        $headers .= "From: {$from_name} <{$from_email}>\r\n";
+    }
+    if (!empty($reply_email)) {
+        $headers .= "Reply-To: {$reply_email}\r\n";
+    }
     $headers .= "X-Mailer: PHP/" . phpversion();
 
     $sent = @mail($to_email, $subject, $body_html, $headers);
@@ -1866,7 +1879,7 @@ function render_ad_slot($slot_type = 'horizontal', $slot_id = '', $options = [])
         return '';
     }
     
-    $client_id = get_setting('google_adsense_id', 'ca-pub-1272970612043134');
+    $client_id = get_setting('google_adsense_id', getenv('GOOGLE_ADSENSE_ID') ?: '');
     if (empty($client_id)) {
         return '';
     }

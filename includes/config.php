@@ -70,39 +70,39 @@ if(isset($_SESSION['user_id']))
 	$user_id = $_SESSION['user_id'];
 }
 
-$inst_name ="Online Law";
-$inst_tag ="for every citizen ";
-$inst_address1 ="2B Umanagar, Chapra ";
-$inst_address2 ="Saran, Bihar, India 841301";
-$inst_contact ="+91 9430 55 2117";
-$inst_support ="8102930609";
-$inst_contact2 ="+91 9431 42 6600";
-$inst_email ="care@olaw.in";
-$inst_logo ="/images/logo/logo.png";
-$white_logo ="/images/logo/logo-white.png";
-$inst_url ="https://olaw.in";
-$inst_domain ="olaw.in";
-$inst_type ="Organization";
+$inst_name      = getenv('INST_NAME') ?: "Online Law";
+$inst_tag       = getenv('INST_TAG') ?: "for every citizen ";
+$inst_address1  = getenv('INST_ADDRESS1') ?: "";
+$inst_address2  = getenv('INST_ADDRESS2') ?: "";
+$inst_contact   = getenv('INST_CONTACT') ?: "";
+$inst_support   = getenv('INST_SUPPORT') ?: "";
+$inst_contact2  = getenv('INST_CONTACT2') ?: "";
+$inst_email     = getenv('INST_EMAIL') ?: "";
+$inst_logo      = getenv('INST_LOGO') ?: "/images/logo/logo.png";
+$white_logo     = getenv('INST_WHITE_LOGO') ?: "/images/logo/logo-white.png";
+$inst_url       = getenv('INST_URL') ?: "https://olaw.in";
+$inst_domain    = getenv('INST_DOMAIN') ?: "olaw.in";
+$inst_type      = "Organization";
 
-$inst_facebook ='http://facebook.com/offerplant';
-$inst_twitter ='http://twitter.com/myofferplant';
-$inst_instagram ='http://instagram.com/offerplant';
-$inst_youtube ='http://youtube.com/offerplanttechnonogiesprivatelimited';
-$inst_linkedin ='http://linkedin.com/company/offerplant';
-$inst_pinterest ='http://pinterest.com/offerplant';
-$inst_app='https://play.google.com/store/apps/details?id=com.offerplant.myadvindia'; 
-$sender_id = getenv('SMS_SENDER_ID') ?: "OLAWIN"; // OFFAPP
-$noreply_email = getenv('NOREPLY_EMAIL') ?: "noreply@olaw.in";
-$auth_key_msg = getenv('SMS_AUTH_KEY') ?: '';
-$auth_key_sms = getenv('SMS_AUTH_KEY') ?: '';
+$inst_facebook  = getenv('INST_FACEBOOK') ?: "";
+$inst_twitter   = getenv('INST_TWITTER') ?: "";
+$inst_instagram = getenv('INST_INSTAGRAM') ?: "";
+$inst_youtube   = getenv('INST_YOUTUBE') ?: "";
+$inst_linkedin  = getenv('INST_LINKEDIN') ?: "";
+$inst_pinterest = getenv('INST_PINTEREST') ?: "";
+$inst_app       = getenv('INST_APP') ?: "";
+$sender_id      = getenv('SMS_SENDER_ID') ?: "";
+$noreply_email  = getenv('NOREPLY_EMAIL') ?: "";
+$auth_key_msg   = getenv('SMS_AUTH_KEY') ?: '';
+$auth_key_sms   = getenv('SMS_AUTH_KEY') ?: '';
 
 // Hostinger SMTP Email Configuration (Environment-driven, no secrets in repository)
 if (!defined('SMTP_HOST')) define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
 if (!defined('SMTP_PORT')) define('SMTP_PORT', getenv('SMTP_PORT') ? (int)getenv('SMTP_PORT') : 587);
-if (!defined('SMTP_USER')) define('SMTP_USER', getenv('SMTP_USER') ?: 'care@olaw.in');
+if (!defined('SMTP_USER')) define('SMTP_USER', getenv('SMTP_USER') ?: '');
 if (!defined('SMTP_PASS')) define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 if (!defined('SMTP_SECURE')) define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'tls');
-if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', getenv('SYSTEM_FROM_EMAIL') ?: 'care@olaw.in');
+if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', getenv('SYSTEM_FROM_EMAIL') ?: '');
 if (!defined('SYSTEM_FROM_NAME')) define('SYSTEM_FROM_NAME', getenv('SYSTEM_FROM_NAME') ?: 'Online Law Security');
 // Determine if the request is over HTTPS (support Cloudflare, reverse proxies, and direct SSL)
 $protocol = "http";
@@ -138,26 +138,25 @@ $base_path = '/' . trim($subpath, '/') . (trim($subpath, '/') !== '' ? '/' : '')
 $base_url = $protocol . "://" . $host . $base_path;
 
 
-$docs_fee =200;
-$google_map = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3592.2970631671963!2d84.74506377610148!3d25.7937490072049!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3992bb0071acc88d%3A0x667cb9b46cda2f4f!2sOnline%20Law!5e0!3m2!1sen!2sin!4v1743079268383!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
-$google_map_url = 'https://maps.app.goo.gl/8TbKDXy7N8iQRWpr7';
+$docs_fee = 200;
+$google_map = getenv('GOOGLE_MAP_EMBED') ?: '';
+$google_map_url = getenv('GOOGLE_MAP_URL') ?: '';
 /*---------Social Link ----------*/
 
-$facebook ='http://facebook.com/offerplant';
-$twitter ='http://twitter.com/myofferplant';
-$linkedin ='http://linkedin.com/company/offerplant';
-$youtube ='http://youtube.com/offerplanttechnonogiesprivatelimited';
-$pinterest ='http://pinterest.com/offerplant';
-$instagram ='http://instagram.com/offerplant';
+$facebook  = $inst_facebook;
+$twitter   = $inst_twitter;
+$linkedin  = $inst_linkedin;
+$youtube   = $inst_youtube;
+$pinterest = $inst_pinterest;
+$instagram = $inst_instagram;
 
-
-$app_name ='OL 1.1';
-$dev_company ="OfferPlant Technologies Private Limited";
-$dev_by ="OfferPlant";
-$dev_url ="http://offerplant.com";
-$dev_email ="ask@offerplant.com";
-$dev_contact ="+91 9431 42 6600";
-$api_key = '';
+$app_name    = 'OL 1.1';
+$dev_company = getenv('DEV_COMPANY') ?: "";
+$dev_by      = getenv('DEV_BY') ?: "";
+$dev_url     = getenv('DEV_URL') ?: "";
+$dev_email   = getenv('DEV_EMAIL') ?: "";
+$dev_contact = getenv('DEV_CONTACT') ?: "";
+$api_key     = getenv('API_KEY') ?: '';
 
 $host_name = getenv('DB_HOST') ?: 'localhost';
 $is_local = false;

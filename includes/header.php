@@ -6,15 +6,15 @@
 require_once (__DIR__ . '/config.php'); 
 require_once (__DIR__ . '/function.php'); 
 
-$ga_id = get_setting('google_analytics_id', 'G-TDGJS08YY4');
-$ga_enabled = get_setting('google_analytics_enabled', '1');
+$ga_id = get_setting('google_analytics_id', getenv('GOOGLE_ANALYTICS_ID') ?: '');
+$ga_enabled = get_setting('google_analytics_enabled', getenv('GOOGLE_ANALYTICS_ENABLED') !== false ? getenv('GOOGLE_ANALYTICS_ENABLED') : '1');
 
-$adsense_id = get_setting('google_adsense_id', 'ca-pub-1272970612043134');
-$adsense_enabled = get_setting('google_adsense_enabled', '1');
+$adsense_id = get_setting('google_adsense_id', getenv('GOOGLE_ADSENSE_ID') ?: '');
+$adsense_enabled = get_setting('google_adsense_enabled', getenv('GOOGLE_ADSENSE_ENABLED') !== false ? getenv('GOOGLE_ADSENSE_ENABLED') : '1');
 
-$header_custom_code = get_setting('header_custom_code', '');
-$g_site_verification = get_setting('google_site_verification', '');
-$bing_site_verification = get_setting('bing_site_verification', '');
+$header_custom_code = get_setting('header_custom_code', getenv('HEADER_CUSTOM_CODE') ?: '');
+$g_site_verification = get_setting('google_site_verification', getenv('GOOGLE_SITE_VERIFICATION') ?: '');
+$bing_site_verification = get_setting('bing_site_verification', getenv('BING_SITE_VERIFICATION') ?: '');
 $current_page = basename($_SERVER['PHP_SELF'] ?? '', '.php');
 ?> 
 <link rel="icon" type="image/png" href="<?php echo $base_url; ?>images/favicon.png">

@@ -69,7 +69,7 @@ $all_settings = get_all_settings();
 $ga_id = $all_settings['google_analytics_id'] ?? '';
 $ga_enabled = ($all_settings['google_analytics_enabled'] ?? '1') === '1';
 
-$adsense_id = $all_settings['google_adsense_id'] ?? 'ca-pub-1272970612043134';
+$adsense_id = $all_settings['google_adsense_id'] ?? (getenv('GOOGLE_ADSENSE_ID') ?: '');
 $adsense_enabled = ($all_settings['google_adsense_enabled'] ?? '1') === '1';
 
 $g_verification = $all_settings['google_site_verification'] ?? '';
@@ -304,10 +304,10 @@ $social_pinterest = $all_settings['social_pinterest'] ?? $inst_pinterest;
                                         <div class="input-group-prepend">
                                             <span class="input-group-text bg-light"><i class="fas fa-coins text-muted"></i></span>
                                         </div>
-                                        <input type="text" class="form-control form-control-lg font-monospace" id="google_adsense_id" name="google_adsense_id" placeholder="e.g. ca-pub-1272970612043134" value="<?php echo htmlspecialchars($adsense_id); ?>" style="font-size: 15px; font-weight: 600;">
+                                        <input type="text" class="form-control form-control-lg font-monospace" id="google_adsense_id" name="google_adsense_id" placeholder="e.g. ca-pub-XXXXXXXXXXXXXXXX" value="<?php echo htmlspecialchars($adsense_id); ?>" style="font-size: 15px; font-weight: 600;">
                                     </div>
                                     <small class="form-text text-muted mt-2">
-                                        Your official Google AdSense publisher ID (e.g., <code>ca-pub-1272970612043134</code>).
+                                        Your official Google AdSense publisher ID (e.g., <code>ca-pub-XXXXXXXXXXXXXXXX</code>).
                                     </small>
                                 </div>
 

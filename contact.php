@@ -1047,7 +1047,7 @@
                             <i class="fas fa-exclamation-triangle mt-1 mr-2.5 text-warning" style="font-size: 16px;"></i>
                             <div class="small" style="line-height: 1.6;">
                                 <strong class="d-block mb-1">Turnaround Time &amp; Resolution SLA:</strong>
-                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">10 working days</span> (Subject to manual phone queue) +91 9431 42 6600, +91 9430 55 2117.</div>
+                                <div>&bull; <strong>Call / WhatsApp Complain:</strong> <span class="text-danger font-weight-bold">10 working days</span> (Subject to manual phone queue) <?php echo !empty($inst_contact) ? htmlspecialchars($inst_contact) . (!empty($inst_contact2) ? ', ' . htmlspecialchars($inst_contact2) : '') : 'Dedicated Help Desk'; ?>.</div>
                                 <div>&bull; <strong>Email Support:</strong> <span class="text-warning font-weight-bold">7 working days</span> (Standard mailbox queue).</div>
                                 <div>&bull; <strong>Online Contact Form:</strong> <span class="text-success font-weight-bold">3 days only</span> (Fast automated ticket creation &amp; priority legal desk).</div>
                                 <div class="mt-2 text-dark font-weight-semibold">
