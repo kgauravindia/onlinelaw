@@ -527,7 +527,7 @@ $schema_graphs = [
                             <i class="fas fa-landmark"></i>
                         </div>
                         <h5 class="font-weight-bold mb-2 text-dark" style="font-size: 18px;">Bank &amp; IFSC Finder</h5>
-                        <p class="text-muted mb-4" style="font-size: 14px; line-height: 1.6;">Search 181,913+ branches using our 4-step cascading finder (Bank &rarr; State &rarr; District &rarr; Branch), IFSC lookup, and MICR code tools.</p>
+                        <p class="text-muted mb-4" style="font-size: 14px; line-height: 1.6;">Search 182,792+ branches using our 4-step cascading finder (Bank &rarr; State &rarr; District &rarr; Branch), IFSC lookup, and MICR code tools (updated as on October 31, 2026 as per RBI RTGS master list).</p>
                     </div>
                     <a href="<?php echo $base_url; ?>bank-finder" class="font-weight-bold text-success" style="font-size: 14px; text-decoration: none;">
                         Launch Bank Finder <i class="fas fa-arrow-right ml-1"></i>

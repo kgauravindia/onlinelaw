@@ -625,7 +625,7 @@ $website_schema = [
 			<div class="col-lg-4 col-md-6 col-12 mb-4 d-flex">
 				<div class="modern-tool-card w-100">
 					<div class="tool-card-glow-bg" style="background: #059669;"></div>
-					<span class="tool-card-badge" style="background: #ecfdf5; color: #059669;">181,913 Branches</span>
+					<span class="tool-card-badge" style="background: #ecfdf5; color: #059669;">182,792 Branches</span>
 					<div>
 						<div class="tool-icon-squircle" style="background: #ecfdf5; color: #059669;">
 							<i class="fas fa-landmark"></i>
@@ -896,7 +896,7 @@ $website_schema = [
 					</button>
 					<div id="faq1" class="collapse show">
 						<div class="faq-accordion-body">
-							Our Cascading Bank Finder lets you select your Bank name &rarr; State &rarr; District &rarr; Branch sequentially via fast AJAX dropdowns. It retrieves the exact 11-digit IFSC code, 9-digit MICR code, branch address, contact details, and electronic transfer capabilities (NEFT, RTGS, IMPS) across all 181,913+ RBI registered bank branches in India.
+							Our Cascading Bank Finder lets you select your Bank name &rarr; State &rarr; District &rarr; Branch sequentially via fast AJAX dropdowns. It retrieves the exact 11-digit IFSC code, 9-digit MICR code, branch address, contact details, and electronic transfer capabilities (NEFT, RTGS, IMPS) across all 182,792+ RBI registered bank branches in India (List of RTGS enabled branches as on October 31, 2026).
 						</div>
 					</div>
 				</div>

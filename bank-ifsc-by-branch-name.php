@@ -102,9 +102,9 @@ if (!empty($branch_search)) {
     $res_data = array_slice($found_rows, $offset, $per_page);
 
     $canonical_url = $base_url . "bank-ifsc-by-branch-name?branch=" . urlencode($branch_search);
-    $page_title = "Bank IFSC & MICR Codes for '$branch_search' Branches (2026) | Online Law";
-    $meta_desc = "Found $total_found bank branches matching '$branch_search'. Search verified RBI IFSC & MICR codes, branch addresses, and RTGS/NEFT settlement details.";
-    $meta_keywords = "$branch_search Bank IFSC, $branch_search Branch Code, $branch_search MICR Code, Find Bank IFSC by City $branch_search, Online Law";
+    $page_title = "Bank IFSC & MICR Codes for '$branch_search' Branches (October 2026) | Online Law";
+    $meta_desc = "Found $total_found bank branches matching '$branch_search'. Search verified RBI IFSC & MICR codes, branch addresses, and RTGS/NEFT settlement details updated as on October 31, 2026.";
+    $meta_keywords = "$branch_search Bank IFSC, $branch_search Branch Code, $branch_search MICR Code, Find Bank IFSC by City $branch_search, RBI RTGS October 2026, Online Law";
 
     // BreadcrumbList Schema
     $schema_graphs[] = [
@@ -130,7 +130,7 @@ if (!empty($branch_search)) {
         ],
         [
             "q" => "Are these IFSC and MICR codes updated for 2026?",
-            "a" => "Yes. All branch records on Online Law are synchronized with the official Reserve Bank of India (RBI) master directory for 2026."
+            "a" => "Yes. All 182,792+ branch records on Online Law are synchronized with the official Reserve Bank of India (RBI) master release: List of RTGS enabled bank branches (as on October 31, 2026)."
         ]
     ];
 
@@ -153,9 +153,9 @@ if (!empty($branch_search)) {
 
 } else {
     $canonical_url = $base_url . "bank-ifsc-by-branch-name";
-    $page_title = "Search Bank IFSC & MICR by Branch or City Name (2026) | Online Law";
-    $meta_desc = "Quickly search for any Bank branch IFSC & MICR codes in India by branch name, locality, town, or city. Comprehensive 181,913+ RBI directory updated for 2026.";
-    $meta_keywords = "IFSC Search by City, Bank Branch Name Search India, Find IFSC by Town, State Bank Branch Location, District Wise IFSC Codes, Online Law";
+    $page_title = "Search Bank IFSC & MICR by Branch or City Name (October 2026) | Online Law";
+    $meta_desc = "Quickly search for any Bank branch IFSC & MICR codes in India by branch name, locality, town, or city. Comprehensive 182,792+ RBI directory (List of RTGS enabled bank branches as on October 31, 2026).";
+    $meta_keywords = "IFSC Search by City, Bank Branch Name Search India, Find IFSC by Town, RBI RTGS October 2026, State Bank Branch Location, District Wise IFSC Codes, Online Law";
 
     $schema_graphs[] = [
         "@context" => "https://schema.org",
@@ -514,15 +514,17 @@ if (!empty($branch_search)) {
                     </nav>
                 </div>
 
-                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(6, 78, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
-                    <i class="fas fa-building mr-1.5"></i> BRANCH &amp; CITY IFSC LOOKUP 2026
+                <div class="d-inline-flex align-items-center flex-wrap gap-2 px-3 py-1.5 rounded-pill mb-3" style="background: rgba(6, 78, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <span><i class="fas fa-building mr-1.5"></i> BRANCH &amp; CITY IFSC LOOKUP 2026</span>
+                    <span class="d-none d-sm-inline mx-1 text-muted">&bull;</span>
+                    <span style="color: #38bdf8;"><i class="fas fa-check-circle mr-1"></i>RTGS List (Oct 31, 2026)</span>
                 </div>
 
                 <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
                     Find IFSC by <span style="background: linear-gradient(135deg, #86efac 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Branch Name or City</span>
                 </h1>
                 <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
-                    Type any branch name, city, or locality in India to instantly locate verified 11-digit IFSC, MICR, and branch addresses.
+                    Type any branch name, city, or locality in India to instantly locate verified 11-digit IFSC, MICR, and branch addresses across 182,792+ branches. Updated as on October 31, 2026 (RBI RTGS Directory).
                 </p>
 
             </div>
@@ -610,7 +612,7 @@ if (!empty($branch_search)) {
                         Found <span class="text-success"><?php echo number_format($total_found); ?></span> Branches matching "<span class="text-dark"><?php echo htmlspecialchars($branch_search); ?></span>"
                     </h3>
                     <div class="text-muted small">
-                        Showing verified RBI records
+                        Showing verified RBI records &bull; As on October 31, 2026 (<a href="https://www.rbi.org.in/Scripts/Bs_viewRTGS.aspx?Category=5" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none font-weight-bold">RBI RTGS Source</a>)
                     </div>
                 </div>
 
@@ -815,6 +817,24 @@ if (!empty($branch_search)) {
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+
+        <!-- Official RBI RTGS Source Citation Banner -->
+        <div class="alert alert-light border shadow-sm d-flex flex-wrap align-items-center justify-content-between p-3 mb-4 rounded-xl" style="border-radius: 16px; background: #ffffff; border-color: #a7f3d0 !important;">
+            <div class="d-flex align-items-center mr-3 mb-2 mb-md-0">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 14px; flex-shrink: 0;">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div>
+                    <div class="font-weight-bold text-dark" style="font-size: 14px;">Official RBI Banking Master Source</div>
+                    <div class="text-muted small">
+                        All bank branch and city records are synchronized with the <strong>List of RTGS enabled bank branches (as on October 31, 2026)</strong> published by the Reserve Bank of India (RBI). Total 182,792 active branches covered.
+                    </div>
+                </div>
+            </div>
+            <a href="https://www.rbi.org.in/Scripts/Bs_viewRTGS.aspx?Category=5" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success font-weight-bold px-3 py-1.5" style="border-radius: 8px; font-size: 12px;">
+                <i class="fas fa-external-link-alt mr-1"></i> Verify at RBI (Bs_viewRTGS)
+            </a>
+        </div>
 
         <!-- ======================================================================
              SEARCH TIPS & HELPFUL GUIDE

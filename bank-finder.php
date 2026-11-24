@@ -237,9 +237,9 @@
         $meta_desc = "Search all " . number_format($total_records) . " branches of $selected_bank across all states and districts in India. Verified IFSC, MICR, and branch addresses.";
         $meta_keywords = "$selected_bank IFSC Code, $selected_bank Branch Finder, $selected_bank MICR Codes, All $selected_bank Branches";
     } else {
-        $page_title = "Find Bank IFSC & MICR Code by Bank, State, District & Branch | Bank Finder (2026) - Online Law";
-        $meta_desc = "Search and verify RBI IFSC & MICR codes for all Indian banks by selecting Bank Name, State, District/City, and Branch. 1.8+ lakh branches directory for NEFT, RTGS, IMPS money transfers.";
-        $meta_keywords = "Bank Finder, IFSC Code Finder, Find Bank by State District Branch, Bank Branch Directory, All Bank IFSC Codes, RBI IFSC MICR Search";
+        $page_title = "Find Bank IFSC & MICR Code by Bank, State, District & Branch (October 2026) - Online Law";
+        $meta_desc = "Search and verify RBI IFSC & MICR codes for all Indian banks by selecting Bank Name, State, District/City, and Branch. 182,792+ branches directory updated as on October 31, 2026 (List of RTGS enabled bank branches).";
+        $meta_keywords = "Bank Finder, IFSC Code Finder, Find Bank by State District Branch, Bank Branch Directory, RBI RTGS List October 2026, All Bank IFSC Codes, RBI IFSC MICR Search";
     }
 
     // BreadcrumbList Schema
@@ -312,7 +312,7 @@
             ],
             [
                 "q" => "Are all bank branch details up-to-date with RBI records?",
-                "a" => "Yes, our directory indexes over 1.8 lakh bank branches across India directly synced with the Reserve Bank of India (RBI) master database."
+                "a" => "Yes, our directory indexes 182,792 RTGS-enabled bank branches across India directly synced with the official Reserve Bank of India (RBI) master release: List of RTGS enabled bank branches (as on October 31, 2026)."
             ]
         ];
     }
@@ -687,15 +687,17 @@
                     </nav>
                 </div>
 
-                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: #ffffff; border: 1.5px solid #fed7aa; color: #c2410c; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);">
-                    <i class="fas fa-university mr-1.5" style="color: #ff671f;"></i> RBI MASTER BANK &amp; IFSC DIRECTORY 2026
+                <div class="d-inline-flex align-items-center flex-wrap gap-2 px-3 py-1.5 rounded-pill mb-3" style="background: #ffffff; border: 1.5px solid #fed7aa; color: #c2410c; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; box-shadow: 0 4px 14px rgba(255, 103, 31, 0.08);">
+                    <span><i class="fas fa-university mr-1.5" style="color: #ff671f;"></i> RBI MASTER BANK &amp; IFSC DIRECTORY 2026</span>
+                    <span class="d-none d-sm-inline mx-1 text-muted">&bull;</span>
+                    <span style="color: #047857;"><i class="fas fa-check-circle mr-1"></i>RTGS List (As on Oct 31, 2026)</span>
                 </div>
 
                 <h1 class="text-dark font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
                     Find Your <span style="background: linear-gradient(135deg, #ff671f 0%, #ea580c 45%, #046a38 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Bank &amp; IFSC Code</span>
                 </h1>
                 <p class="mb-0" style="color: #475569 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
-                    Select your <strong>Bank</strong>, <strong>State</strong>, <strong>District / City</strong>, and <strong>Branch</strong> to instantly uncover official RBI IFSC, MICR, addresses, and settlement details.
+                    Select your <strong>Bank</strong>, <strong>State</strong>, <strong>District / City</strong>, and <strong>Branch</strong> to instantly uncover official RBI IFSC, MICR, addresses, and settlement details across 182,792+ branches. Updated as per RBI RTGS list as on October 31, 2026.
                 </p>
 
             </div>
@@ -846,9 +848,14 @@
                 <div class="p-4 rounded-xl mb-4 bg-white shadow-sm border" style="border-radius: 20px;">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-3 border-bottom">
                         <div>
-                            <span class="badge px-3 py-1 rounded-pill font-weight-bold text-uppercase mb-1" style="background: #ecfdf5; color: #047857; font-size: 11px; border: 1px solid #a7f3d0;">
-                                <i class="fas fa-check-circle mr-1"></i> RBI Verified Banking Results
-                            </span>
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                <span class="badge px-3 py-1 rounded-pill font-weight-bold text-uppercase" style="background: #ecfdf5; color: #047857; font-size: 11px; border: 1px solid #a7f3d0;">
+                                    <i class="fas fa-check-circle mr-1"></i> RBI Verified Banking Results
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="fas fa-calendar-check text-success mr-1"></i>As on October 31, 2026 (<a href="https://www.rbi.org.in/Scripts/Bs_viewRTGS.aspx?Category=5" target="_blank" rel="noopener noreferrer" class="text-primary font-weight-bold">RBI RTGS Source</a>)
+                                </span>
+                            </div>
                             <h2 class="font-weight-bold text-dark mb-0" style="font-size: clamp(20px, 2.8vw, 26px); letter-spacing: -0.5px;">
                                 <?php 
                                     $heading_parts = [];
@@ -1201,7 +1208,7 @@
                         The <strong>Indian Financial System Code (IFSC)</strong> is an 11-character alphanumeric code assigned by the <strong>Reserve Bank of India (RBI)</strong> to identify each bank branch uniquely across the country. It is indispensable for performing seamless and secure electronic remittances via <strong>NEFT (National Electronic Funds Transfer)</strong>, <strong>RTGS (Real-Time Gross Settlement)</strong>, and <strong>IMPS (Immediate Payment Service)</strong>.
                     </p>
                     <p class="text-muted" style="line-height: 1.7; font-size: 14.5px;">
-                        Our <strong>Bank Finder</strong> allows customers, accountants, lawyers, and business owners to filter through more than 1.8 lakh bank branches with cascading State, District, and Branch menus.
+                        Our <strong>Bank Finder</strong> allows customers, accountants, lawyers, and business owners to filter through more than 182,792 bank branches (synchronized with official RBI List of RTGS enabled bank branches as on October 31, 2026) with cascading State, District, and Branch menus.
                     </p>
 
                     <div class="row mt-4">

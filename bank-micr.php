@@ -136,7 +136,7 @@ if (!empty($micrcode)) {
     } else {
         $canonical_url = $base_url . "bank-micr";
         $page_title = "MICR Code $micrcode - Not Found | Online Law";
-        $meta_desc = "No bank branch found for MICR Code $micrcode. Search across 181,900+ RBI bank branches across India.";
+        $meta_desc = "No bank branch found for MICR Code $micrcode. Search across 182,792+ RBI RTGS-enabled bank branches across India (updated as on October 31, 2026).";
         $meta_keywords = "MICR Code $micrcode, Bank MICR Search, Online Law";
 
         $schema_graphs[] = [
@@ -151,9 +151,9 @@ if (!empty($micrcode)) {
     }
 } else {
     $canonical_url = $base_url . "bank-micr";
-    $page_title = "Bank MICR Code Search 2026 | Find Any Bank Branch MICR in India - Online Law";
-    $meta_desc = "Search 9-digit Magnetic Ink Character Recognition (MICR) codes for all bank branches in India. Verified CTS clearing codes, addresses, and IFSC details updated for 2026.";
-    $meta_keywords = "MICR Code Search, Find Bank MICR, RBI MICR List 2026, Cheque Clearance Codes, CTS MICR Codes India, Bank Branch Finder, Online Law";
+    $page_title = "Bank MICR Code Search (October 2026) | Find Any Bank Branch MICR in India - Online Law";
+    $meta_desc = "Search 9-digit Magnetic Ink Character Recognition (MICR) codes for 182,792+ bank branches in India. Verified CTS clearing codes, addresses, and IFSC details updated as on October 31, 2026 (RBI RTGS Directory).";
+    $meta_keywords = "MICR Code Search, Find Bank MICR, RBI MICR List October 2026, Cheque Clearance Codes, CTS MICR Codes India, RTGS Bank Branches India, Online Law";
 
     $schema_graphs[] = [
         "@context" => "https://schema.org",
@@ -531,15 +531,17 @@ if (!empty($micrcode)) {
                     </nav>
                 </div>
 
-                <div class="d-inline-flex align-items-center px-3 py-1.5 rounded-pill mb-3" style="background: rgba(6, 78, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
-                    <i class="fas fa-money-check-alt mr-1.5"></i> RBI 9-DIGIT MICR CODE DIRECTORY 2026
+                <div class="d-inline-flex align-items-center flex-wrap gap-2 px-3 py-1.5 rounded-pill mb-3" style="background: rgba(6, 78, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); color: #86efac; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">
+                    <span><i class="fas fa-money-check-alt mr-1.5"></i> RBI 9-DIGIT MICR CODE DIRECTORY 2026</span>
+                    <span class="d-none d-sm-inline mx-1 text-muted">&bull;</span>
+                    <span style="color: #38bdf8;"><i class="fas fa-check-circle mr-1"></i>RTGS List (Oct 31, 2026)</span>
                 </div>
 
                 <h1 class="text-white font-weight-bold mb-2" style="font-size: clamp(24px, 3.8vw, 36px); letter-spacing: -0.5px; line-height: 1.25;">
                     Bank MICR <span style="background: linear-gradient(135deg, #86efac 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Code Search</span>
                 </h1>
                 <p class="text-light mb-0" style="color: #cbd5e1 !important; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.6;">
-                    Search Magnetic Ink Character Recognition (MICR) codes for cheque clearance and CTS (Cheque Truncation System) operations across all Indian banks.
+                    Search Magnetic Ink Character Recognition (MICR) codes for cheque clearance and CTS (Cheque Truncation System) operations across 182,792+ branches. Synchronized with official RBI RTGS Directory as on October 31, 2026.
                 </p>
 
             </div>
@@ -620,7 +622,9 @@ if (!empty($micrcode)) {
                                 <span class="badge badge-success px-2.5 py-1" style="background: #047857; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase;">
                                     <i class="fas fa-check-circle mr-1"></i> RBI Verified CTS Code
                                 </span>
-                                <span class="text-muted small">Updated August 2026</span>
+                                <span class="text-muted small" title="List of RTGS enabled bank branches (as on October 31, 2026)">
+                                    <i class="fas fa-calendar-check text-success mr-1"></i>As on October 31, 2026 (<a href="https://www.rbi.org.in/Scripts/Bs_viewRTGS.aspx?Category=5" target="_blank" rel="noopener noreferrer" class="text-primary font-weight-bold">RBI RTGS Source</a>)
+                                </span>
                             </div>
                             <h2 class="font-weight-bold text-dark mb-1" style="font-size: clamp(20px, 2.4vw, 26px); line-height: 1.3;">
                                 <?php echo htmlspecialchars($b['bank']); ?>
@@ -960,6 +964,24 @@ if (!empty($micrcode)) {
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+
+        <!-- Official RBI RTGS Source Citation Banner -->
+        <div class="alert alert-light border shadow-sm d-flex flex-wrap align-items-center justify-content-between p-3 mb-4 rounded-xl" style="border-radius: 16px; background: #ffffff; border-color: #a7f3d0 !important;">
+            <div class="d-flex align-items-center mr-3 mb-2 mb-md-0">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 14px; flex-shrink: 0;">
+                    <i class="fas fa-money-check-alt"></i>
+                </div>
+                <div>
+                    <div class="font-weight-bold text-dark" style="font-size: 14px;">Official RBI CTS &amp; RTGS Banking Master Source</div>
+                    <div class="text-muted small">
+                        All bank branches and CTS cheque clearance codes are synchronized with the <strong>List of RTGS enabled bank branches (as on October 31, 2026)</strong> published by the Reserve Bank of India (RBI).
+                    </div>
+                </div>
+            </div>
+            <a href="https://www.rbi.org.in/Scripts/Bs_viewRTGS.aspx?Category=5" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success font-weight-bold px-3 py-1.5" style="border-radius: 8px; font-size: 12px;">
+                <i class="fas fa-external-link-alt mr-1"></i> Verify at RBI (Bs_viewRTGS)
+            </a>
+        </div>
 
         <!-- ======================================================================
              MICR CODE EXPLANATION & EDUCATIONAL GUIDE
