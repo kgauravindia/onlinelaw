@@ -7,6 +7,12 @@
 *.crt
 *.pfx
 
+# Configuration & Secrets (Use includes/config.example.php as template)
+includes/config.php
+!includes/config.example.php
+ads.txt
+!ads.txt.example
+
 # Database & SQL Dumps (Never upload database or SQL files)
 *.sql
 *.sql.gz
