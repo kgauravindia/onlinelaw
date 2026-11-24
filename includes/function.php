@@ -2,8 +2,18 @@
 require_once(__DIR__ . '/config.php');
 require_once(__DIR__ . '/security.php');
 require_once(__DIR__ . '/captcha.php');
-$con = mysqli_connect($host_name, $db_user, $db_password, $db_name) or die("Unable to Connect, Check the Connection Parameter. " . mysqli_connect_error());
-mysqli_set_charset($con, 'utf8mb4');
+// Database Connection Initialization with Secure Exception Handling
+mysqli_report(MYSQLI_REPORT_OFF);
+$con = @mysqli_connect($host_name, $db_user, $db_password, $db_name);
+if (!$con) {
+    error_log("Database connection failed for user '{$db_user}': " . mysqli_connect_error());
+    if (!defined('REST_API') && (!isset($_SERVER['HTTP_ACCEPT']) || strpos($_SERVER['HTTP_ACCEPT'], 'application/json') === false)) {
+        http_response_code(503);
+        die("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><title>Database Setup Required - Online Law</title><meta name='viewport' content='width=device-width, initial-scale=1'><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;box-sizing:border-box;}.card{background:#1e293b;border:1px solid #334155;border-radius:16px;max-width:560px;width:100%;padding:36px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.5);}h2{color:#f87171;margin-top:0;font-size:22px;}p{color:#94a3b8;font-size:14.5px;line-height:1.6;}code{background:#0f172a;color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:13px;}.highlight{background:#0f172a;border-left:3px solid #f59e0b;padding:12px 16px;border-radius:0 8px 8px 0;margin:20px 0;font-size:13.5px;color:#e2e8f0;}</style></head><body><div class='card'><h2>Database Connection Error</h2><p>The application could not connect to MySQL database <code>" . htmlspecialchars($db_name) . "</code> with user <code>" . htmlspecialchars($db_user) . "</code>.</p><div class='highlight'><strong>How to fix:</strong><br>Check your server's <code>.env</code> file in the website root directory and ensure <code>DB_USER</code> and <code>DB_PASS</code> match your Hostinger MySQL database credentials.</div><p style='margin-bottom:0;font-size:13px;'>If you just uploaded files from your local Laragon/XAMPP environment, remember that your production database password is required on the server.</p></div></body></html>");
+    }
+} else {
+    mysqli_set_charset($con, 'utf8mb4');
+}
 /*-------------- DUMMY DATA------------------------*/
 //$user_id =1;
 
