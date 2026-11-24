@@ -203,6 +203,29 @@ if ($cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['
             </div>
         </div>
     </div>
+
+    <!-- Git Repository Control (Pull / Push) -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="section-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                    <span class="badge-premium badge-premium-success">
+                        GitHub Sync
+                    </span>
+                </div>
+                <h5 class="font-weight-bold mb-2">Git Control (Pull &amp; Push)</h5>
+                <p class="text-muted small mb-4">Pull incoming updates from origin/main, inspect uncommitted changes, and commit &amp; push code updates.</p>
+            </div>
+            <div>
+                <a href="manage_git.php" class="btn btn-sm btn-primary btn-block font-weight-bold py-2">
+                    <i class="fas fa-cloud-upload-alt mr-1"></i> Open Git Manager
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php require_once('includes/footer.php'); ?>

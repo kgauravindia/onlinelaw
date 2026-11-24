@@ -106,6 +106,9 @@ if ($cache_valid && $cached_data) {
         <a href="manage_settings.php" class="btn btn-outline-secondary px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-sliders-h mr-1"></i> Site Settings
         </a>
+        <a href="manage_git.php" class="btn btn-outline-dark px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;" title="Git pull &amp; push manager">
+            <i class="fas fa-code-branch mr-1"></i> Git Sync
+        </a>
         <a href="manage_api_keys.php" class="btn btn-outline-info px-3 shadow-sm font-weight-bold" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
             <i class="fas fa-key mr-1"></i> API Keys
         </a>

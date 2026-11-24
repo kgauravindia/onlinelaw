@@ -115,6 +115,9 @@ if ($current_page != 'login.php') {
             <a href="manage_users.php" class="nav-link-custom <?php echo in_array($current_page, ['manage_users.php', 'edit_user.php']) ? 'active' : ''; ?>" title="Platform Users">
                 <i class="fas fa-users"></i> <span>Users</span>
             </a>
+            <a href="manage_git.php" class="nav-link-custom <?php echo ($current_page == 'manage_git.php') ? 'active' : ''; ?>" title="Git Deployment &amp; Repository Control">
+                <i class="fas fa-code-branch"></i> <span>Git Control (Pull / Push)</span>
+            </a>
         </nav>
         
         <div class="mt-auto px-2">
