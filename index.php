@@ -468,7 +468,7 @@ $website_schema = [
 				<!-- Live Version Badge -->
 				<div class="hero-pill-tag mb-3">
 					<span class="hero-pulse-dot"></span>
-					<span>OFFICIAL PUBLIC ACCESS DIRECTORY • <?php echo defined('GIT_VERSION') ? GIT_VERSION : 'v1.1.0'; ?> (Git: <?php echo defined('GIT_COMMIT_HASH') ? GIT_COMMIT_HASH : '3009270'; ?>)</span>
+					<span>OFFICIAL PUBLIC ACCESS DIRECTORY • UPDATED 2026</span>
 				</div>
 				
 				<!-- Main Headline -->
