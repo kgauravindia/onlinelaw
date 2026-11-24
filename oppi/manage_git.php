@@ -175,6 +175,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'output' => $res['output'] ?: 'Repository already up-to-date.',
                 'success' => ($res['code'] === 0)
             ];
+        } elseif ($act === 'force_pull') {
+            // Force reset to origin branch (discards local conflicts and aligns with GitHub)
+            $log_trace = [];
+            $res_fetch = run_git("fetch origin $branch", $repo_path);
+            $log_trace[] = "$ git fetch origin " . $git_state['branch'] . "\n" . ($res_fetch['output'] ?: '(Remote fetched)');
+
+            // Remove untracked conflict files if they exist
+            $conflict_untracked = ['oppi/export_changes.php', 'oppi/manage_git.php'];
+            foreach ($conflict_untracked as $cfile) {
+                $full_cpath = $repo_path . '/' . $cfile;
+                if (file_exists($full_cpath)) {
+                    $chk = run_git("status --porcelain " . escapeshellarg($cfile), $repo_path);
+                    if (strpos($chk['output'] ?? '', '??') !== false) {
+                        @unlink($full_cpath);
+                        $log_trace[] = "Removed untracked conflict file: $cfile";
+                    }
+                }
+            }
+
+            // Hard reset to origin branch
+            $res_reset = run_git("reset --hard origin/" . $git_state['branch'], $repo_path);
+            $log_trace[] = "$ git reset --hard origin/" . $git_state['branch'] . "\n" . ($res_reset['output'] ?: 'Reset executed.');
+
+            $action_command = "git fetch & reset --hard origin/" . $git_state['branch'];
+            $action_result = [
+                'code' => $res_reset['code'],
+                'action' => 'force_pull',
+                'output' => implode("\n\n", $log_trace),
+                'success' => ($res_reset['code'] === 0)
+            ];
         } elseif ($act === 'push') {
             // Git Push
             $commit_msg = trim($_POST['commit_message'] ?? '');
@@ -456,6 +486,15 @@ require_once(__DIR__ . '/includes/header.php');
                     <i class="fas fa-cloud-download-alt mr-2"></i> Execute Git Pull
                 </button>
             </form>
+            <div class="mt-2 text-center">
+                <form method="POST" action="manage_git.php" class="d-inline">
+                    <input type="hidden" name="action" value="force_pull">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                    <button type="submit" class="btn btn-sm btn-link text-danger font-weight-bold p-0 text-decoration-none" onclick="return confirm('WARNING: This will forcefully reset server working files to match GitHub origin/<?php echo htmlspecialchars($git['branch']); ?> and resolve overwrite conflicts.\n\nYour database and .env are completely safe.\n\nProceed?');">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> Conflict? Force Reset &amp; Sync to GitHub
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
