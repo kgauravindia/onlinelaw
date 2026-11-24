@@ -79,6 +79,9 @@ if ($current_page != 'login.php') {
             <a href="manage_data.php" class="nav-link-custom <?php echo ($current_page == 'manage_data.php') ? 'active' : ''; ?>" title="Master Database Tables">
                 <i class="fas fa-database"></i> <span>Master Data Hub</span>
             </a>
+            <a href="export_changes.php" class="nav-link-custom <?php echo ($current_page == 'export_changes.php') ? 'active' : ''; ?>" title="Export Database Changes in SQL">
+                <i class="fas fa-file-export"></i> <span>Export SQL Changes</span>
+            </a>
 
             <div class="sidebar-nav-section mt-3">Helpdesk &amp; Inquiries</div>
             <?php

@@ -29,6 +29,11 @@ if ($cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['
         <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">Master Data Hub</h1>
         <p class="text-muted mb-0" style="font-size: 0.9rem;">Select a core dataset registry below to inspect records, perform updates, or import batch updates.</p>
     </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2" style="gap: 8px;">
+        <a href="export_changes.php" class="btn btn-primary font-weight-bold shadow-sm" style="border-radius: var(--radius-sm); font-size: 0.88rem;">
+            <i class="fas fa-file-export mr-1"></i> Export Changes (SQL)
+        </a>
+    </div>
 </div>
 
 <div class="row">
@@ -171,6 +176,29 @@ if ($cached_data && isset($cached_data['timestamp']) && (time() - $cached_data['
             <div>
                 <a href="manage_api_keys.php" class="btn btn-sm btn-primary btn-block font-weight-bold py-2">
                     <i class="fas fa-shield-alt mr-1"></i> Manage API Keys
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Database Changes in SQL -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="section-card p-4 h-100 d-flex flex-column justify-content-between" style="border: 2px dashed #3b82f6; background: #f8fafc;">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <span class="badge-premium badge-premium-primary">
+                        Date X to Y
+                    </span>
+                </div>
+                <h5 class="font-weight-bold mb-2">Export Changes in SQL</h5>
+                <p class="text-muted small mb-4">Select date range X to Y, filter by updated or created dates, and download incremental table patches in .SQL format.</p>
+            </div>
+            <div>
+                <a href="export_changes.php" class="btn btn-sm btn-primary btn-block font-weight-bold py-2">
+                    <i class="fas fa-file-download mr-1"></i> Open SQL Exporter
                 </a>
             </div>
         </div>
