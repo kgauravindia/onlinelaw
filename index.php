@@ -37,7 +37,7 @@ $website_schema = [
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($meta_desc); ?>">
     <meta name="keywords" content="<?php echo htmlspecialchars($meta_keywords); ?>">
-    <meta name="author" content="OfferPlant">
+    <meta name="author" content="<?php echo htmlspecialchars(!empty($dev_by) ? $dev_by : $inst_name); ?>">
     <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
 
     <!-- Schema.org JSON-LD -->
