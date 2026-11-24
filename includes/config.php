@@ -2,6 +2,24 @@
 // Global Security & File Upload Interceptor (Blocks .php, .bat, .exe, scripts & executables across whole site)
 require_once(__DIR__ . '/security.php');
 
+// Load environment configuration (.env) if present (keeps secrets safe from public repository)
+if (file_exists(__DIR__ . '/../.env')) {
+    $env_file = @file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($env_file) {
+        foreach ($env_file as $line) {
+            $line = trim($line);
+            if (empty($line) || strpos($line, '#') === 0) continue;
+            if (strpos($line, '=') !== false) {
+                list($env_k, $env_v) = explode('=', $line, 2);
+                $env_k = trim($env_k);
+                $env_v = trim($env_v, " \t\n\r\0\x0B\"'");
+                if (!isset($_ENV[$env_k])) $_ENV[$env_k] = $env_v;
+                if (getenv($env_k) === false) putenv("$env_k=$env_v");
+            }
+        }
+    }
+}
+
 // Automatic Output Buffering with GZIP Compression (Compresses HTML responses by 75-85%, speeding up load times)
 if (!ob_get_level() && !headers_sent()) {
     if (extension_loaded('zlib') && !ini_get('zlib.output_compression')) {
@@ -73,19 +91,19 @@ $inst_youtube ='http://youtube.com/offerplanttechnonogiesprivatelimited';
 $inst_linkedin ='http://linkedin.com/company/offerplant';
 $inst_pinterest ='http://pinterest.com/offerplant';
 $inst_app='https://play.google.com/store/apps/details?id=com.offerplant.myadvindia'; 
-$sender_id ="OLAWIN"; // OFFAPP
-$noreply_email ="noreply@olaw.in";
-$auth_key_msg ="b0e99bea1fa7d15e27e1c5fd8e3c868"; // MSG CLUB myadvindia updated on 12 jan 2023 
-$auth_key_sms ="b0e99bea1fa7d15e27e1c5fd8e3c868"; // msg.morg.in API
+$sender_id = getenv('SMS_SENDER_ID') ?: "OLAWIN"; // OFFAPP
+$noreply_email = getenv('NOREPLY_EMAIL') ?: "noreply@olaw.in";
+$auth_key_msg = getenv('SMS_AUTH_KEY') ?: '';
+$auth_key_sms = getenv('SMS_AUTH_KEY') ?: '';
 
-// Hostinger SMTP Email Configuration (from SaranIndex setup)
-if (!defined('SMTP_HOST')) define('SMTP_HOST', 'smtp.hostinger.com');
-if (!defined('SMTP_PORT')) define('SMTP_PORT', 587);
-if (!defined('SMTP_USER')) define('SMTP_USER', 'info@saranindex.com');
-if (!defined('SMTP_PASS')) define('SMTP_PASS', 'Index@@2026');
-if (!defined('SMTP_SECURE')) define('SMTP_SECURE', 'tls');
-if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', 'info@saranindex.com');
-if (!defined('SYSTEM_FROM_NAME')) define('SYSTEM_FROM_NAME', 'Online Law Security');
+// Hostinger SMTP Email Configuration (Environment-driven, no secrets in repository)
+if (!defined('SMTP_HOST')) define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
+if (!defined('SMTP_PORT')) define('SMTP_PORT', getenv('SMTP_PORT') ? (int)getenv('SMTP_PORT') : 587);
+if (!defined('SMTP_USER')) define('SMTP_USER', getenv('SMTP_USER') ?: 'info@saranindex.com');
+if (!defined('SMTP_PASS')) define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
+if (!defined('SMTP_SECURE')) define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'tls');
+if (!defined('SYSTEM_FROM_EMAIL')) define('SYSTEM_FROM_EMAIL', getenv('SYSTEM_FROM_EMAIL') ?: 'info@saranindex.com');
+if (!defined('SYSTEM_FROM_NAME')) define('SYSTEM_FROM_NAME', getenv('SYSTEM_FROM_NAME') ?: 'Online Law Security');
 // Determine if the request is over HTTPS (support Cloudflare, reverse proxies, and direct SSL)
 $protocol = "http";
 if (
@@ -141,7 +159,7 @@ $dev_email ="ask@offerplant.com";
 $dev_contact ="+91 9431 42 6600";
 $api_key = '';
 
-$host_name = 'localhost';
+$host_name = getenv('DB_HOST') ?: 'localhost';
 $is_local = false;
 if (isset($_SERVER['HTTP_HOST'])) {
     $h = strtolower($_SERVER['HTTP_HOST']);
@@ -150,13 +168,13 @@ if (isset($_SERVER['HTTP_HOST'])) {
     }
 }
 if ($is_local) {
-    $db_user = 'root';
-    $db_password = '';
-    $db_name = 'u305984835_onlinelaw'; // Ensure this matches your local database name
+    $db_user = getenv('DB_USER') ?: 'root';
+    $db_password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
+    $db_name = getenv('DB_NAME') ?: 'u305984835_onlinelaw';
 } else {
-    $db_user = 'u305984835_onlinelaw';
-    $db_password = 'Gaurav@@2026';
-    $db_name = 'u305984835_onlinelaw';
+    $db_user = getenv('DB_USER') ?: 'u305984835_onlinelaw';
+    $db_password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
+    $db_name = getenv('DB_NAME') ?: 'u305984835_onlinelaw';
 }
 
 $gender_list =array('','MALE','FEMALE','OTHER');

@@ -1,8 +1,33 @@
-# Environment
+# Environment & Secrets
 .env
-.env.local
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+*.pfx
 
-# IDEs
+# Database & SQL Dumps (Never upload database or SQL files)
+*.sql
+*.sql.gz
+*.sql.zip
+*.sql.*
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.bak
+*.backup
+*.rdb
+dumps/
+backups/
+
+# Sitemaps (Generated dynamically via scripts)
+sitemap*.xml
+sitemap*.xml.gz
+sitemaps/
+
+# IDEs & Editors
 .vscode/
 .idea/
 *.suo
@@ -11,18 +36,20 @@
 *.sln
 *.sw?
 
-# OS
+# OS Generated
 .DS_Store
 Thumbs.db
+ehthumbs.db
 onlinelaw.code-workspace
 
-# Logs
+# Logs & Cache
 *.log
 error_log
 .php_cs.cache
 
 # Temp
 tmp/
+temp/
 
 # User Uploads
 uploads/*

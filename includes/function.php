@@ -896,7 +896,7 @@ function send_system_email($to_email, $to_name, $subject, $body_html) {
             $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'smtp.hostinger.com';
             $mail->SMTPAuth   = true;
             $mail->Username   = defined('SMTP_USER') ? SMTP_USER : 'info@saranindex.com';
-            $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : 'Index@@2026';
+            $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : (getenv('SMTP_PASS') ?: '');
             $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = defined('SMTP_PORT') ? intval(SMTP_PORT) : 587;
             $mail->Timeout    = 15;
