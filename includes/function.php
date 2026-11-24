@@ -1948,6 +1948,34 @@ function render_ad_slot($slot_type = 'horizontal', $slot_id = '', $options = [])
     <?php
     return ob_get_clean();
 }
+
+/**
+ * Retrieve current Git commit hash or version
+ */
+function get_git_commit_hash() {
+    static $hash = null;
+    if ($hash !== null) return $hash;
+
+    $head_file = __DIR__ . '/../.git/HEAD';
+    if (file_exists($head_file)) {
+        $head = trim(@file_get_contents($head_file));
+        if (strpos($head, 'ref:') === 0) {
+            $ref = trim(substr($head, 4));
+            $ref_file = __DIR__ . '/../.git/' . $ref;
+            if (file_exists($ref_file)) {
+                $hash = substr(trim(@file_get_contents($ref_file)), 0, 7);
+            }
+        } elseif (!empty($head)) {
+            $hash = substr($head, 0, 7);
+        }
+    }
+    if (empty($hash)) {
+        $hash = '3009270';
+    }
+    return $hash;
+}
+if (!defined('GIT_VERSION')) define('GIT_VERSION', 'v1.1.0');
+if (!defined('GIT_COMMIT_HASH')) define('GIT_COMMIT_HASH', get_git_commit_hash());
 ?>
 
 
